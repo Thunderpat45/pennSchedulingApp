@@ -1,190 +1,156 @@
-function convertTime(objectProp, start, end){
+function convertTime(start, end){
+    let startEndArray = []
     function convertMinuteTime(hourTime){
         let totalMinutes =
         (Number(hourTime.slice(0,2)*60)) + Number(hourTime.slice(-2));
         return totalMinutes;
     };
-    objectProp.scheduleOptions[2] = convertMinuteTime(start);
-    console.log(convertMinuteTime(start));
-    objectProp.scheduleOptions[3] = convertMinuteTime(end);
-    console.log(convertMinuteTime(end));
-    console.log(objectProp);
-    console.log(objectProp.scheduleOptions);
+    startEndArray.push(convertMinuteTime(start));
+    startEndArray.push(convertMinuteTime(end));
+    return startEndArray
+}
+    
+
+const teamOrderArray = []
+
+function populateteamOrderArray(){
+    for(const team in teamObject){
+        let name = teamObject[team]
+        teamOrderArray[name.rank-1] = name.schedulePreferences;
+
     }
+}
     
-    
-    
-    
-    const teamOrderArray = []
-    function populateteamOrderArray(){
-        for(const team in teamObject){
-            let name = teamObject[team]
-            teamOrderArray[name.rank-1] = name.schedulePreferences;
-    
-        }
-    }
-    
-    
-    
-    function cartesian(...args) {
-        const result = [];
-        const totalArgsIndex = args.length-1;
-        function helper(arr, i) {
-        const currentArgLength = args[i].length;
-            for (let j=0; j<currentArgLength; j++) {
-                let currentIndex = args[i][j];
-                const arraySlice = arr.slice(0); // clone arr
-                arraySlice.push(currentIndex);
-                if (i==totalArgsIndex)
-                    result.push(arraySlice);
-                else
-                    helper(arraySlice, i+1);
-            }
-        }
-        helper([], 0);
-        return result;
-    }
-    
-    function modifiedCartesian(...args) {
-        const result = [];
-        const totalArgsIndex = args.length-1;
-        function helper(arr, i) {
-            const currentArgLength = args[i].length;
-            loop1:for (let j=0; j<currentArgLength; j++) {
-                let currentIndex = args[i][j];
-                const arraySlice = arr.slice(0); // clone arr
-                let scheduleObject = buildScheduleObjectNew();           
-                function checkCoachSpaceAvailability(currentTeam, previousTeamArray){
-        
-                    function populateCurrentTeams(){
-                        for(let team = 0; team<previousTeamArray.length; team++){
-                            for(let day = 0; day<previousTeamArray[team].length; day++){
-                                let trainingOption = previousTeamArray[team][day];
-                                for(let time = trainingOption[2]; time<trainingOption[3];time+=15){
-                                    scheduleObject[trainingOption[1]][time].slots -= teamObject[trainingOption[0]].size;
-                                    scheduleObject[trainingOption[1]][time].strengthCoachAvailability[teamObject[trainingOption[0]].coach] = "no";
-                                    if(time.toString().slice(-2) == "45"){
-                                        time +=40
-                                    }
-                                }    
-                            }
-                        }
-                    }
+
+function modifiedCartesian(...teamRequestArray) {
+    const completeSchedules = [];
+    const totalTeamRequests = teamRequestArray.length-1;
+    function helper(currentScheduleStack, currentTeamIndex){
+        const currentTeam = teamRequestArray[currentTeamIndex]
+        const currentTeamTotalRequests = currentTeam.length;
+        loop1:for (let currentRequestIndex=0; currentRequestIndex<currentTeamTotalRequests; currentRequestIndex++) {
+            let currentRequest = currentTeam[currentRequestIndex];
+            const currentScheduleStackSlice = currentScheduleStack.slice(0); // clone arr
+            let scheduleObject = buildScheduleObjectNew();           
             
-                    function checkCurrentTeam(){
-                        for(let trainingOption = 0; trainingOption<currentTeam.length; trainingOption++){
-                            for(let time = currentTeam[trainingOption][2]; time<currentTeam[trainingOption][3];time+=15){
-                                if(scheduleObject[currentTeam[trainingOption][1]][time].slots - teamObject[currentTeam[trainingOption][0]].size <0 ||
-                                scheduleObject[currentTeam[trainingOption][1]][time].strengthCoachAvailability[teamObject[currentTeam[trainingOption][0]].coach] == "no"){
-                                        return "conflict"
-                                }
-                                if(time.toString().slice(-2) == "45"){
-                                    time +=40
-                                }
+            function checkCoachSpaceAvailability(activeTeam, activeScheduleStack){
+    
+                function populateScheduleObjectWithExistingScheduleStack(){
+                    for(let existingTeamIndex = 0; existingTeamIndex < activeScheduleStack.length; existingTeamIndex++){
+                        let existingTeamTrainingWeek = activeScheduleStack[existingTeamIndex];
+                        for(let day = 0; day<existingTeamTrainingWeek.length; day++){
+                            let existingTeamTrainingDay = existingTeamTrainingWeek[day];
+                            let team = existingTeamTrainingDay[0]
+                            let dayOfWeek = existingTeamTrainingDay[1]
+                            let start = existingTeamTrainingDay[2];
+                            let stop = existingTeamTrainingDay[3]
+                            for(let time = start; time < stop; time += 15){
+                                scheduleObject[dayOfWeek][time].slots -= teamObject[team].size;
+                                scheduleObject[dayOfWeek][time].strengthCoachAvailability[teamObject[team].coach] = "no";
+                                scheduleObject[dayOfWeek][time].existingTeams.push(teamObject[team].name)
+                            }    
+                        }
+                    }
+                }
+        
+                function checkActiveTeam(modifier){
+                    const conflictArray = [];
+                    for(let dayProposalIndex = 0; dayProposalIndex<activeTeam.length; dayProposalIndex++){
+                        let trainingDay = activeTeam[dayProposalIndex]
+                        let team = trainingDay[0];
+                        let dayOfWeek = trainingDay[1]
+                        let start = trainingDay[2];
+                        let stop = trainingDay[3];
+                        for(let time = start + modifier; time< stop + modifier;time+=15){
+                            if(scheduleObject[dayOfWeek][time].slots - teamObject[team].size <0){
+                                let conflict = [`${team}`, "space",`${dayOfWeek}`,`${time}`, `${scheduleObject[dayOfWeek][time].existingTeams}`];
+                                conflictArray.push(conflict)
+                            }else if(scheduleObject[dayOfWeek][time].strengthCoachAvailability[teamObject[team].coach] == "no"){
+                                let conflict = [`${team}`, "coachAvailability",`${dayOfWeek}`,`${time}`, `${scheduleObject[dayOfWeek][time].existingTeams}`];
+                                conflictArray.push(conflict)
                             }
                         }
                     }
-                    populateCurrentTeams()
-                    if(checkCurrentTeam() == "conflict"){
-                        return "conflict"
-                    };
                     
-            
-                }
-                if(checkCoachSpaceAvailability(currentIndex,arraySlice) == "conflict"){
-                    console.log("conflict")
-                    continue loop1;
-                }
-                    /*loop2: for (let k = 0; k<arraySlice.length; k++){
-                        if(currentIndex[1] == arraySlice[k][1]&&
-                        currentIndex[2] == arraySlice[k][2]){
-                            continue loop1
-                        }
-                    }*/
-                arraySlice.push(currentIndex);
-                if (i==totalArgsIndex){
-                    result.push(arraySlice);
-                }else{
-                    helper(arraySlice, i+1);
-                }if(result.length >= 5){
-                    return result;
-                }
-            }
-     
-        }
-        helper([], 0);
-        return result;
-    }
-    
-   
-
-    function checkCoachSpaceAvailability(currentTeam, previousTeamArray){
-        
-        function populateCurrentTeams(){
-            for(let team = 0; team<previousTeamArray; team++){
-                for(let day = 0; day<team.length; day++){
-                    let trainingOption = previousTeamArray[team][day]
-                    scheduleObject[trainingOption[1]][trainingOption[2]].slots -= teamObject[trainingOption[0]].size
-                    scheduleObject[trainingOption[1]][trainingOption[2]].strengthCoachAvailability[teamObject[trainingOption[0].coach]] = "no"
-
-                }
-            }
-        }
-
-        function checkCurrentTeam(){
-            for(let trainingOption = 0; trainingOption<currentTeam; trainingOption++){
-                if(scheduleObject[currentTeam[trainingOption][1]][currentTeam[trainingOption][2]].slots - teamObject[currentTeam[trainingOption][0]].size <0 ||
-                   scheduleObject[currentTeam[trainingOption][1]][currentTeam[trainingOption][2]].strengthCoachAvailability[teamObject[currentTeam[trainingOption][0]].coach] == "no"){
+                    if(conflictArray.length>0){
+                        console.log(conflictArray)
                         return "conflict"
-                }
-            }
-        }
-        populateCurrentTeams()
-        checkCurrentTeam();
-
-    }
-    
-    
-    
-    function buildScheduleObjectNew(){
-        let scheduleObject = {
-            Sun:{},
-            Mon:{},
-            Tue:{},
-            Wed:{},
-            Thu:{},
-            Fri:{},
-            Sat:{},
-        };
-        
-        for(let day in scheduleObject){
-            for(let i = 360; i<1200; i+=15){
-                let hour = Math.floor(i/60);
-                let min;
-                if(i%60 == 0){
-                    min = "00"
-                }else{
-                    min = i%60;
-                }
-                let time = `${hour}${min}`;
-        
-                scheduleObject[day][`${time}`] =
-                    {
-                        slots : 6,
-                        strengthCoachAvailability:
-                        {
-                            Walts:"yes",
-                            Weeks:"yes",
-                            Rivera:"yes",
-                            Brindle:"yes",
-                            Dolan:"yes",
-                            Pifer:"yes",
-                        }
                     }
+                }
+                populateScheduleObjectWithExistingScheduleStack()
+                if(checkActiveTeam(0) == "conflict"){
+                   if(checkActiveTeam(15)!="conflict"){
+
+                   }else{
+                       if(checkActiveTeam(-15)!="conflict"){
+
+                       }else{
+                           if(checkActiveTeam(30)!="conflict"){
+
+                           }else{
+                               if(checkActiveTeam(-30)!="conflict"){
+
+                               }
+                           }
+                       }
+                   }
+                };
+                
+        
+            }
+            if(checkCoachSpaceAvailability(currentRequest,currentScheduleStackSlice) == "conflict"){
+                continue loop1;
+            }
+               
+            currentScheduleStackSlice.push(currentRequest);
+            if (currentTeamIndex==totalTeamRequests){
+                completeSchedules.push(currentScheduleStackSlice);
+            }else{
+                helper(currentScheduleStackSlice, currentTeamIndex+1);
+            }if(completeSchedules.length >= 5){
+                return completeSchedules;
             }
         }
-        return scheduleObject
+    
     }
+    helper([], 0);
+    return completeSchedules;
+}
+  
+    
+function buildScheduleObjectNew(){
+    let scheduleObject = {
+        Sun:{},
+        Mon:{},
+        Tue:{},
+        Wed:{},
+        Thu:{},
+        Fri:{},
+        Sat:{},
+    };
+    
+    for(let day in scheduleObject){
+        for(let i = 360; i<1200; i+=15){
+            let time = i;
+    
+            scheduleObject[day][`${time}`] =
+                {
+                    slots : 6,
+                    strengthCoachAvailability:
+                    {
+                        Walts:"yes",
+                        Weeks:"yes",
+                        Rivera:"yes",
+                        Brindle:"yes",
+                        Dolan:"yes",
+                        Pifer:"yes",
+                    },
+                    existingTeams:[],
+                }
+        }
+    }
+    return scheduleObject
+}
     
     
     
@@ -202,14 +168,14 @@ function convertTime(objectProp, start, end){
             schedulePreferences:
                 [
                     [
-                        ["football","Tue", 1430, 1515, "yes", "yes"],
-                        ["football","Thu", 1430, 1515, "yes", "yes"],
-                        ["football","Fri", 1545, 1615, "yes", "yes"]
+                        ["football","Tue", 870, 915, "yes", "yes"],
+                        ["football","Thu", 870, 915, "yes", "yes"],
+                        ["football","Fri", 945, 975, "yes", "yes"]
                     ],
 
                    /* [
-                        ["football","Mon", 1300, 1400,"yes", "yes"],
-                        ["football","Wed", 1300, 1400,"yes", "yes"]
+                        ["football","Mon", 1300, 840,"yes", "yes"],
+                        ["football","Wed", 1300, 840,"yes", "yes"]
 
                     ]*/
                 ]
@@ -227,14 +193,14 @@ function convertTime(objectProp, start, end){
                 
                 [
                     [
-                        ["basketballWomen","Tue", 700, 815,"yes", "yes"],
-                        ["basketballWomen","Thu", 700, 815,"yes", "yes"],
-                        ["basketballWomen","Fri", 700, 815,"yes", "yes"],
+                        ["basketballWomen","Tue", 420, 495,"yes", "yes"],
+                        ["basketballWomen","Thu", 420, 495,"yes", "yes"],
+                        ["basketballWomen","Fri", 420, 495,"yes", "yes"],
                     ],
 
                     /*[
-                        ["basketballWomen","Mon", 1400, 1500,"yes", "yes"],
-                        ["basketballWomen","Wed", 1400, 1500,"yes", "yes"],
+                        ["basketballWomen","Mon", 840, 900,"yes", "yes"],
+                        ["basketballWomen","Wed", 840, 900,"yes", "yes"],
                     ],*/
                 ]
         },
@@ -248,14 +214,14 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["basketballMen","Tue", 1530, 1630,"yes", "yes"],
-                        ["basketballMen","Thu", 1515, 1615,"yes", "yes"],
-                        ["basketballMen","Fri", 1430, 1530,"yes", "yes"],
+                        ["basketballMen","Tue", 930, 990,"yes", "yes"],
+                        ["basketballMen","Thu", 915, 975,"yes", "yes"],
+                        ["basketballMen","Fri", 870, 930,"yes", "yes"],
                     ],
 
                     /*[
-                        ["basketballMen","Mon", 1500, 1600,"yes", "yes"],
-                        ["basketballMen","Wed", 1600, 1700,"yes", "yes"],
+                        ["basketballMen","Mon", 900, 960,"yes", "yes"],
+                        ["basketballMen","Wed", 960, 1020,"yes", "yes"],
                     ],*/
                 ]
         },
@@ -269,13 +235,13 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["sprintFootball","Tue", 1600, 1700,"yes", "yes"],
-                        ["sprintFootball","Sat", 900, 1000,"yes", "yes"],
+                        ["sprintFootball","Tue", 960, 1020,"yes", "yes"],
+                        ["sprintFootball","Sat", 540, 600,"yes", "yes"],
                     ],
 
                     /*[
-                        ["sprintFootball","Mon", 1500, 1600,"yes", "yes"],
-                        ["sprintFootball","Wed", 1600, 1700,"yes", "yes"],
+                        ["sprintFootball","Mon", 900, 960,"yes", "yes"],
+                        ["sprintFootball","Wed", 960, 1020,"yes", "yes"],
                     ],*/
                 ]
         },
@@ -289,14 +255,14 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["fieldHockey","Mon", 915, 1015,"yes", "yes"],
-                        ["fieldHockey","Wed", 915, 1015,"yes", "yes"],
-                        ["fieldHockey","Fri", 915, 1015,"yes", "yes"],
+                        ["fieldHockey","Mon", 555, 615,"yes", "yes"],
+                        ["fieldHockey","Wed", 555, 615,"yes", "yes"],
+                        ["fieldHockey","Fri", 555, 615,"yes", "yes"],
                     ],
 
                     /*[
-                        ["sprintFootball","Mon", 1500, 1600,"yes", "yes"],
-                        ["sprintFootball","Wed", 1600, 1700,"yes", "yes"],
+                        ["sprintFootball","Mon", 900, 960,"yes", "yes"],
+                        ["sprintFootball","Wed", 960, 1020,"yes", "yes"],
                     ],*/
                 ]
         },
@@ -310,13 +276,13 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["soccerMen","Tue", 1715, 1815,"yes", "yes"],
-                        ["soccerMen","Thu", 1715, 1815,"yes", "yes"],
+                        ["soccerMen","Tue", 1035, 1095,"yes", "yes"],
+                        ["soccerMen","Thu", 1035, 1095,"yes", "yes"],
                     ],
 
                     /*[
-                        ["sprintFootball","Mon", 1500, 1600,"yes", "yes"],
-                        ["sprintFootball","Wed", 1600, 1700,"yes", "yes"],
+                        ["sprintFootball","Mon", 900, 960,"yes", "yes"],
+                        ["sprintFootball","Wed", 960, 1020,"yes", "yes"],
                     ],*/
                 ]
         },
@@ -329,15 +295,10 @@ function convertTime(objectProp, start, end){
             schedulePreferences:
             
                 [
-                    /*[
-                        ["soccerMen","Tue", 1715, 1815,"yes", "yes"],
-                        ["soccerMen","Thu", 1715, 1815,"yes", "yes"],
-                    ],
-
                     [
-                        ["sprintFootball","Mon", 1500, 1600,"yes", "yes"],
-                        ["sprintFootball","Wed", 1600, 1700,"yes", "yes"],
-                    ],*/
+                        ["soccerWomen","Tue", 360, 420,"yes", "yes"],
+                        ["soccerWomen","Thu", 360, 420,"yes", "yes"],
+                    ],
                 ]
         },
 
@@ -350,38 +311,38 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["volleyball","Mon", 730, 830,"yes", "yes"],
-                        ["volleyball","Wed", 730, 830,"yes", "yes"],
+                        ["volleyball","Mon", 450, 510,"yes", "yes"],
+                        ["volleyball","Wed", 450, 510,"yes", "yes"],
                     ],
 
                     [
-                        ["volleyball","Mon", 800, 900,"yes", "yes"],
-                        ["volleyball","Wed", 730, 830,"yes", "yes"],
+                        ["volleyball","Mon", 480, 540,"yes", "yes"],
+                        ["volleyball","Wed", 450, 510,"yes", "yes"],
                     ],
                     
                     [
-                        ["volleyball","Mon", 700, 800,"yes", "yes"],
-                        ["volleyball","Wed", 730, 830,"yes", "yes"],
+                        ["volleyball","Mon", 420, 480,"yes", "yes"],
+                        ["volleyball","Wed", 450, 510,"yes", "yes"],
                     ],
 
                     [
-                        ["volleyball","Mon", 730, 830,"yes", "yes"],
-                        ["volleyball","Wed", 800, 900,"yes", "yes"],
+                        ["volleyball","Mon", 450, 510,"yes", "yes"],
+                        ["volleyball","Wed", 480, 540,"yes", "yes"],
                     ],
 
                     [
-                        ["volleyball","Mon", 730, 830,"yes", "yes"],
-                        ["volleyball","Wed", 700, 800,"yes", "yes"],
+                        ["volleyball","Mon", 450, 510,"yes", "yes"],
+                        ["volleyball","Wed", 420, 480,"yes", "yes"],
                     ],
                     
                     [
-                        ["volleyball","Mon", 800, 900,"yes", "yes"],
-                        ["volleyball","Wed", 800, 900,"yes", "yes"],
+                        ["volleyball","Mon", 480, 540,"yes", "yes"],
+                        ["volleyball","Wed", 480, 540,"yes", "yes"],
                     ],
 
                     [
-                        ["volleyball","Mon", 700, 800,"yes", "yes"],
-                        ["volleyball","Wed", 700, 800,"yes", "yes"],
+                        ["volleyball","Mon", 420, 480,"yes", "yes"],
+                        ["volleyball","Wed", 420, 480,"yes", "yes"],
                     ],
                       
                 ]
@@ -396,8 +357,8 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["crossCountry","Mon", 1700, 1730,"yes", "yes"],
-                        ["crossCountry","Wed", 1700, 1730,"yes", "yes"],
+                        ["crossCountry","Mon", 1020, 1050,"yes", "yes"],
+                        ["crossCountry","Wed", 1020, 1050,"yes", "yes"],
                     ],
                 ]
         },
@@ -411,51 +372,51 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["wrestling","Mon", 700, 800,"yes", "yes"],
-                        ["wrestling","Wed", 1600, 1700,"yes", "yes"],
-                        ["wrestling","Sat", 900, 1000,"yes", "yes"]
+                        ["wrestling","Mon", 420, 480,"yes", "yes"],
+                        ["wrestling","Wed", 960, 1020,"yes", "yes"],
+                        ["wrestling","Sat", 540, 600,"yes", "yes"]
                     ],
 
                     [
-                        ["wrestling","Mon", 700, 800,"yes", "yes"],
-                        ["wrestling","Wed", 1700, 1800,"yes", "yes"],
-                        ["wrestling","Sat", 900, 1000,"yes", "yes"]
+                        ["wrestling","Mon", 420, 480,"yes", "yes"],
+                        ["wrestling","Wed", 1020, 1080,"yes", "yes"],
+                        ["wrestling","Sat", 540, 600,"yes", "yes"]
                     ],
 
                     [
-                        ["wrestling","Mon", 700, 800,"yes", "yes"],
-                        ["wrestling","Wed", 1600, 1700,"yes", "yes"],
-                        ["wrestling","Sat", 1000, 1100,"yes", "yes"]
+                        ["wrestling","Mon", 420, 480,"yes", "yes"],
+                        ["wrestling","Wed", 960, 1020,"yes", "yes"],
+                        ["wrestling","Sat", 600, 660,"yes", "yes"]
                     ],
 
                     [
-                        ["wrestling","Mon", 730, 830,"yes", "yes"],
-                        ["wrestling","Wed", 1600, 1700,"yes", "yes"],
-                        ["wrestling","Sat", 900, 1000,"yes", "yes"]
+                        ["wrestling","Mon", 450, 510,"yes", "yes"],
+                        ["wrestling","Wed", 960, 1020,"yes", "yes"],
+                        ["wrestling","Sat", 540, 600,"yes", "yes"]
                     ],
 
                     [
-                        ["wrestling","Mon", 700, 800,"yes", "yes"],
-                        ["wrestling","Wed", 1700, 1800,"yes", "yes"],
-                        ["wrestling","Sat", 1000, 1100,"yes", "yes"]
+                        ["wrestling","Mon", 420, 480,"yes", "yes"],
+                        ["wrestling","Wed", 1020, 1080,"yes", "yes"],
+                        ["wrestling","Sat", 600, 660,"yes", "yes"]
                     ],
 
                     [
-                        ["wrestling","Mon", 730, 830,"yes", "yes"],
-                        ["wrestling","Wed", 1700, 1800,"yes", "yes"],
-                        ["wrestling","Sat", 900, 1000,"yes", "yes"]
+                        ["wrestling","Mon", 450, 510,"yes", "yes"],
+                        ["wrestling","Wed", 1020, 1080,"yes", "yes"],
+                        ["wrestling","Sat", 540, 600,"yes", "yes"]
                     ],
 
                     [
-                        ["wrestling","Mon", 730, 830,"yes", "yes"],
-                        ["wrestling","Wed", 1600, 1700,"yes", "yes"],
-                        ["wrestling","Sat", 1000, 1100,"yes", "yes"]
+                        ["wrestling","Mon", 450, 510,"yes", "yes"],
+                        ["wrestling","Wed", 960, 1020,"yes", "yes"],
+                        ["wrestling","Sat", 600, 660,"yes", "yes"]
                     ],
 
                     [
-                        ["wrestling","Mon", 730, 830,"yes", "yes"],
-                        ["wrestling","Wed", 1700, 1800,"yes", "yes"],
-                        ["wrestling","Sat", 1000, 1100,"yes", "yes"]
+                        ["wrestling","Mon", 450, 510,"yes", "yes"],
+                        ["wrestling","Wed", 1020, 1080,"yes", "yes"],
+                        ["wrestling","Sat", 600, 660,"yes", "yes"]
                     ],
 
                 ]
@@ -470,9 +431,9 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["swimDive","Mon", 800, 900,"yes", "yes"],
-                        ["swimDive","Wed", 800, 900,"yes", "yes"],
-                        ["swimDive","Fri", 800, 900,"yes", "yes"],
+                        ["swimDive","Mon", 480, 540,"yes", "yes"],
+                        ["swimDive","Wed", 480, 540,"yes", "yes"],
+                        ["swimDive","Fri", 480, 540,"yes", "yes"],
                     ],
                 ]
         },
@@ -486,9 +447,9 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["trackFieldPifer","Mon", 1730, 1830,"yes", "yes"],
-                        ["trackFieldPifer","Wed", 1730, 1830,"yes", "yes"],
-                        ["trackFieldPifer","Fri", 1730, 1830,"yes", "yes"],
+                        ["trackFieldPifer","Mon", 1050, 1110,"yes", "yes"],
+                        ["trackFieldPifer","Wed", 1050, 1110,"yes", "yes"],
+                        ["trackFieldPifer","Fri", 1050, 1110,"yes", "yes"],
                     ],
                 ]
         },
@@ -502,9 +463,9 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["trackFieldDolan","Mon", 1730, 1830,"yes", "yes"],
-                        ["trackFieldDolan","Wed", 1730, 1830,"yes", "yes"],
-                        ["trackFieldDolan","Fri", 1730, 1830,"yes", "yes"],
+                        ["trackFieldDolan","Mon", 1050, 1110,"yes", "yes"],
+                        ["trackFieldDolan","Wed", 1050, 1110,"yes", "yes"],
+                        ["trackFieldDolan","Fri", 1050, 1110,"yes", "yes"],
                     ],
                 ]
         },
@@ -518,9 +479,9 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["lacrosseMen","Mon", 1600, 1700,"yes", "yes"],
-                        ["lacrosseMen","Wed", 1515, 1615,"yes", "yes"],
-                        ["lacrosseMen","Fri", 1600, 1700,"yes", "yes"],
+                        ["lacrosseMen","Mon", 960, 1020,"yes", "yes"],
+                        ["lacrosseMen","Wed", 915, 975,"yes", "yes"],
+                        ["lacrosseMen","Fri", 960, 1020,"yes", "yes"],
                     ],
                 ]
         },
@@ -534,8 +495,8 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["lacrosseWomen","Tue", 730, 830,"yes", "yes"],
-                        ["lacrosseWomen","Fri", 800, 900,"yes", "yes"],
+                        ["lacrosseWomen","Tue", 450, 510,"yes", "yes"],
+                        ["lacrosseWomen","Fri", 480, 540,"yes", "yes"],
                     ],
                 ]
         },
@@ -549,9 +510,9 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["baseball","Tue", 700, 800,"yes", "yes"],
-                        ["baseball","Thu", 1600, 1700,"yes", "yes"],
-                        ["baseball","Sat", 1400, 1500,"yes", "yes"],
+                        ["baseball","Tue", 420, 480,"yes", "yes"],
+                        ["baseball","Thu", 960, 1020,"yes", "yes"],
+                        ["baseball","Sat", 840, 900,"yes", "yes"],
                     ],
                 ]
         },
@@ -565,8 +526,8 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["softball","Tue", 1400, 1500,"yes", "yes"],
-                        ["softball","Thu", 1400, 1500,"yes", "yes"],
+                        ["softball","Tue", 840, 900,"yes", "yes"],
+                        ["softball","Thu", 840, 900,"yes", "yes"],
                     ],
                 ]
         },
@@ -580,8 +541,8 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["golfMen","Tue", 600, 700,"yes", "yes"],
-                        ["golfMen","Thu", 600, 700,"yes", "yes"],
+                        ["golfMen","Tue", 360, 420,"yes", "yes"],
+                        ["golfMen","Thu", 360, 420,"yes", "yes"],
                     ],
                 ]
         },
@@ -595,8 +556,8 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["golfWomen","Tue", 700, 800,"yes", "yes"],
-                        ["golfWomen","Thu", 700, 800,"yes", "yes"],
+                        ["golfWomen","Tue", 420, 480,"yes", "yes"],
+                        ["golfWomen","Thu", 420, 480,"yes", "yes"],
                     ],
                 ]
         },
@@ -610,8 +571,8 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["tennisMen","Tue", 1615, 1700,"yes", "yes"],
-                        ["tennisMen","Thu", 1615, 1700,"yes", "yes"],
+                        ["tennisMen","Tue", 975, 1020,"yes", "yes"],
+                        ["tennisMen","Thu", 975, 1020,"yes", "yes"],
                     ],
                 ]
         },
@@ -625,13 +586,13 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["tennisWomen","Tue", 1615, 1700,"yes", "yes"],
-                        ["tennisWomen","Thu", 1615, 1700,"yes", "yes"],
+                        ["tennisWomen","Tue", 975, 1020,"yes", "yes"],
+                        ["tennisWomen","Thu", 975, 1020,"yes", "yes"],
                     ],
 
                     [
-                        ["tennisWomen","Mon", 1615, 1700,"yes", "yes"],
-                        ["tennisWomen","Wed", 1615, 1700,"yes", "yes"],
+                        ["tennisWomen","Mon", 975, 1020,"yes", "yes"],
+                        ["tennisWomen","Wed", 975, 1020,"yes", "yes"],
                     ],
                 ]
         },
@@ -645,18 +606,18 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["lightweightCrewMen","Tue", 1700, 1800,"yes", "yes"],
-                        ["lightweightCrewMen","Sat", 1130, 1230,"yes", "yes"],
+                        ["lightweightCrewMen","Tue", 1020, 1080,"yes", "yes"],
+                        ["lightweightCrewMen","Sat", 690, 750,"yes", "yes"],
                     ],
 
                     [
-                        ["lightweightCrewMen","Tue", 1630, 1730,"yes", "yes"],
-                        ["lightweightCrewMen","Sat", 1130, 1230,"yes", "yes"],
+                        ["lightweightCrewMen","Tue", 990, 1050,"yes", "yes"],
+                        ["lightweightCrewMen","Sat", 690, 750,"yes", "yes"],
                     ],
 
                     [
-                        ["lightweightCrewMen","Tue", 1730, 1830,"yes", "yes"],
-                        ["lightweightCrewMen","Sat", 1130, 1230,"yes", "yes"],
+                        ["lightweightCrewMen","Tue", 1050, 1110,"yes", "yes"],
+                        ["lightweightCrewMen","Sat", 690, 750,"yes", "yes"],
                     ],
 
                     
@@ -672,17 +633,17 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["crewWomen","Mon", 630, 715,"yes", "yes"],
-                        ["crewWomen","Tue", 630, 715,"yes", "yes"],
-                        ["crewWomen","Thu", 630, 715,"yes", "yes"],
-                        ["crewWomen","Fri", 630, 715,"yes", "yes"],
+                        ["crewWomen","Mon", 390, 435,"yes", "yes"],
+                        ["crewWomen","Tue", 390, 435,"yes", "yes"],
+                        ["crewWomen","Thu", 390, 435,"yes", "yes"],
+                        ["crewWomen","Fri", 390, 435,"yes", "yes"],
                     ],
 
                     [
-                        ["crewWomen","Mon", 1600, 1645,"yes", "yes"],
-                        ["crewWomen","Tue", 1600, 1645,"yes", "yes"],
-                        ["crewWomen","Thu", 1600, 1645,"yes", "yes"],
-                        ["crewWomen","Fri", 630, 715,"yes", "yes"],
+                        ["crewWomen","Mon", 960, 1005,"yes", "yes"],
+                        ["crewWomen","Tue", 960, 1005,"yes", "yes"],
+                        ["crewWomen","Thu", 960, 1005,"yes", "yes"],
+                        ["crewWomen","Fri", 390, 435,"yes", "yes"],
                     ],
                     
                 ]
@@ -697,8 +658,8 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["heavyweightCrewMen","Mon", 800, 900,"yes", "yes"],
-                        ["heavyweightCrewMen","Wed", 800, 900,"yes", "yes"],
+                        ["heavyweightCrewMen","Mon", 480, 540,"yes", "yes"],
+                        ["heavyweightCrewMen","Wed", 480, 540,"yes", "yes"],
                     ],
                     
                 ]
@@ -713,18 +674,18 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["cheerleading","Mon", 1600, 1700,"yes", "yes"],
-                        ["cheerleading","Thu", 1700, 1800,"yes", "yes"],
+                        ["cheerleading","Mon", 960, 1020,"yes", "yes"],
+                        ["cheerleading","Thu", 1020, 1080,"yes", "yes"],
                     ],
 
                     [
-                        ["cheerleading","Mon", 1700, 1800,"yes", "yes"],
-                        ["cheerleading","Thu", 1700, 1800,"yes", "yes"],
+                        ["cheerleading","Mon", 1020, 1080,"yes", "yes"],
+                        ["cheerleading","Thu", 1020, 1080,"yes", "yes"],
                     ],
 
                     [
-                        ["cheerleading","Mon", 1800, 1900,"yes", "yes"],
-                        ["cheerleading","Thu", 1700, 1800,"yes", "yes"],
+                        ["cheerleading","Mon", 1080, 1140,"yes", "yes"],
+                        ["cheerleading","Thu", 1020, 1080,"yes", "yes"],
                     ],
                     
                 ]
@@ -739,23 +700,23 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["fencing","Mon", 1700, 1800,"yes", "yes"],
-                        ["fencing","Wed", 1700, 1800,"yes", "yes"],
+                        ["fencing","Mon", 1020, 1080,"yes", "yes"],
+                        ["fencing","Wed", 1020, 1080,"yes", "yes"],
                     ],
 
                     [
-                        ["fencing","Tue", 1700, 1800,"yes", "yes"],
-                        ["fencing","Thu", 1700, 1800,"yes", "yes"],
+                        ["fencing","Tue", 1020, 1080,"yes", "yes"],
+                        ["fencing","Thu", 1020, 1080,"yes", "yes"],
                     ],
 
                     [
-                        ["fencing","Mon", 1600, 1700,"yes", "yes"],
-                        ["fencing","Wed", 1600, 1700,"yes", "yes"],
+                        ["fencing","Mon", 960, 1020,"yes", "yes"],
+                        ["fencing","Wed", 960, 1020,"yes", "yes"],
                     ],
 
                     [
-                        ["fencing","Tue", 1600, 1700,"yes", "yes"],
-                        ["fencing","Thu", 1600, 1700,"yes", "yes"],
+                        ["fencing","Tue", 960, 1020,"yes", "yes"],
+                        ["fencing","Thu", 960, 1020,"yes", "yes"],
                     ],
                     
                 ]
@@ -770,7 +731,7 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["gymnastics","Thu", 1700, 1800,"yes", "yes"],
+                        ["gymnastics","Thu", 1020, 1080,"yes", "yes"],
                         
                     ],
                     
@@ -786,8 +747,8 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["squashMen","Tue", 730, 830,"yes", "yes"],
-                        ["squashMen","Thu", 730, 830,"yes", "yes"],    
+                        ["squashMen","Tue", 450, 510,"yes", "yes"],
+                        ["squashMen","Thu", 450, 510,"yes", "yes"],    
                     ],
                     
                 ]
@@ -802,8 +763,8 @@ function convertTime(objectProp, start, end){
             
                 [
                     [
-                        ["squashWomen","Tue", 730, 830,"yes", "yes"],
-                        ["squashWomen","Thu", 730, 830,"yes", "yes"],    
+                        ["squashWomen","Tue", 450, 510,"yes", "yes"],
+                        ["squashWomen","Thu", 450, 510,"yes", "yes"],    
                     ],
                 ]
         },
