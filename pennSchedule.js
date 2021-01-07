@@ -24,14 +24,18 @@ function populateteamOrderArray(){
 
 function modifiedCartesian(...teamRequestArray) {
     const completeSchedules = [];
+    let longestStack = [];
     const totalTeamRequests = teamRequestArray.length-1;
+    
     function helper(currentScheduleStack, currentTeamIndex){
         const currentTeam = teamRequestArray[currentTeamIndex]
         const currentTeamTotalRequests = currentTeam.length;
-        loop1:for (let currentRequestIndex=0; currentRequestIndex<currentTeamTotalRequests; currentRequestIndex++) {
+        
+        loop1:for (let currentRequestIndex=0; currentRequestIndex<currentTeamTotalRequests; currentRequestIndex++){
             let currentRequest = currentTeam[currentRequestIndex];
-            const currentScheduleStackSlice = currentScheduleStack.slice(0); // clone arr
-            let scheduleObject = buildScheduleObjectNew();           
+            const currentScheduleStackSlice = currentScheduleStack.slice(0); 
+            let scheduleObject = buildScheduleObjectNew();
+            let bestChoice = []           
             
             function checkCoachSpaceAvailability(activeTeam, activeScheduleStack){
     
@@ -53,56 +57,74 @@ function modifiedCartesian(...teamRequestArray) {
                     }
                 }
         
-                function checkActiveTeam(modifier){
-                    const conflictArray = [];
+                function checkActiveTeam(){
+                    //best choice other location
                     for(let dayProposalIndex = 0; dayProposalIndex<activeTeam.length; dayProposalIndex++){
                         let trainingDay = activeTeam[dayProposalIndex]
                         let team = trainingDay[0];
                         let dayOfWeek = trainingDay[1]
                         let start = trainingDay[2];
                         let stop = trainingDay[3];
-                        for(let time = start + modifier; time< stop + modifier;time+=15){
-                            if(scheduleObject[dayOfWeek][time].slots - teamObject[team].size <0){
-                                let conflict = [`${team}`, "space",`${dayOfWeek}`,`${time}`, `${scheduleObject[dayOfWeek][time].existingTeams}`];
-                                conflictArray.push(conflict)
-                            }else if(scheduleObject[dayOfWeek][time].strengthCoachAvailability[teamObject[team].coach] == "no"){
-                                let conflict = [`${team}`, "coachAvailability",`${dayOfWeek}`,`${time}`, `${scheduleObject[dayOfWeek][time].existingTeams}`];
-                                conflictArray.push(conflict)
+                        let validTime = [team, dayOfWeek, start, stop, "yes", "yes"  ]
+                        
+                         
+                        function evaluateTime(modifier){                                                     
+                            for(let time = start + modifier; time < stop + modifier;time+=15){
+                                if(scheduleObject[dayOfWeek][time].strengthCoachAvailability[teamObject[team].coach] == "no"){                                    
+                                    return "conflict"
+                                }else if(scheduleObject[dayOfWeek][time].slots - teamObject[team].size <0){                                  
+                                    return "conflict"
+                                }
+                            }   
+                        }
+                        if(evaluateTime(0) == "conflict"){
+                            if(evaluateTime(-15) == "conflict"){
+                                if(evaluateTime(15) == "conflict"){
+                                    if(evaluateTime(-30) == "conflict"){
+                                        if(evaluateTime(30) == "conflict"){
+                                            console.log(`Scheduling conflicts for ${team} on ${dayOfWeek} at ${start}(+/-30)`)
+                                            return "completeConflict"
+                                        }else{
+                                            validTime[2] = start + 30
+                                            validTime[3] = stop + 30
+                                            bestChoice.push(validTime)  
+                                        }
+                                    }else{
+                                        validTime[2] = start + -30
+                                        validTime[3] = stop + -30
+                                        bestChoice.push(validTime)
+                                    }
+                                }else{
+                                    validTime[2] = start + 15
+                                    validTime[3] = stop + 15
+                                    bestChoice.push(validTime)
+                                }
+                            }else{
+                                validTime[2] = start + -15
+                                validTime[3] = stop + -15
+                                bestChoice.push(validTime)
                             }
+                        }else{
+                            bestChoice.push(validTime)
                         }
                     }
-                    
-                    if(conflictArray.length>0){
-                        console.log(conflictArray)
-                        return "conflict"
-                    }
+                    //return bestChoice                               
                 }
                 populateScheduleObjectWithExistingScheduleStack()
-                if(checkActiveTeam(0) == "conflict"){
-                   if(checkActiveTeam(15)!="conflict"){
-
-                   }else{
-                       if(checkActiveTeam(-15)!="conflict"){
-
-                       }else{
-                           if(checkActiveTeam(30)!="conflict"){
-
-                           }else{
-                               if(checkActiveTeam(-30)!="conflict"){
-
-                               }
-                           }
-                       }
-                   }
-                };
-                
+                if(checkActiveTeam() == "completeConflict"){
+                   return "completeConflict"
+                }             
         
             }
-            if(checkCoachSpaceAvailability(currentRequest,currentScheduleStackSlice) == "conflict"){
+            if(checkCoachSpaceAvailability(currentRequest,currentScheduleStackSlice) == "completeConflict"){
                 continue loop1;
             }
-               
-            currentScheduleStackSlice.push(currentRequest);
+                
+            currentScheduleStackSlice.push(bestChoice);
+
+            if(currentScheduleStackSlice.length > longestStack.length){
+                longestStack = currentScheduleStackSlice
+            }
             if (currentTeamIndex==totalTeamRequests){
                 completeSchedules.push(currentScheduleStackSlice);
             }else{
@@ -114,7 +136,11 @@ function modifiedCartesian(...teamRequestArray) {
     
     }
     helper([], 0);
+    if(completeSchedules.length == 0){
+        return longestStack
+    }else{
     return completeSchedules;
+    }
 }
   
     
@@ -559,6 +585,11 @@ function buildScheduleObjectNew(){
                         ["golfWomen","Tue", 420, 480,"yes", "yes"],
                         ["golfWomen","Thu", 420, 480,"yes", "yes"],
                     ],
+
+                    [
+                        ["golfWomen","Mon", 420, 480,"yes", "yes"],
+                        ["golfWomen","Wed", 420, 480,"yes", "yes"],
+                    ],
                 ]
         },
 
@@ -685,7 +716,7 @@ function buildScheduleObjectNew(){
 
                     [
                         ["cheerleading","Mon", 1080, 1140,"yes", "yes"],
-                        ["cheerleading","Thu", 1020, 1080,"yes", "yes"],
+                        ["cheerleading","Thu", 1080, 1140,"yes", "yes"],
                     ],
                     
                 ]
