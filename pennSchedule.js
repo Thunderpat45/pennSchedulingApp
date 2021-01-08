@@ -1,3 +1,5 @@
+
+//convert militaryTime to time in totalMinutes, defunct?
 function convertTime(start, end){
     let startEndArray = []
     function convertMinuteTime(hourTime){
@@ -10,7 +12,7 @@ function convertTime(start, end){
     return startEndArray
 }
     
-
+//sorts the scheduling preferences of all teams in teamObject into teamOrderArray by their assigned "rank"
 const teamOrderArray = []
 
 function populateteamOrderArray(){
@@ -21,24 +23,40 @@ function populateteamOrderArray(){
     }
 }
     
-
+/*evaluates all possible scheduling combinations for conflicts by coachAvailablity and spaceAvailabity, and returns up to 5 full optimized schedules,
+ or, if no full schedule works with the options provided, returns the longest stack that was built during the attempt*/
 function modifiedCartesian(...teamRequestArray) {
+    
+    /*variables for optimized schedule; longest stack built; any non-viable training day requests,
+    and the total amount of teams in the list, respectively*/
     const completeSchedules = [];
     let longestStack = [];
+    const conflictArray = []
     const totalTeamRequests = teamRequestArray.length-1;
-    
+ 
+    /*function accepting parameters of current scheduling stack to this point, and the index of current team (from teamRequestArray parameter) 
+    being evaluated for availability, with variables for the currentTeam subArray, and the length of the currentTeam which is the amount of requests
+    they submitted*/
+
     function helper(currentScheduleStack, currentTeamIndex){
         const currentTeam = teamRequestArray[currentTeamIndex]
         const currentTeamTotalRequests = currentTeam.length;
         
+        /*loop that iterates through each request for current Team, with variables for slice of current scheduling stack, 
+        a freshly generated blank schedule, and an empty array to push options that work */
         loop1:for (let currentRequestIndex=0; currentRequestIndex<currentTeamTotalRequests; currentRequestIndex++){
             let currentRequest = currentTeam[currentRequestIndex];
             const currentScheduleStackSlice = currentScheduleStack.slice(0); 
             let scheduleObject = buildScheduleObjectNew();
             let bestChoice = []           
             
+            //function that checks active Team availability against current scheduling stack
             function checkCoachSpaceAvailability(activeTeam, activeScheduleStack){
     
+                /*function that populates the blank schedule with each team of the current scheduling stack, 
+                by "occupying" (subtracting) the appropriate # of slots out of total weight room space (unless they are training in remote location), 
+                marking the respective strength coach as no longer available, and adding the team to a list of teams in that slot;
+                doing it for every 15 mins that the team has up to the duration of the session*/
                 function populateScheduleObjectWithExistingScheduleStack(){
                     for(let existingTeamIndex = 0; existingTeamIndex < activeScheduleStack.length; existingTeamIndex++){
                         let existingTeamTrainingWeek = activeScheduleStack[existingTeamIndex];
@@ -48,26 +66,32 @@ function modifiedCartesian(...teamRequestArray) {
                             let dayOfWeek = existingTeamTrainingDay[1]
                             let start = existingTeamTrainingDay[2];
                             let stop = existingTeamTrainingDay[3]
+                            let inWeightRoom = existingTeamTrainingDay[4]
                             for(let time = start; time < stop; time += 15){
-                                scheduleObject[dayOfWeek][time].slots -= teamObject[team].size;
+                                if(inWeightRoom == "yes"){
+                                    scheduleObject[dayOfWeek][time].slots -= teamObject[team].size;
+                                    scheduleObject[dayOfWeek][time].existingTeams.push(teamObject[team].name)
+                                }else{
+                                    scheduleObject[dayOfWeek][time].existingTeams.push(`${teamObject[team].name} off-site`)
+                                }
                                 scheduleObject[dayOfWeek][time].strengthCoachAvailability[teamObject[team].coach] = "no";
-                                scheduleObject[dayOfWeek][time].existingTeams.push(teamObject[team].name)
                             }    
                         }
                     }
                 }
-        
+                /* function that compares each day of the "to be scheduled" team's current proposal, checking that for every 15min
+                between start and stop, both the space and coach is free, with a variable that imitates (but does not shallow copy) the current proposal */
                 function checkActiveTeam(){
-                    //best choice other location
                     for(let dayProposalIndex = 0; dayProposalIndex<activeTeam.length; dayProposalIndex++){
                         let trainingDay = activeTeam[dayProposalIndex]
                         let team = trainingDay[0];
                         let dayOfWeek = trainingDay[1]
                         let start = trainingDay[2];
                         let stop = trainingDay[3];
-                        let validTime = [team, dayOfWeek, start, stop, "yes", "yes"  ]
+                        let inWeightRoom = trainingDay[4]
+                        let validTime = [team, dayOfWeek, start, stop, inWeightRoom, "yes"  ];
+                       
                         
-                         
                         function evaluateTime(modifier){                                                     
                             for(let time = start + modifier; time < stop + modifier;time+=15){
                                 if(scheduleObject[dayOfWeek][time].strengthCoachAvailability[teamObject[team].coach] == "no"){                                    
@@ -77,12 +101,17 @@ function modifiedCartesian(...teamRequestArray) {
                                 }
                             }   
                         }
+                        /*conditions of checkActiveTeam that assess: if original proposed day works, push it to bestChoice array;
+                        if not, if adding/subtracting up to 30 mins from start and end time will allow a conflicting proposed time to still fit in a relatively similar spot, 
+                        modify the proposal imitation to change the start/end times appropriately(without modifiying the actual proposed times, just in case). 
+                        Otherwise, returns completeConflict to indicate that no variation of the time proposed for that day works,
+                        and pushes conflicting day/time to conflictArray*/
                         if(evaluateTime(0) == "conflict"){
                             if(evaluateTime(-15) == "conflict"){
                                 if(evaluateTime(15) == "conflict"){
                                     if(evaluateTime(-30) == "conflict"){
                                         if(evaluateTime(30) == "conflict"){
-                                            console.log(`Scheduling conflicts for ${team} on ${dayOfWeek} at ${start}(+/-30)`)
+                                            conflictArray.push([`${team}`,`${dayOfWeek}`,`${start}(+/-30)`])
                                             return "completeConflict"
                                         }else{
                                             validTime[2] = start + 30
@@ -107,8 +136,7 @@ function modifiedCartesian(...teamRequestArray) {
                         }else{
                             bestChoice.push(validTime)
                         }
-                    }
-                    //return bestChoice                               
+                    }                              
                 }
                 populateScheduleObjectWithExistingScheduleStack()
                 if(checkActiveTeam() == "completeConflict"){
@@ -116,34 +144,122 @@ function modifiedCartesian(...teamRequestArray) {
                 }             
         
             }
+            //if a day in the current proposal cannot fit after all variations, moves on to the next full proposal set for that team
             if(checkCoachSpaceAvailability(currentRequest,currentScheduleStackSlice) == "completeConflict"){
                 continue loop1;
             }
-                
+            //if successful at finding a time for each day proposed, pushes the team's option to the current schedule stack    
             currentScheduleStackSlice.push(bestChoice);
 
+            //if the current size of the schedule stack is longer than the longest stack length, the current schedule stack becomes the longest stack
             if(currentScheduleStackSlice.length > longestStack.length){
                 longestStack = currentScheduleStackSlice
             }
+            /*if the stack adds every team and reaches this point, it is a full schedule, 
+            and it is pushed to the completeSchedules array as a viable schedule to use,
+            otherwise, the helper function runs again for the next team in the teamRequestArray */
             if (currentTeamIndex==totalTeamRequests){
                 completeSchedules.push(currentScheduleStackSlice);
             }else{
                 helper(currentScheduleStackSlice, currentTeamIndex+1);
-            }if(completeSchedules.length >= 5){
-                return completeSchedules;
+            }
+            //if 5 full schedules can be made, stops evaluating any more options, returns 5 full schedules and conflictArray
+            if(completeSchedules.length == 5){
+                return [completeSchedules, conflictArray];
             }
         }
     
     }
+
+    //initiates an empty "previous team" stack, and starts evaluation of first team
     helper([], 0);
+
+    /*if no full schedule can be made, return the longest stack that was able to be created to see the best schedule that was attempted, 
+    and where it failed, otherwise, after all possible combinations have been assessed, return all full schedules created, both return with 
+    conflictArray*/
     if(completeSchedules.length == 0){
-        return longestStack
+        return [longestStack, conflictArray]
     }else{
-    return completeSchedules;
+        return [completeSchedules, conflictArray];
     }
 }
-  
+
+/*object that holds coaches preferred or known unavailabilities to schedule teams */
+const coachPreferencesObject = {
+    Dolan:{
+        Sun:[[360, 1200]],
+        Mon:[],
+        Tue:[],
+        Wed:[],
+        Thu:[],
+        Fri:[],
+        Sat:[[360,540], [720,1200]]
+
+    },
+        
     
+    Pifer:{
+        Sun:[],
+        Mon:[],
+        Tue:[],
+        Wed:[],
+        Thu:[],
+        Fri:[],
+        Sat:[]
+
+    },
+
+    Brindle:{
+        Sun:[],
+        Mon:[],
+        Tue:[],
+        Wed:[],
+        Thu:[],
+        Fri:[],
+        Sat:[]
+
+    },
+    Walts:{
+        Sun:[],
+        Mon:[],
+        Tue:[],
+        Wed:[],
+        Thu:[],
+        Fri:[],
+        Sat:[],
+
+    },
+
+    Weeks:{
+        Sun:[],
+        Mon:[],
+        Tue:[],
+        Wed:[],
+        Thu:[],
+        Fri:[],
+        Sat:[]
+
+    },
+
+    Rivera:{
+        Sun:[],
+        Mon:[],
+        Tue:[],
+        Wed:[],
+        Thu:[],
+        Fri:[],
+        Sat:[]
+
+    },
+}
+
+
+
+/*function to build blank schedule object for each new team evaluation, for each day of week, 6am-8pm, with every 15m(we have 15 mins in our intervals for scheduling)
+having x slots (available training spaces, an array to indicate each coach's availability, (accounting for requests in coachPreference Object),
+ and an empty array to fill with teams that schedule in that block.
+The reason for building a blank object each time was to ensure that previous attempts down a different tree line didn't "mark up" the schedule as filled
+for teams that were no longer actually scheduled due to the recursion backtracking*/     
 function buildScheduleObjectNew(){
     let scheduleObject = {
         Sun:{},
@@ -156,23 +272,29 @@ function buildScheduleObjectNew(){
     };
     
     for(let day in scheduleObject){
-        for(let i = 360; i<1200; i+=15){
-            let time = i;
+        for(let time = 360; time<1200; time+=15){
     
-            scheduleObject[day][`${time}`] =
+            scheduleObject[day][time] =
                 {
                     slots : 6,
-                    strengthCoachAvailability:
-                    {
-                        Walts:"yes",
-                        Weeks:"yes",
-                        Rivera:"yes",
-                        Brindle:"yes",
-                        Dolan:"yes",
-                        Pifer:"yes",
+                    strengthCoachAvailability:{
+                        Dolan: "yes",
+                        Pifer: "yes",
+                        Rivera: "yes",
+                        Brindle: "yes",
+                        Walts: "yes",
+                        Weeks: "yes",
                     },
                     existingTeams:[],
                 }
+            for(let name in coachPreferencesObject){
+                let coach = coachPreferencesObject[name][day]
+                    for(let preference = 0; preference<coach.length; preference++){ 
+                        if(time>=coach[preference][0] && time<coach[preference][1]){
+                            scheduleObject[day][time].strengthCoachAvailability[name] = "no"
+                        }
+                    }
+            }
         }
     }
     return scheduleObject
@@ -180,10 +302,12 @@ function buildScheduleObjectNew(){
     
     
     
-    //cartesian.apply(null, teamOrderArray);
+ 
     
 
-    //schedulePreferences arrayFormat = [teamName, day, time, duration, inWeightRoom, BBnecessary]
+    /*sample schedule object built from previous attempt in F2019, 
+    with subObject by team name, and listing name, coach, rank, team size (relative to slots), and schedule preferences
+    schedulePreferences per day arrayFormat = [team, dayOfWeek, start, stop, inWeightRoom, BBnecessary]*/
 
     const teamObject = {
         football:{
