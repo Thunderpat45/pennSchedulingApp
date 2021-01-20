@@ -1,7 +1,90 @@
 <!DOCTYPE html>
 <html>
+<head>
+	<link rel = "stylesheet" href = "pennSchedule.css">
+</head>
 <body>
+	<header>
+		<div id = "pageTitleIcon">
+			<img id = "pageIcon" src = "">
+			<div id = "pageTitle">UPenn S&C Scheduling App</div>
+		</div>	
+	</header>
+	<div id = "viewRequestPage">
+		<div id = "teamGridContainer">
+			<div class = "teamGrid">
+			</div>
+		</div>
+		<button id = "addTeam">Add Team</button>
+
+	</div>
+	<div id = "hiddenFillFormPage">
+		<div id = "fillformTitle">
+		<h1>Add Team Requests</h1>
+		</div>
+			<form id = "teamRequestForm">
+				<div id = "formTeamNameDiv">
+					<label for = "formTeamName">Team Name</label><br>
+					<input type = "text" id = "formTeamName" name ="formTeamName"><br>
+				</div>
+				<div id = "formTeamSizeDiv">
+					<label for = "formSize">Team Size</label><br>
+					<select id = "formSize" name ="formSize"><br>
+						<option value = "automate">SIX "FIX"</option> 
+					</select>
+				</div>
+				<div id = "formOpt1" class = "formOpt">
+					<div id = "formOpt1Day1">
+						<div id ="dayOfWeekDiv">
+							<label for = "dayOfWeek">Day of Week</label>
+							<select id = "dayOfWeek">
+								<option value = "sunday">Sunday</option>
+								<option value = "monday">Monday</option>
+								<option value = "tuesday">Tuesday</option>
+								<option value = "wednesday">Wednesday</option>
+								<option value = "thursday">Thursday</option>
+								<option value = "friday">Friday</option>
+								<option value = "saturday">Saturday</option>
+							</select>
+						</div>
+						<div id = "startTimeDiv">
+							<label for = "startTime">Start Time</label>
+							<select id ="startTime">
+								<option value = "360">6:00a</option>
+								<option value = "420">7:00a</option>
+								<option value = "480">8:00a</option>
+								<option value = "540">9:00a</option>
+							</select>
+						</div>
+						<div id = "endTimeDiv">
+							<label for = "endTime">End Time</label>
+							<select id ="endTime">
+								<option value = "360">6:00a</option>
+								<option value = "420">7:00a</option>
+								<option value = "480">8:00a</option>
+								<option value = "540">9:00a</option>
+							</select>
+						</div>
+						<div id ="inWiessDiv">
+							<p id = "inWeissLabel">In Weiss</p>
+							<input type = "radio" id = "inWeissyes" name = "inWeiss">
+							<label for = "inWeissyes">Yes</label>
+							<input type = "radio" id = "inWeissno" name = "inWeiss">
+							<label for = "inWeissno">No</label>
+						</div>	
+						<button id = "addTrainingDay">Add Training Day</button>
+					</div>
+				</div>
+				<button id = "addTrainingOption">Add Training Option</button>
+				<button id = "saveTeamRequest">Add</button>
+				<button id = "clearTeamRequest">Clear</button>
+				<button id = "cancelTeamRequest">Cancel</button>
+			</form>
+
+	</div>
 </body>
+<footer>
+
 <script src = "pennSchedule.js"></script>
 
 </html>
