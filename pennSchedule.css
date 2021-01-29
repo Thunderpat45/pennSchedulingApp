@@ -85,6 +85,18 @@ h1{
 	padding-top:1rem;	
 }
 
+.labelDayRemoveDay{
+	display:grid;
+	grid-template-columns:1fr 1fr;
+	gap:1rem;
+}
+
+.formOptRemoveDay{
+	width:10%;
+	margin-left:auto;
+	background-color: red;
+}
+
 .formOptDayDetails{
 	display:grid;
 	grid-template-columns: repeat(4, 1fr);

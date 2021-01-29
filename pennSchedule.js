@@ -46,6 +46,7 @@ function createNewTrainingOptionDiv(e){
     newFormOptionDiv.appendChild(newFormOptionAllDaysDiv)
     newFormOptionDiv.appendChild(newAddTrainingDayButton)
     formAllOpts.appendChild(newFormOptionDiv)
+
 }
 
 addTrainingDayNode.addEventListener("click", createNewTrainingDayDiv)
@@ -53,7 +54,6 @@ addTrainingDayNode.addEventListener("click", createNewTrainingDayDiv)
 function createNewTrainingDayDiv(e){
     let optNumber                   //look to remove this duplication
     let dayNumber
-    let currentNewDayButton
     let currentOptionAllDaysDiv
 
     if(e.target.classList.contains("addTrainingDay")){
@@ -69,10 +69,23 @@ function createNewTrainingDayDiv(e){
         newFormOptionDayDiv.classList.add("formOptDay") 
         newFormOptionDayDiv.id = `formOpt${optNumber}Day${dayNumber}`;
 
-        let newFormLabelDay = document.createElement("h3");
-            newFormLabelDay.innerHTML = `Day ${dayNumber}`;
-            newFormLabelDay.classList.add("labelDay") 
-            newFormLabelDay.id = `labelOpt${optNumber}Day${dayNumber}`;
+        let newFormLabelDayRemoveDay = document.createElement("div");
+            newFormLabelDayRemoveDay.classList.add("labelDayRemoveDay");
+            newFormLabelDayRemoveDay.id = `labelOption${optNumber}RemoveDay${dayNumber}`;
+            
+            let newFormLabelDay = document.createElement("h3");
+                newFormLabelDay.innerHTML = `Day ${dayNumber}`;
+                newFormLabelDay.classList.add("labelDay") 
+                newFormLabelDay.id = `labelOption${optNumber}Day${dayNumber}`;
+            
+            let newFormOptRemoveDayButton = document.createElement("button")
+                newFormOptRemoveDayButton.classList.add("formOptRemoveDay")
+                newFormOptRemoveDayButton.id = `formOptRemoveOpt${optNumber}Day${dayNumber}`
+                newFormOptRemoveDayButton.innerHTML = "X"
+                newFormOptRemoveDayButton.addEventListener("click", removeCurrentDayButton)
+
+            newFormLabelDayRemoveDay.appendChild(newFormLabelDay)
+            newFormLabelDayRemoveDay.appendChild(newFormOptRemoveDayButton)
 
         let newFormOptionDayDetailsDiv = document.createElement("div");
             newFormOptionDayDetailsDiv.classList.add("formOptDayDetails") 
@@ -83,11 +96,12 @@ function createNewTrainingDayDiv(e){
             newFormOptionDayDetailsDiv.appendChild(createNewEndTimeDiv(e))
             newFormOptionDayDetailsDiv.appendChild(createNewInWeissDiv(e))
 
-    newFormOptionDayDiv.appendChild(newFormLabelDay);
+    newFormOptionDayDiv.appendChild(newFormLabelDayRemoveDay);
     newFormOptionDayDiv.appendChild(newFormOptionDayDetailsDiv)
 
     if(e.target.classList.contains("addTrainingDay")){
         currentOptionAllDaysDiv.appendChild(newFormOptionDayDiv)
+        removeDayRemoveButtonPreviousElement(e)
     }else{
         return newFormOptionDayDiv
     }
@@ -244,6 +258,30 @@ function createNewInWeissDiv(e){
     return newInWeissDiv
 }
 
+function removeCurrentDayButton(e){
+
+    function addDayRemoveButtonPreviousElement(x){
+        let newFormOptRemoveDayButton = document.createElement("button")
+            newFormOptRemoveDayButton.classList.add("formOptRemoveDay")
+            newFormOptRemoveDayButton.id = `formOptRemoveOpt${optNumber}Day${dayNumber}`
+            newFormOptRemoveDayButton.innerHTML = "X"
+            newFormOptRemoveDayButton.addEventListener("click", removeCurrentDayButton)
+        
+        x.target.parentElement.parentElement.previousElementSibling.firstElementChild.lastElementChild.appendChild(newFormOptRemoveDayButton)
+    }
+
+    function removeDay(x){
+        x.target.parentElement.parentElement.parentElement.removeChild(e.target.parentElement.parentElement)
+    }
+
+    addDayRemoveButtonPreviousElement(e)
+    removeDay(e)
+}
+
+function removeDayRemoveButtonPreviousElement(e){
+    let removeDayButtonPreviousElementDiv = e.target.previousElementSibling.lastElementChild.firstElementChild.lastElementChild
+    removeDayButtonPreviousElementDiv.removeChild(removeDayButtonPreviousElementDiv.lastElementChild)
+}
 
 function populateFormSelectNode(selector, valueRangeStart, valueRangeEnd, valueIncrementer, array){
     if(array){
