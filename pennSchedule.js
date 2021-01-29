@@ -1,15 +1,288 @@
+//DOM elements
+let formTeamNameNode = document.querySelector("#formTeamNameName");
+let formTeamSizeNode = document.querySelector("#formTeamSize");
+let formAllOpts = document.querySelector("#formAllOpts")
+let formOptNode = document.querySelector(".formOpt");
+let dayOfWeekNode = document.querySelector(".dayOfWeek");
+let startTimeNode = document.querySelector(".startTime");
+let endTimeNode = document.querySelector(".endTime");
+let inWeissNode = document.querySelector(".inWeiss");
+let addTrainingDayNode = document.querySelector("#addTrainingDay1") //may need to be class instead of id
+let addTrainingOptionNode = document.querySelector("#addTrainingOption")
+let saveTeamRequestNode = document.querySelector("#saveTeamRequest")
+let clearTeamRequestNode = document.querySelector("#clearTeamRequest")
+let cancelTeamRequestNode = document.querySelector("#cancelTeamRequest");
 
-//convert militaryTime to time in totalMinutes, defunct?
-function convertTime(start, end){
-    let startEndArray = []
-    function convertMinuteTime(hourTime){
-        let totalMinutes =
-        (Number(hourTime.slice(0,2)*60)) + Number(hourTime.slice(-2));
-        return totalMinutes;
-    };
-    startEndArray.push(convertMinuteTime(start));
-    startEndArray.push(convertMinuteTime(end));
-    return startEndArray
+
+addTrainingOptionNode.addEventListener("click", createNewTrainingOptionDiv)
+
+function createNewTrainingOptionDiv(e){
+    e.preventDefault();
+    let newFormOptionDiv = document.createElement("div");
+        newFormOptionDiv.classList.add("formOpt")
+        newFormOptionDiv.id = `formOpt${e.target.parentNode.parentNode.children.item(2).childElementCount+1}`
+        if((e.target.parentNode.parentNode.children.item(2).childElementCount+1)%2 == 0){
+            newFormOptionDiv.style.backgroundColor = "white"
+            newFormOptionDiv.style.color = "black"
+        }
+        
+        let newLabelOption = document.createElement("h2")
+            newLabelOption.classList.add("labelOption")
+            newLabelOption.id = `labelOption${e.target.parentNode.parentNode.children.item(2).childElementCount+1}`
+            newLabelOption.innerHTML = `Option ${e.target.parentNode.parentNode.children.item(2).childElementCount+1}`
+            
+        let newFormOptionAllDaysDiv = document.createElement("div")
+            newFormOptionAllDaysDiv.classList.add("formOptAllDays")
+            newFormOptionAllDaysDiv.id = `formOptAllDaysOpt${e.target.parentNode.parentNode.children.item(2).childElementCount+1}`
+            newFormOptionAllDaysDiv.appendChild(createNewTrainingDayDiv(e))
+            
+        let newAddTrainingDayButton = document.createElement("button")
+            newAddTrainingDayButton.classList.add("addTrainingDay")
+            newAddTrainingDayButton.id = `addTrainingDay${e.target.parentNode.parentNode.children.item(2).childElementCount+1}`
+            newAddTrainingDayButton.innerHTML = "Add Training Day"
+            newAddTrainingDayButton.addEventListener("click", createNewTrainingDayDiv)
+
+    newFormOptionDiv.appendChild(newLabelOption)
+    newFormOptionDiv.appendChild(newFormOptionAllDaysDiv)
+    newFormOptionDiv.appendChild(newAddTrainingDayButton)
+    formAllOpts.appendChild(newFormOptionDiv)
+}
+
+addTrainingDayNode.addEventListener("click", createNewTrainingDayDiv)
+
+function createNewTrainingDayDiv(e){
+    let optNumber                   //look to remove this duplication
+    let dayNumber
+    let currentNewDayButton
+    let currentOptionAllDaysDiv
+
+    if(e.target.classList.contains("addTrainingDay")){
+        optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
+        dayNumber = e.target.parentNode.children.item(1).childElementCount+1
+        currentOptionAllDaysDiv = e.target.parentNode.children.item(1)
+    }else{
+        optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
+        dayNumber = 1
+    }
+    e.preventDefault();
+    let newFormOptionDayDiv = document.createElement("div");
+        newFormOptionDayDiv.classList.add("formOptDay") 
+        newFormOptionDayDiv.id = `formOpt${optNumber}Day${dayNumber}`;
+
+        let newFormLabelDay = document.createElement("h3");
+            newFormLabelDay.innerHTML = `Day ${dayNumber}`;
+            newFormLabelDay.classList.add("labelDay") 
+            newFormLabelDay.id = `labelOpt${optNumber}Day${dayNumber}`;
+
+        let newFormOptionDayDetailsDiv = document.createElement("div");
+            newFormOptionDayDetailsDiv.classList.add("formOptDayDetails") 
+            newFormOptionDayDetailsDiv.id = `formOpt${optNumber}DayDetails${dayNumber}`;
+
+            newFormOptionDayDetailsDiv.appendChild(createNewDayOfWeekDiv(e))
+            newFormOptionDayDetailsDiv.appendChild(createNewStartTimeDiv(e))
+            newFormOptionDayDetailsDiv.appendChild(createNewEndTimeDiv(e))
+            newFormOptionDayDetailsDiv.appendChild(createNewInWeissDiv(e))
+
+    newFormOptionDayDiv.appendChild(newFormLabelDay);
+    newFormOptionDayDiv.appendChild(newFormOptionDayDetailsDiv)
+
+    if(e.target.classList.contains("addTrainingDay")){
+        currentOptionAllDaysDiv.appendChild(newFormOptionDayDiv)
+    }else{
+        return newFormOptionDayDiv
+    }
+
+}
+
+
+function createNewDayOfWeekDiv(e){
+    let optNumber                   //look to remove this duplication
+    let dayNumber
+    if(e.target.classList.contains("addTrainingDay")){
+        optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
+        dayNumber = e.target.parentNode.children.item(1).childElementCount+1
+    }else{
+        optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
+        dayNumber = 1
+    }
+    let weekArray = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    let newDayofWeekDiv = document.createElement("div");
+        newDayofWeekDiv.classList.add("dayOfWeek") 
+        newDayofWeekDiv.id = `dayOfWeekOpt${optNumber}Day${dayNumber}`;
+
+        let newDayofWeekLabel = document.createElement("label");
+            newDayofWeekLabel.innerHTML = "Day of Week";
+            newDayofWeekLabel.htmlFor = `dayOfWeekSelectorOpt${optNumber}Day${dayNumber}`
+
+        let newBreak = document.createElement("br")
+
+        let newDayofWeekSelection = document.createElement("select")
+            newDayofWeekSelection.id = `dayOfWeekSelectorOpt${optNumber}Day${dayNumber}`
+            newDayofWeekSelection.classList.add("dayOfWeekSelector") 
+            populateFormSelectNode(newDayofWeekSelection, 0, weekArray.length, 1, weekArray)
+
+    newDayofWeekDiv.appendChild(newDayofWeekLabel)
+    newDayofWeekDiv.appendChild(newBreak)
+    newDayofWeekDiv.appendChild(newDayofWeekSelection)
+
+    return newDayofWeekDiv
+}
+
+
+function createNewStartTimeDiv(e){
+    let optNumber                   //look to remove this duplication
+    let dayNumber
+    if(e.target.classList.contains("addTrainingDay")){
+        optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
+        dayNumber = e.target.parentNode.children.item(1).childElementCount+1
+    }else{
+        optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
+        dayNumber = 1
+    }
+    let newStartTimeDiv = document.createElement("div");
+        newStartTimeDiv.classList.add("startTime") 
+        newStartTimeDiv.id = `startTimeOpt${optNumber}Day${dayNumber}`;
+
+        let newStartTimeLabel = document.createElement("label");
+            newStartTimeLabel.innerHTML = "Start Time"
+            newStartTimeLabel.htmlFor = `startTimeSelectorOpt${optNumber}Day${dayNumber}`
+
+        let newBreak = document.createElement("br")
+
+        let newStartTimeSelection = document.createElement("select")
+            newStartTimeSelection.id = `startTimeSelectorOpt$${optNumber}Day${dayNumber}`
+            newStartTimeSelection.classList.add("startTimeSelector") 
+            populateFormSelectNode(newStartTimeSelection, 360,1140,15)
+
+    newStartTimeDiv.appendChild(newStartTimeLabel);
+    newStartTimeDiv.appendChild(newBreak)
+    newStartTimeDiv.appendChild(newStartTimeSelection);
+
+    return newStartTimeDiv
+}
+
+
+
+function createNewEndTimeDiv(e){
+    let optNumber                   //look to remove this duplication
+    let dayNumber
+    if(e.target.classList.contains("addTrainingDay")){
+        optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
+        dayNumber = e.target.parentNode.children.item(1).childElementCount+1
+    }else{
+        optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
+        dayNumber = 1
+    }
+    let newEndTimeDiv = document.createElement("div");
+        newEndTimeDiv.classList.add("endTime") 
+        newEndTimeDiv.id = `endTimeOpt${optNumber}Day${dayNumber}`;
+
+        let newEndTimeLabel = document.createElement("label");
+            newEndTimeLabel.innerHTML = "End Time"
+            newEndTimeLabel.htmlFor = `endTimeSelectorOpt${optNumber}Day${dayNumber}`
+
+        let newBreak = document.createElement("br")
+
+        let newEndTimeSelection = document.createElement("select")
+            newEndTimeSelection.id = `endTimeSelectorOpt${optNumber}Day${dayNumber}`
+            newEndTimeSelection.classList.add("endTimeSelector") 
+            populateFormSelectNode(newEndTimeSelection, 420,1200,15)
+
+    newEndTimeDiv.appendChild(newEndTimeLabel);
+    newEndTimeDiv.appendChild(newBreak)
+    newEndTimeDiv.appendChild(newEndTimeSelection);
+
+    return newEndTimeDiv
+        
+}
+
+
+function createNewInWeissDiv(e){ 
+    let optNumber                   //look to remove this duplication
+    let dayNumber
+    if(e.target.classList.contains("addTrainingDay")){
+        optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
+        dayNumber = e.target.parentNode.children.item(1).childElementCount+1
+    }else{
+        optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
+        dayNumber = 1
+    }
+    let newInWeissDiv = document.createElement("div")
+        newInWeissDiv.classList.add("inWeiss") 
+        newInWeissDiv.id = `inWeissOpt${optNumber}Day${dayNumber}`;
+
+        let newInWeissLabel = document.createElement("p")
+            newInWeissLabel.innerHTML = "In Weiss";
+            newInWeissLabel.classList.add("inWeissLabel") 
+
+        let newInWeissYesInput = document.createElement("input")
+            newInWeissYesInput.id = `inWeissYesSelectorOpt${optNumber}Day${dayNumber}`;
+            newInWeissYesInput.classList.add("inWeissYes") 
+            newInWeissYesInput.setAttribute("name", `inWeissSelectorOpt${optNumber}Day${dayNumber}`)
+            newInWeissYesInput.setAttribute("type", "radio")
+
+        let newInWeissYesLabel = document.createElement("label")
+            newInWeissYesLabel.innerHTML = "Yes";
+            newInWeissYesLabel.htmlFor = `inWeissYesSelectorOpt${optNumber}Day${dayNumber}`
+        
+        let newInWeissNoInput = document.createElement("input")
+            newInWeissNoInput.id = `inWeissNoSelectorOpt${optNumber}Day${dayNumber}`
+            newInWeissNoInput.classList.add("inWeissNo") 
+            newInWeissNoInput.setAttribute("name", `inWeissSelectorOpt${optNumber}Day${dayNumber}`)
+            newInWeissNoInput.setAttribute("type", "radio")
+             
+        let newInWeissNoLabel = document.createElement("label")
+            newInWeissNoLabel.innerHTML = "No";
+            newInWeissNoLabel.htmlFor = `inWeissNoSelectorOpt${optNumber}Day${dayNumber}` //updated day template, may be more accurate
+
+    newInWeissDiv.appendChild(newInWeissLabel)
+    newInWeissDiv.appendChild(newInWeissYesInput)
+    newInWeissDiv.appendChild(newInWeissYesLabel)
+    newInWeissDiv.appendChild(newInWeissNoInput)
+    newInWeissDiv.appendChild(newInWeissNoLabel)
+
+    return newInWeissDiv
+}
+
+
+function populateFormSelectNode(selector, valueRangeStart, valueRangeEnd, valueIncrementer, array){
+    if(array){
+        for(let i = valueRangeStart; i < valueRangeEnd; i+= valueIncrementer){
+            let newOption = document.createElement("option")
+            newOption.setAttribute("value", `${array[i]}`)
+            newOption.innerHTML = `${array[i]}`
+            selector.appendChild(newOption)
+        }
+    }else{
+        for(let i = valueRangeStart; i < valueRangeEnd; i+= valueIncrementer){
+            let newOption = document.createElement("option")
+            newOption.setAttribute("value", `${i}`)
+            newOption.innerHTML = `${convertTotalMinutesToStandardTime(i)}`
+            selector.appendChild(newOption)
+        }
+    }
+}
+
+
+function convertTotalMinutesToStandardTime(totalMins){
+    let standardTime;
+    let hour = Math.floor(totalMins/60)
+    let meridian
+        if(hour >= 13){
+            hour-=12
+            meridian = "p"
+        }else if(hour <12){
+            meridian = "a"
+        }else if(hour>=12 && hour/60<13){
+            meridian = "p"
+        }
+    let mins = totalMins%60
+        if(mins == 0){
+            mins = "00"
+        }
+    standardTime = `${hour}:${mins}${meridian}`
+    return standardTime
+     
 }
     
 //sorts the scheduling preferences of all teams in teamObject into teamOrderArray by their assigned "rank"
@@ -187,13 +460,13 @@ function modifiedCartesian(...teamRequestArray) {
 /*object that holds coaches preferred or known unavailabilities to schedule teams */
 const coachPreferencesObject = {
     Dolan:{
-        Sun:[[360, 1200]],
-        Mon:[],
-        Tue:[],
-        Wed:[],
-        Thu:[],
-        Fri:[],
-        Sat:[[360,540], [720,1200]]
+        Sunday:[[360, 1200]],
+        Monday:[],
+        Tuesday:[],
+        Wednesday:[],
+        Thursday:[],
+        Friday:[],
+        Saturday:[[360,540], [720,1200]]
 
     },
         
@@ -262,21 +535,23 @@ The reason for building a blank object each time was to ensure that previous att
 for teams that were no longer actually scheduled due to the recursion backtracking*/     
 function buildScheduleObjectNew(){
     let scheduleObject = {
-        Sun:{},
-        Mon:{},
-        Tue:{},
-        Wed:{},
-        Thu:{},
-        Fri:{},
-        Sat:{},
+        Sunday:{},
+        Monday:{},
+        Tuesday:{},
+        Wednesday:{},
+        Thursday:{},
+        Friday:{},
+        Saturday:{},
+        slots: 6
     };
     
     for(let day in scheduleObject){
+        if(day != "slots"){
         for(let time = 360; time<1200; time+=15){
     
             scheduleObject[day][time] =
                 {
-                    slots : 6,
+                    slots : scheduleObject.slots,
                     strengthCoachAvailability:{
                         Dolan: "yes",
                         Pifer: "yes",
@@ -296,6 +571,7 @@ function buildScheduleObjectNew(){
                     }
             }
         }
+    }
     }
     return scheduleObject
 }

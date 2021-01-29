@@ -34,73 +34,82 @@ h1{
 	padding:.5rem;
 	display:grid;
 	grid-template-columns: repeat(4, 1fr);
-	
-	gap:1rem;
+	gap:2rem;
 	grid-template-areas:
 		"teamName teamName teamSize teamSize"
-		"formOpt1 formOpt1 formOpt1 formOpt1"
-		". addOptionButton addOptionButton ."
-		"clearRequest saveRequest saveRequest cancelRequest";
+		"formAllOpts formAllOpts formAllOpts formAllOpts"
+		" addTrainingOption . . ."
+		". . . ."
+		" modifierButton modifierButton . .";
 	
 }
 
-#formTeamNameDiv label, #formTeamSizeDiv label{
+#formTeamName label, #formTeamSize label{
 	font-size: 1.5rem;
 }
 
-#formTeamNameDiv{
+#formTeamName{
 	grid-area: teamName
 }
 
-#formTeamSizeDiv{
+#formTeamSize{
 	grid-area: teamSize
 }
 
-#formOpt1{
-	grid-area:formOpt1;
+#formAllOpts{
+	grid-area: formAllOpts;
 	background-color: rgba(25, 25, 158, 0.8);
+	grid-template-rows: 1fr;
+}
+
+.formOpt{
 	color:white;
 	padding:.5rem;
-}
-
-#formOpt1Day1{
 	display:grid;
-	grid-template-columns: repeat(4, 1fr);
+	grid-template-columns: 1fr;
 	grid-auto-rows: minmax(2.5rem, auto);
 	gap:1rem;
-	grid-template-areas:
-		"dayOfWeek startTime endTime inWeiss"
-		". addDayButton addDayButton .";
-}
-
-#addTrainingOption{
-	grid-area:addOptionButton;
 	
 }
 
-#dayOfWeekDiv{
-	grid-area: dayOfWeek;
+.formOptAllDays{
+	display:grid;
+	grid-template-rows: 1fr;
+	gap:1rem;
 }
 
-#startTimeDiv{
-	grid-area: startTime;
+.formOptDay{
+	display:grid;
+	grid-template-columns:1fr;
+	gap:1rem;	
+	padding-top:1rem;	
 }
 
-#endTimeDiv{
-	grid-area: endTime;
+.formOptDayDetails{
+	display:grid;
+	grid-template-columns: repeat(4, 1fr);
+	grid-auto-rows: minmax(2.5rem, auto);
+	gap:1rem;	
 }
 
-#inWeissDiv{
-	grid-area: inWeiss;
-}
-
-#addTrainingDay{
-	grid-area:addDayButton;
-	height:50%;
-}
-
-#inWeissLabel{
+.inWeissLabel, .labelOption, .labelDay{
 	margin:0px;
+}
+
+.addTrainingDay{
+	height:50%;
+	width: 25%;
+	margin-top:auto;
+}
+
+#addTrainingOption{
+	grid-area:addTrainingOption;
+	width:100%
+}
+
+
+#modifierButton{
+	grid-area: modifierButton
 }
 
 #saveTeamRequest{
