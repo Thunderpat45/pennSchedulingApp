@@ -14,293 +14,385 @@ let clearTeamRequestNode = document.querySelector("#clearTeamRequest")
 let cancelTeamRequestNode = document.querySelector("#cancelTeamRequest");
 
 
-addTrainingOptionNode.addEventListener("click", createNewTrainingOptionDiv)
+function assignElementAttributes(el, cl, ident, ihtml, action, callback, forhtml){
+    if(cl){
+        el.classList.add(cl)
+    }
 
-function createNewTrainingOptionDiv(e){
-    e.preventDefault();
-    let newFormOptionDiv = document.createElement("div");
-        newFormOptionDiv.classList.add("formOpt")
-        newFormOptionDiv.id = `formOpt${e.target.parentNode.parentNode.children.item(2).childElementCount+1}`
-        if((e.target.parentNode.parentNode.children.item(2).childElementCount+1)%2 == 0){
-            newFormOptionDiv.style.backgroundColor = "white"
-            newFormOptionDiv.style.color = "black"
-        }
-        
-        let newLabelOption = document.createElement("h2")
-            newLabelOption.classList.add("labelOption")
-            newLabelOption.id = `labelOption${e.target.parentNode.parentNode.children.item(2).childElementCount+1}`
-            newLabelOption.innerHTML = `Option ${e.target.parentNode.parentNode.children.item(2).childElementCount+1}`
-            
-        let newFormOptionAllDaysDiv = document.createElement("div")
-            newFormOptionAllDaysDiv.classList.add("formOptAllDays")
-            newFormOptionAllDaysDiv.id = `formOptAllDaysOpt${e.target.parentNode.parentNode.children.item(2).childElementCount+1}`
-            newFormOptionAllDaysDiv.appendChild(createNewTrainingDayDiv(e))
-            
-        let newAddTrainingDayButton = document.createElement("button")
-            newAddTrainingDayButton.classList.add("addTrainingDay")
-            newAddTrainingDayButton.id = `addTrainingDay${e.target.parentNode.parentNode.children.item(2).childElementCount+1}`
-            newAddTrainingDayButton.innerHTML = "Add Training Day"
-            newAddTrainingDayButton.addEventListener("click", createNewTrainingDayDiv)
+    if(ident){
+        el.id = ident
+    }
 
-    newFormOptionDiv.appendChild(newLabelOption)
-    newFormOptionDiv.appendChild(newFormOptionAllDaysDiv)
-    newFormOptionDiv.appendChild(newAddTrainingDayButton)
-    formAllOpts.appendChild(newFormOptionDiv)
+    if(ihtml){
+        el.innerHTML = ihtml
+    }   
 
+    if(action && callback){
+        el.addEventListener(action, callback)
+    }
+
+    if(forhtml){
+        el.htmlFor =forhtml
+    }
 }
 
-addTrainingDayNode.addEventListener("click", createNewTrainingDayDiv)
 
-function createNewTrainingDayDiv(e){
-    let optNumber                   //look to remove this duplication
-    let dayNumber
-    let currentOptionAllDaysDiv
+let domElementFunctions = {
+    
+    newTrainingOptionDiv : function createNewTrainingOptionDiv(e){
 
-    if(e.target.classList.contains("addTrainingDay")){
-        optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
-        dayNumber = e.target.parentNode.children.item(1).childElementCount+1
-        currentOptionAllDaysDiv = e.target.parentNode.children.item(1)
-    }else{
-        optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
-        dayNumber = 1
-    }
-    e.preventDefault();
-    let newFormOptionDayDiv = document.createElement("div");
-        newFormOptionDayDiv.classList.add("formOptDay") 
-        newFormOptionDayDiv.id = `formOpt${optNumber}Day${dayNumber}`;
+        
+        e.preventDefault();
+        let allOptionDiv = e.target.parentElement.parentElement.children.item(2)
+        let optNumber = allOptionDiv.childElementCount+1
 
-        let newFormLabelDayRemoveDay = document.createElement("div");
-            newFormLabelDayRemoveDay.classList.add("labelDayRemoveDay");
-            newFormLabelDayRemoveDay.id = `labelOption${optNumber}RemoveDay${dayNumber}`;
+        let newFormOptionDiv = document.createElement("div");
+        assignElementAttributes(newFormOptionDiv, "formOpt", `formOpt${optNumber}`)
+            if((optNumber)%2 == 0){
+                newFormOptionDiv.style.backgroundColor = "white"
+                newFormOptionDiv.style.color = "black"
+            }
             
-            let newFormLabelDay = document.createElement("h3");
-                newFormLabelDay.innerHTML = `Day ${dayNumber}`;
-                newFormLabelDay.classList.add("labelDay") 
-                newFormLabelDay.id = `labelOption${optNumber}Day${dayNumber}`;
             
-            let newFormOptRemoveDayButton = document.createElement("button")
-                newFormOptRemoveDayButton.classList.add("formOptRemoveDay")
-                newFormOptRemoveDayButton.id = `formOptRemoveOpt${optNumber}Day${dayNumber}`
-                newFormOptRemoveDayButton.innerHTML = "X"
-                newFormOptRemoveDayButton.addEventListener("click", removeCurrentDayButton)
+            let newLabelOptionRemoveOption = document.createElement("div")
+            assignElementAttributes(newLabelOptionRemoveOption, "labelOptionRemoveOption", `labelOption${optNumber}RemoveOption${optNumber}`)
+                
+                let newLabelOption = document.createElement("h2")
+                assignElementAttributes(newLabelOption, "labelOption", `labelOption${optNumber}`, `Option ${optNumber}`)
 
+                let newRemoveOptionButton = document.createElement("button")
+                assignElementAttributes(newRemoveOptionButton, "formOptRemoveOpt", `formOptRemoveOpt${optNumber}`, "X", "click", domElementFunctions.removeCurrentOption)
+
+            newLabelOptionRemoveOption.appendChild(newLabelOption)
+            newLabelOptionRemoveOption.appendChild(newRemoveOptionButton)
+
+
+            let newFormOptionAllDaysDiv = document.createElement("div")
+            assignElementAttributes(newFormOptionAllDaysDiv, "formOptAllDays", `formOptAllDaysOpt${optNumber}`)
+                newFormOptionAllDaysDiv.appendChild(domElementFunctions.newTrainingDayDiv(e))
+                
+            let newAddTrainingDayButton = document.createElement("button")
+            assignElementAttributes(newAddTrainingDayButton, "addTrainingDay", `addTrainingDay${optNumber}`, "Add Training Day", "click", domElementFunctions.newTrainingDayDiv)
+                
+
+
+        newFormOptionDiv.appendChild(newLabelOptionRemoveOption)
+        newFormOptionDiv.appendChild(newFormOptionAllDaysDiv)
+        newFormOptionDiv.appendChild(newAddTrainingDayButton)
+        
+        domElementFunctions.removeOptionRemovalButtonFromPreviousElement(e)
+
+        formAllOpts.appendChild(newFormOptionDiv)
+
+    },
+
+    
+    newTrainingDayDiv: function createNewTrainingDayDiv(e){
+        
+
+        let optNumber                   
+        let dayNumber
+        let currentOptionAllDaysDiv
+    
+        if(e.target.classList.contains("addTrainingDay")){
+            optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
+            dayNumber = e.target.parentNode.children.item(1).childElementCount+1
+            currentOptionAllDaysDiv = e.target.parentNode.children.item(1)
+        }else{
+            optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
+            dayNumber = 1
+        }
+
+        e.preventDefault();
+        
+        let newFormOptionDayDiv = document.createElement("div")
+        assignElementAttributes(newFormOptionDayDiv, "formOptDay", `formOpt${optNumber}Day${dayNumber}`)
+    
+    
+            let newFormLabelDayRemoveDay = document.createElement("div");
+            assignElementAttributes(newFormLabelDayRemoveDay, "labelDayRemoveDay", `labelOption${optNumber}RemoveDay${dayNumber}`)
+                
+                let newFormLabelDay = document.createElement("h3")
+                assignElementAttributes(newFormLabelDay, "labelDay", `labelOption${optNumber}Day${dayNumber}`, `Day ${dayNumber}`)
+                
+                let newFormOptRemoveDayButton = document.createElement("button")
+                assignElementAttributes(newFormOptRemoveDayButton, "formOptRemoveDay", `formOptRemoveOpt${optNumber}Day${dayNumber}`, "X", "click", domElementFunctions.removeCurrentDay)
+    
             newFormLabelDayRemoveDay.appendChild(newFormLabelDay)
-            newFormLabelDayRemoveDay.appendChild(newFormOptRemoveDayButton)
-
-        let newFormOptionDayDetailsDiv = document.createElement("div");
-            newFormOptionDayDetailsDiv.classList.add("formOptDayDetails") 
-            newFormOptionDayDetailsDiv.id = `formOpt${optNumber}DayDetails${dayNumber}`;
-
-            newFormOptionDayDetailsDiv.appendChild(createNewDayOfWeekDiv(e))
-            newFormOptionDayDetailsDiv.appendChild(createNewStartTimeDiv(e))
-            newFormOptionDayDetailsDiv.appendChild(createNewEndTimeDiv(e))
-            newFormOptionDayDetailsDiv.appendChild(createNewInWeissDiv(e))
-
-    newFormOptionDayDiv.appendChild(newFormLabelDayRemoveDay);
-    newFormOptionDayDiv.appendChild(newFormOptionDayDetailsDiv)
-
-    if(e.target.classList.contains("addTrainingDay")){
-        currentOptionAllDaysDiv.appendChild(newFormOptionDayDiv)
-        removeDayRemoveButtonPreviousElement(e)
-    }else{
-        return newFormOptionDayDiv
-    }
-
-}
-
-
-function createNewDayOfWeekDiv(e){
-    let optNumber                   //look to remove this duplication
-    let dayNumber
-    if(e.target.classList.contains("addTrainingDay")){
-        optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
-        dayNumber = e.target.parentNode.children.item(1).childElementCount+1
-    }else{
-        optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
-        dayNumber = 1
-    }
-    let weekArray = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-    let newDayofWeekDiv = document.createElement("div");
-        newDayofWeekDiv.classList.add("dayOfWeek") 
-        newDayofWeekDiv.id = `dayOfWeekOpt${optNumber}Day${dayNumber}`;
-
-        let newDayofWeekLabel = document.createElement("label");
-            newDayofWeekLabel.innerHTML = "Day of Week";
-            newDayofWeekLabel.htmlFor = `dayOfWeekSelectorOpt${optNumber}Day${dayNumber}`
-
-        let newBreak = document.createElement("br")
-
-        let newDayofWeekSelection = document.createElement("select")
-            newDayofWeekSelection.id = `dayOfWeekSelectorOpt${optNumber}Day${dayNumber}`
-            newDayofWeekSelection.classList.add("dayOfWeekSelector") 
-            populateFormSelectNode(newDayofWeekSelection, 0, weekArray.length, 1, weekArray)
-
-    newDayofWeekDiv.appendChild(newDayofWeekLabel)
-    newDayofWeekDiv.appendChild(newBreak)
-    newDayofWeekDiv.appendChild(newDayofWeekSelection)
-
-    return newDayofWeekDiv
-}
-
-
-function createNewStartTimeDiv(e){
-    let optNumber                   //look to remove this duplication
-    let dayNumber
-    if(e.target.classList.contains("addTrainingDay")){
-        optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
-        dayNumber = e.target.parentNode.children.item(1).childElementCount+1
-    }else{
-        optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
-        dayNumber = 1
-    }
-    let newStartTimeDiv = document.createElement("div");
-        newStartTimeDiv.classList.add("startTime") 
-        newStartTimeDiv.id = `startTimeOpt${optNumber}Day${dayNumber}`;
-
-        let newStartTimeLabel = document.createElement("label");
-            newStartTimeLabel.innerHTML = "Start Time"
-            newStartTimeLabel.htmlFor = `startTimeSelectorOpt${optNumber}Day${dayNumber}`
-
-        let newBreak = document.createElement("br")
-
-        let newStartTimeSelection = document.createElement("select")
-            newStartTimeSelection.id = `startTimeSelectorOpt$${optNumber}Day${dayNumber}`
-            newStartTimeSelection.classList.add("startTimeSelector") 
-            populateFormSelectNode(newStartTimeSelection, 360,1140,15)
-
-    newStartTimeDiv.appendChild(newStartTimeLabel);
-    newStartTimeDiv.appendChild(newBreak)
-    newStartTimeDiv.appendChild(newStartTimeSelection);
-
-    return newStartTimeDiv
-}
-
-
-
-function createNewEndTimeDiv(e){
-    let optNumber                   //look to remove this duplication
-    let dayNumber
-    if(e.target.classList.contains("addTrainingDay")){
-        optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
-        dayNumber = e.target.parentNode.children.item(1).childElementCount+1
-    }else{
-        optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
-        dayNumber = 1
-    }
-    let newEndTimeDiv = document.createElement("div");
-        newEndTimeDiv.classList.add("endTime") 
-        newEndTimeDiv.id = `endTimeOpt${optNumber}Day${dayNumber}`;
-
-        let newEndTimeLabel = document.createElement("label");
-            newEndTimeLabel.innerHTML = "End Time"
-            newEndTimeLabel.htmlFor = `endTimeSelectorOpt${optNumber}Day${dayNumber}`
-
-        let newBreak = document.createElement("br")
-
-        let newEndTimeSelection = document.createElement("select")
-            newEndTimeSelection.id = `endTimeSelectorOpt${optNumber}Day${dayNumber}`
-            newEndTimeSelection.classList.add("endTimeSelector") 
-            populateFormSelectNode(newEndTimeSelection, 420,1200,15)
-
-    newEndTimeDiv.appendChild(newEndTimeLabel);
-    newEndTimeDiv.appendChild(newBreak)
-    newEndTimeDiv.appendChild(newEndTimeSelection);
-
-    return newEndTimeDiv
-        
-}
-
-
-function createNewInWeissDiv(e){ 
-    let optNumber                   //look to remove this duplication
-    let dayNumber
-    if(e.target.classList.contains("addTrainingDay")){
-        optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
-        dayNumber = e.target.parentNode.children.item(1).childElementCount+1
-    }else{
-        optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
-        dayNumber = 1
-    }
-    let newInWeissDiv = document.createElement("div")
-        newInWeissDiv.classList.add("inWeiss") 
-        newInWeissDiv.id = `inWeissOpt${optNumber}Day${dayNumber}`;
-
-        let newInWeissLabel = document.createElement("p")
-            newInWeissLabel.innerHTML = "In Weiss";
-            newInWeissLabel.classList.add("inWeissLabel") 
-
-        let newInWeissYesInput = document.createElement("input")
-            newInWeissYesInput.id = `inWeissYesSelectorOpt${optNumber}Day${dayNumber}`;
-            newInWeissYesInput.classList.add("inWeissYes") 
-            newInWeissYesInput.setAttribute("name", `inWeissSelectorOpt${optNumber}Day${dayNumber}`)
-            newInWeissYesInput.setAttribute("type", "radio")
-
-        let newInWeissYesLabel = document.createElement("label")
-            newInWeissYesLabel.innerHTML = "Yes";
-            newInWeissYesLabel.htmlFor = `inWeissYesSelectorOpt${optNumber}Day${dayNumber}`
-        
-        let newInWeissNoInput = document.createElement("input")
-            newInWeissNoInput.id = `inWeissNoSelectorOpt${optNumber}Day${dayNumber}`
-            newInWeissNoInput.classList.add("inWeissNo") 
-            newInWeissNoInput.setAttribute("name", `inWeissSelectorOpt${optNumber}Day${dayNumber}`)
-            newInWeissNoInput.setAttribute("type", "radio")
-             
-        let newInWeissNoLabel = document.createElement("label")
-            newInWeissNoLabel.innerHTML = "No";
-            newInWeissNoLabel.htmlFor = `inWeissNoSelectorOpt${optNumber}Day${dayNumber}` //updated day template, may be more accurate
-
-    newInWeissDiv.appendChild(newInWeissLabel)
-    newInWeissDiv.appendChild(newInWeissYesInput)
-    newInWeissDiv.appendChild(newInWeissYesLabel)
-    newInWeissDiv.appendChild(newInWeissNoInput)
-    newInWeissDiv.appendChild(newInWeissNoLabel)
-
-    return newInWeissDiv
-}
-
-function removeCurrentDayButton(e){
-
-    function addDayRemoveButtonPreviousElement(x){
-        let newFormOptRemoveDayButton = document.createElement("button")
-            newFormOptRemoveDayButton.classList.add("formOptRemoveDay")
-            newFormOptRemoveDayButton.id = `formOptRemoveOpt${optNumber}Day${dayNumber}`
-            newFormOptRemoveDayButton.innerHTML = "X"
-            newFormOptRemoveDayButton.addEventListener("click", removeCurrentDayButton)
-        
-        x.target.parentElement.parentElement.previousElementSibling.firstElementChild.lastElementChild.appendChild(newFormOptRemoveDayButton)
-    }
-
-    function removeDay(x){
-        x.target.parentElement.parentElement.parentElement.removeChild(e.target.parentElement.parentElement)
-    }
-
-    addDayRemoveButtonPreviousElement(e)
-    removeDay(e)
-}
-
-function removeDayRemoveButtonPreviousElement(e){
-    let removeDayButtonPreviousElementDiv = e.target.previousElementSibling.lastElementChild.firstElementChild.lastElementChild
-    removeDayButtonPreviousElementDiv.removeChild(removeDayButtonPreviousElementDiv.lastElementChild)
-}
-
-function populateFormSelectNode(selector, valueRangeStart, valueRangeEnd, valueIncrementer, array){
-    if(array){
-        for(let i = valueRangeStart; i < valueRangeEnd; i+= valueIncrementer){
-            let newOption = document.createElement("option")
-            newOption.setAttribute("value", `${array[i]}`)
-            newOption.innerHTML = `${array[i]}`
-            selector.appendChild(newOption)
+            if(dayNumber>1){
+                newFormLabelDayRemoveDay.appendChild(newFormOptRemoveDayButton)
+            }
+    
+    
+            let newFormOptionDayDetailsDiv = document.createElement("div");
+            assignElementAttributes(newFormOptionDayDetailsDiv, "formOptDayDetails", `formOpt${optNumber}DayDetails${dayNumber}`)
+    
+            newFormOptionDayDetailsDiv.appendChild(domElementFunctions.newDayOfWeekDiv(e))
+            newFormOptionDayDetailsDiv.appendChild(domElementFunctions.newStartTimeDiv(e))
+            newFormOptionDayDetailsDiv.appendChild(domElementFunctions.newEndTimeDiv(e))
+            newFormOptionDayDetailsDiv.appendChild(domElementFunctions.newInWeissDiv(e))
+    
+        newFormOptionDayDiv.appendChild(newFormLabelDayRemoveDay);
+        newFormOptionDayDiv.appendChild(newFormOptionDayDetailsDiv)
+    
+        if(e.target.classList.contains("addTrainingDay")){
+            domElementFunctions.removeDayRemovalButtonFromPreviousElement(e)
+            currentOptionAllDaysDiv.appendChild(newFormOptionDayDiv)
+            
+        }else{
+            return newFormOptionDayDiv
         }
-    }else{
-        for(let i = valueRangeStart; i < valueRangeEnd; i+= valueIncrementer){
-            let newOption = document.createElement("option")
-            newOption.setAttribute("value", `${i}`)
-            newOption.innerHTML = `${convertTotalMinutesToStandardTime(i)}`
-            selector.appendChild(newOption)
+    
+    },
+
+
+    newDayOfWeekDiv: function createNewDayOfWeekDiv(e){
+        
+        
+        let optNumber                   
+        let dayNumber
+        if(e.target.classList.contains("addTrainingDay")){
+            optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
+            dayNumber = e.target.parentNode.children.item(1).childElementCount+1
+        }else{
+            optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
+            dayNumber = 1
+        }
+        
+        let weekArray = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+        
+        
+        let newDayOfWeekDiv = document.createElement("div");
+        assignElementAttributes(newDayOfWeekDiv, "dayOfWeek", `dayOfWeekOpt${optNumber}Day${dayNumber}`)
+    
+    
+            let newDayOfWeekLabel = document.createElement("label");
+            assignElementAttributes(newDayOfWeekLabel, "", ``, "Day of Week", null , null, `dayOfWeekSelectorOpt${optNumber}Day${dayNumber}` )
+    
+            let newBreak = document.createElement("br")
+    
+            let newDayOfWeekSelection = document.createElement("select")
+            assignElementAttributes(newDayOfWeekSelection, "dayOfWeekSelector", `dayOfWeekSelectorOpt${optNumber}Day${dayNumber}`)
+            domElementFunctions.populateFormSelectNode(newDayOfWeekSelection, 0, weekArray.length, 1, weekArray)
+    
+    
+        newDayOfWeekDiv.appendChild(newDayOfWeekLabel)
+        newDayOfWeekDiv.appendChild(newBreak)
+        newDayOfWeekDiv.appendChild(newDayOfWeekSelection)
+    
+        return newDayOfWeekDiv
+    },
+
+    
+    newStartTimeDiv: function createNewStartTimeDiv(e){
+        
+        
+        let optNumber                   
+        let dayNumber
+        if(e.target.classList.contains("addTrainingDay")){
+            optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
+            dayNumber = e.target.parentNode.children.item(1).childElementCount+1
+        }else{
+            optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
+            dayNumber = 1
+        }
+        
+        let newStartTimeDiv = document.createElement("div");
+        assignElementAttributes(newStartTimeDiv, "startTime", `startTimeOpt${optNumber}Day${dayNumber}`)
+    
+    
+            let newStartTimeLabel = document.createElement("label");
+            assignElementAttributes(newStartTimeLabel, "", ``, "Start Time", null, null, `startTimeSelectorOpt${optNumber}Day${dayNumber}`)
+    
+            let newBreak = document.createElement("br")
+    
+            let newStartTimeSelection = document.createElement("select")
+            assignElementAttributes(newStartTimeSelection, "startTimeSelector", `startTimeSelectorOpt$${optNumber}Day${dayNumber}`)
+            domElementFunctions.populateFormSelectNode(newStartTimeSelection, 360,1140,15)
+    
+    
+        newStartTimeDiv.appendChild(newStartTimeLabel);
+        newStartTimeDiv.appendChild(newBreak)
+        newStartTimeDiv.appendChild(newStartTimeSelection);
+    
+        return newStartTimeDiv
+    },
+
+
+    newEndTimeDiv: function createNewEndTimeDiv(e){
+        
+        
+        let optNumber                   
+        let dayNumber
+        if(e.target.classList.contains("addTrainingDay")){
+            optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
+            dayNumber = e.target.parentNode.children.item(1).childElementCount+1
+        }else{
+            optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
+            dayNumber = 1
+        }
+        
+        let newEndTimeDiv = document.createElement("div");
+        assignElementAttributes(newEndTimeDiv, "endTime", `endTimeOpt${optNumber}Day${dayNumber}`)
+            newEndTimeDiv.classList.add("endTime") 
+            newEndTimeDiv.id = `endTimeOpt${optNumber}Day${dayNumber}`;
+    
+    
+            let newEndTimeLabel = document.createElement("label");
+            assignElementAttributes(newEndTimeLabel, "", ``, "End Time", null, null, `endTimeSelectorOpt${optNumber}Day${dayNumber}`)
+    
+            let newBreak = document.createElement("br")
+    
+            let newEndTimeSelection = document.createElement("select")
+            assignElementAttributes(newEndTimeSelection, "endTimeSelector", `endTimeSelectorOpt${optNumber}Day${dayNumber}`)     
+            domElementFunctions.populateFormSelectNode(newEndTimeSelection, 420,1200,15)
+    
+        newEndTimeDiv.appendChild(newEndTimeLabel);
+        newEndTimeDiv.appendChild(newBreak)
+        newEndTimeDiv.appendChild(newEndTimeSelection);
+    
+        return newEndTimeDiv
+            
+    },
+
+
+    newInWeissDiv: function createNewInWeissDiv(e){ 
+
+        let optNumber                  
+        let dayNumber
+        if(e.target.classList.contains("addTrainingDay")){
+            optNumber = Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)+1
+            dayNumber = e.target.parentNode.children.item(1).childElementCount+1
+        }else{
+            optNumber = e.target.parentNode.parentNode.children.item(2).childElementCount+1
+            dayNumber = 1
+        }
+        
+        let newInWeissDiv = document.createElement("div")
+        assignElementAttributes(newInWeissDiv, "inWeiss", `inWeissOpt${optNumber}Day${dayNumber}`)   
+    
+    
+            let newInWeissLabel = document.createElement("p")
+            assignElementAttributes(newInWeissLabel, "inWeissLabelWeiss", ``, "In Weiss")
+    
+            let newInWeissYesInput = document.createElement("input")
+            assignElementAttributes(newInWeissYesInput, "inWeissYes", `inWeissYesSelectorOpt${optNumber}Day${dayNumber}`)
+                newInWeissYesInput.setAttribute("name", `inWeissSelectorOpt${optNumber}Day${dayNumber}`)
+                newInWeissYesInput.setAttribute("type", "radio")
+    
+            let newInWeissYesLabel = document.createElement("label")
+            assignElementAttributes(newInWeissYesLabel, "", ``, "Yes", null, null, `inWeissYesSelectorOpt${optNumber}Day${dayNumber}`)
+                newInWeissYesLabel.innerHTML = "Yes";
+                newInWeissYesLabel.htmlFor = `inWeissYesSelectorOpt${optNumber}Day${dayNumber}`
+            
+            let newInWeissNoInput = document.createElement("input")
+            assignElementAttributes(newInWeissNoInput, "inWeissNo", `inWeissNoSelectorOpt${optNumber}Day${dayNumber}`)
+                newInWeissNoInput.setAttribute("name", `inWeissSelectorOpt${optNumber}Day${dayNumber}`)
+                newInWeissNoInput.setAttribute("type", "radio")
+                 
+            let newInWeissNoLabel = document.createElement("label")
+            assignElementAttributes(newInWeissNoLabel, "", ``, "No", null, null, `inWeissNoSelectorOpt${optNumber}Day${dayNumber}`)
+                newInWeissNoLabel.innerHTML = "No";
+                newInWeissNoLabel.htmlFor = `inWeissNoSelectorOpt${optNumber}Day${dayNumber}` //updated day template, may be more accurate
+    
+        newInWeissDiv.appendChild(newInWeissLabel)
+        newInWeissDiv.appendChild(newInWeissYesInput)
+        newInWeissDiv.appendChild(newInWeissYesLabel)
+        newInWeissDiv.appendChild(newInWeissNoInput)
+        newInWeissDiv.appendChild(newInWeissNoLabel)
+    
+        return newInWeissDiv
+    },
+
+    removeCurrentDay: function removeCurrentDay(e){
+
+        let currentDayElement = e.target.parentElement.parentElement
+        let previousDayElement = currentDayElement.previousSibling
+            let optDiv = previousDayElement.parentElement.parentElement
+            let optNumber = Array.from(optDiv.parentElement.children).indexOf(optDiv)+1     
+            let dayNumber = Array.from(previousDayElement.parentElement.children).indexOf(previousDayElement)+1
+    
+        function addDayRemovalButtonToPreviousElement(){
+    
+            let newFormOptRemoveDayButton = document.createElement("button")
+            assignElementAttributes(newFormOptRemoveDayButton, "formOptRemoveDay", `formOptRemoveOpt${optNumber}Day${dayNumber}`, "X", "click", domElementFunctions.removeCurrentDay)
+            previousDayElement.firstElementChild.appendChild(newFormOptRemoveDayButton)  
+        }
+    
+        function removeDay(){
+            currentDayElement.parentElement.removeChild(currentDayElement)
+        }
+    
+        if(dayNumber>1){
+            addDayRemovalButtonToPreviousElement()
+        }
+        removeDay()
+    },
+
+
+    removeDayRemovalButtonFromPreviousElement: function removeDayRemovalButtonFromPreviousElement(e){
+
+        let removeDayButtonPreviousElementDiv = e.target.previousElementSibling.lastElementChild.firstElementChild
+        if(removeDayButtonPreviousElementDiv.lastElementChild.classList.contains("formOptRemoveDay")){
+            removeDayButtonPreviousElementDiv.removeChild(removeDayButtonPreviousElementDiv.lastElementChild)
+        }
+    },
+
+    removeCurrentOption: function removeCurrentOption(e){
+
+        let currentOptionElement = e.target.parentElement.parentElement
+        let previousOptionElement = currentOptionElement.previousElementSibling
+        let optNumber = Array.from(previousOptionElement.parentElement.children).indexOf(previousOptionElement)+1
+    
+        function addOptionRemovalButtonToPreviousElement(){
+            let newRemoveOptButton = document.createElement("button");
+            assignElementAttributes(newRemoveOptButton, "formOptRemoveOpt", `formOptRemoveOpt${optNumber}`, "X", "click", domElementFunctions.removeCurrentOption)
+            previousOptionElement.firstElementChild.appendChild(newRemoveOptButton)
+        }
+    
+        function removeOption(e){
+            currentOptionElement.parentElement.removeChild(currentOptionElement)
+        }
+    
+        if(optNumber>1){
+            addOptionRemovalButtonToPreviousElement()
+        }
+        removeOption(e)
+    
+    },
+
+    removeOptionRemovalButtonFromPreviousElement: function removeOptionRemovalButtonFromPreviousElement(e){
+
+        let removeOptionButtonPreviousElementDiv = e.target.parentElement.previousElementSibling.lastElementChild.firstElementChild
+        if(removeOptionButtonPreviousElementDiv.lastElementChild.classList.contains("formOptRemoveOpt")){
+            removeOptionButtonPreviousElementDiv.removeChild(removeOptionButtonPreviousElementDiv.lastElementChild)
+        }
+    },
+
+    populateFormSelectNode: function populateFormSelectNode(selector, valueRangeStart, valueRangeEnd, valueIncrementer, array){
+
+        if(array){
+            for(let i = valueRangeStart; i < valueRangeEnd; i+= valueIncrementer){
+                let newOption = document.createElement("option")
+                newOption.setAttribute("value", `${array[i]}`)
+                newOption.innerHTML = `${array[i]}`
+                selector.appendChild(newOption)
+            }
+        }else{
+            for(let i = valueRangeStart; i < valueRangeEnd; i+= valueIncrementer){
+                let newOption = document.createElement("option")
+                newOption.setAttribute("value", `${i}`)
+                newOption.innerHTML = `${convertTotalMinutesToStandardTime(i)}`
+                selector.appendChild(newOption)
+            }
         }
     }
+    
 }
 
+addTrainingOptionNode.addEventListener("click", domElementFunctions.newTrainingOptionDiv)
+addTrainingDayNode.addEventListener("click", domElementFunctions.newTrainingDayDiv)
+    
 
 function convertTotalMinutesToStandardTime(totalMins){
     let standardTime;
