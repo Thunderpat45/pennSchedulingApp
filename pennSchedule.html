@@ -23,14 +23,13 @@
 		<h1>Add Team Requests</h1>
 		</div>
 			<form id = "teamRequestForm">
-				<div id = "formTeamName">
+				<div id = "formTeamNameDiv">
 					<label for = "formTeamName">Team Name</label><br>
 					<input type = "text" id = "formTeamName" name ="formTeamName"><br>
 				</div>
-				<div id = "formTeamSize">
+				<div id = "formTeamSizeDiv">
 					<label for = "formTeamSize">Team Size</label><br>
 					<select id = "formTeamSize" name ="formTeamSize"><br>
-						<option value = "automate">SIX "FIX"</option> 
 					</select>
 				</div>
 				<div id = "formAllOpts">
@@ -61,26 +60,18 @@
 									<div class = "startTime" id = "startTimeOpt1Day1">
 										<label for = "startTimeSelectorOpt1Day1">Start Time</label><br>
 										<select class ="startTimeSelector" id = "startTimeSelectorOpt1Day1">
-											<option value = "360">6:00a</option>
-											<option value = "420">7:00a</option>
-											<option value = "480">8:00a</option>
-											<option value = "540">9:00a</option>
 										</select>
 									</div>
 									<div class = "endTime" id = "endTimeOpt1Day1">
 										<label for = "endTimeSelectorOpt1Day1">End Time</label><br>
 										<select class ="endTimeSelector" id = "endTimeSelectorOpt1Day1">
-											<option value = "360">6:00a</option>
-											<option value = "420">7:00a</option>
-											<option value = "480">8:00a</option>
-											<option value = "540">9:00a</option>
 										</select>
 									</div>
 									<div class ="inWiess" id ="inWeissOpt1Day1">
 										<p class = "inWeissLabel">In Weiss</p>
-										<input type = "radio" class = "inWeissYes" id = "inWeissYesSelectorOpt1Day1" name = "inWeissSelectorOpt1Day1">
+										<input type = "radio" class = "inWeissYes" id = "inWeissYesSelectorOpt1Day1" name = "inWeissSelectorOpt1Day1" checked value = "yes">
 										<label for = "inWeissYesSelectorOpt1Day1">Yes</label>
-										<input type = "radio" class = "inWeissNo" id = "inWeissNoSelectorOpt1Day1" name = "inWeissSelectorOpt1Day1">
+										<input type = "radio" class = "inWeissNo" id = "inWeissNoSelectorOpt1Day1" name = "inWeissSelectorOpt1Day1" value = "no">
 										<label for = "inWeissNoSelectorOpt1Day1">No</label>
 									</div>
 
@@ -94,7 +85,7 @@
 					<button id = "addTrainingOption">Add Training Option</button>
 				</div>
 				<div id = "modifierButton">
-					<button id = "saveTeamRequest">Add</button>
+					<button id = "updateTeamRequest">Update</button>
 					<button id = "clearTeamRequest">Clear</button>
 					<button id = "cancelTeamRequest">Cancel</button>
 				</div>

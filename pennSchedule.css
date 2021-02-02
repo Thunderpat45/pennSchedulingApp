@@ -48,11 +48,11 @@ h1{
 	font-size: 1.5rem;
 }
 
-#formTeamName{
+#formTeamNameDiv{
 	grid-area: teamName
 }
 
-#formTeamSize{
+#formTeamSizeDiv{
 	grid-area: teamSize
 }
 
@@ -128,8 +128,8 @@ h1{
 	grid-area: modifierButton
 }
 
-#saveTeamRequest{
-	grid-area: saveRequest
+#updateTeamRequest{
+	grid-area: updateRequest
 }
 
 #cancelTeamRequest{
