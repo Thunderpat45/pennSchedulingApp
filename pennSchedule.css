@@ -13,23 +13,90 @@ h1{
 	text-align:center;
 }
 
+.hidden{
+	display:none;
+}
 
-#hiddenFillFormPage{
-	/*display:none;*/
+#fillFormPage{
+	
 	margin:0px;
 	min-height: 100%;
 	background-color: rgb(161, 0, 0);
 }
 
 #viewRequestPage{
-	display:none;
-	margin:10px;
+	margin:0px;
+	min-height: 100%;
+	background-color: rgb(161, 0, 0);
+}
+
+#teamGridContainer{
+	display:grid;
+	grid-template-columns: 1fr;
+	width: 85%;
+	background-color:grey;
+	margin:auto;
+	border-style:solid;
+	padding:.5rem;
+	gap:1rem;
+	text-align:center;
+}
+
+#teamGrid{
+	display:grid;
+	grid-template-columns: 1fr;
+	margin:auto;
+	width:100%;
+	gap:1.5rem;
+	
+}
+
+#teamGridLabels{
+	display:grid;
+	grid-template-columns: 1.5fr .5fr 1fr 1fr 1fr 1fr .5fr 1fr
+}
+
+.teamGridTeamDayContainer{
+	display:grid;
+	grid-template-columns: 1fr 1fr 1fr .5fr;
+	row-gap:.5rem;
+}
+
+.teamGridTeam{
+	display:grid;
+	grid-template-columns: 1.5fr .5fr 4.5fr 1fr;
+	
+}
+
+.teamGridTeamOptionContainer{
+	display:grid;
+	grid-template-columns:1fr 3.5fr;
+	row-gap: 1rem;
+}
+
+.teamGridTeamButtons{
+	display:grid;
+	grid-template-columns:1fr;
+}
+
+.teamGridTeamEditButton{
+	width: 50%;
+	background-color: yellow;
+	margin:auto;
+	height: 25px;
+}
+
+.teamGridTeamDeleteButton{
+	width:50%;
+	background-color: red;
+	margin:auto;
+	height: 25px;
 }
 
 #teamRequestForm{
 	margin:auto;
 	background-color: grey;
-	width:70%;
+	width:85%;
 	border-style:solid;
 	padding:.5rem;
 	display:grid;
@@ -42,6 +109,12 @@ h1{
 		". . . ."
 		" modifierButton modifierButton . .";
 	
+}
+
+#teamGridAddTeam{
+	margin: 30px 30% auto 30%;
+	height: 50px;
+	width: 40%
 }
 
 #formTeamName label, #formTeamSize label{
@@ -72,43 +145,40 @@ h1{
 	
 }
 
-.formOptAllDays{
+.formAllDays{
 	display:grid;
 	grid-template-rows: 1fr;
 	gap:1rem;
 }
 
-.formOptDay{
+.formDay{
 	display:grid;
 	grid-template-columns:1fr;
 	gap:1rem;	
 	padding-top:1rem;	
 }
 
-.labelDayRemoveDay, .labelOptionRemoveOption{
+.labelDeleteDayButton, .labelDeleteOptButton{
 	display:grid;
 	grid-template-columns:1fr 1fr;
 	gap:1rem;
 }
 
-.formOptRemoveDay, .formOptRemoveOpt{
+.deleteDay, .deleteOpt{
 	width:10%;
 	margin-left:auto;
 	background-color: red;
+	height:40px;
 }
 
-.formOptRemoveOpt{
-	height:50%;
-}
-
-.formOptDayDetails{
+.formDayDetails{
 	display:grid;
 	grid-template-columns: repeat(4, 1fr);
 	grid-auto-rows: minmax(2.5rem, auto);
 	gap:1rem;	
 }
 
-.inWeissLabel, .labelOption, .labelDay{
+.inWeissLabel, .optLabel, .dayLabel{
 	margin:0px;
 }
 

@@ -1,30 +1,14 @@
-function createNode(el, value, innerHTML, array){
-
-    const domNode = {
-        
-        addNode: function(el, value, innerHTML, array){
-            this.setDom(el);
-            this.setAttributes(value, innerHTML);
-            this.pushOption(array);
-        },
-        
-        setDom: function(el){
-            this.el = document.createElement(`${el}`)
-        },
-
-        setAttributes: function(value = "default", innerHTML = "--"){
-            this.option.value = value;
-            this.option.innerHTML = innerHTML;
-        },
-
-        pushNode: function(array){
-            array.push(this.el);
-        }
-
-
-    };
-
-    domNode.addNode(el, value, innerHTML, array)
+const createNode = function createNode(el, value, innerHTML, array){
+    
+    //setDOM
+    const element = document.createElement(`${el}`)
+    
+    //setAttributes
+    element.value = value || "default";
+    element.innerHTML = innerHTML || "--"; 
+    
+    //pushNode
+    array.push(element);
 
 }
 
@@ -33,13 +17,40 @@ function generateOptions(){
     const options = {
         options: [],
 
-        updateOptionParameters: function updateOptionParameters(){},
+        updateOptionParameters: function updateOptionParameters(startValue, endValue, incrementer){
+            this.startValue = startValue;
+            this.endValue = endValue;
+            this.incrementer = incrementer
+        },
+
+        assignValue: function(){
+            if(/*class == dayOfWeek*/){
+                /*
+                [array of days of week];
+                const value = array[i]
+                const innerHTML = array[i]
+                */
+            }else{
+                const value = i
+                if (/*id == formTeamSize*/){
+                    /*
+                    const innerHTML = i
+                    */
+                }else{
+                    const innerHTML = numberConvert();
+                }
+            }
+        }
         
         buildDefaultOption: createNode("option", undefined, undefined, options),
 
         buildNonDefaultOptions: function buildNonDefaultOptions(){
-            for()
-        }
+            for(let i = this.startValue; i<this.endValue; i+= this.incrementer){
+                assignValue()
+                createNode("option",  )
+
+            }
+        },
     }
     
 }

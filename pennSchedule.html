@@ -10,15 +10,28 @@
 			<div id = "pageTitle">UPenn S&C Scheduling App</div>
 		</div>	
 	</header>
+	<nav id = "nav">FILL THIS OUT WITH LINKS TO MAIN, FIELD SCHED, ATHLETE SCHED, COACH PREFERENCES</nav>
 	<div id = "viewRequestPage">
+		<div id = "userName">USERS NAME WILL GO HERE ON RIGHT SIDE</div>
+		<div id = "season">FALL/SPRING BUTTONS AND LABEL WILL GO HERE IN CENTER</div>
 		<div id = "teamGridContainer">
-			<div class = "teamGrid">
+			<div id = "teamGridLabels">
+				<div>Name</div>
+				<div id = >Size</div>
+				<div>Option</div>
+				<div>Day</div>
+				<div>Start</div>
+				<div>End</div>
+				<div>Weiss</div>
+				<div>Buttons</div>
+			</div>
+			<div id = "teamGrid">
 			</div>
 		</div>
-		<button id = "addTeam">Add Team</button>
+		<button id = "teamGridAddTeam">Add Team</button>
 
 	</div>
-	<div id = "hiddenFillFormPage">
+	<div id = "fillFormPage" class = "hidden">
 		<div id = "fillformTitle">
 		<h1>Add Team Requests</h1>
 		</div>
@@ -33,53 +46,6 @@
 					</select>
 				</div>
 				<div id = "formAllOpts">
-					<div class = "formOpt" id = "formOpt1">			<!--Dynamically generate formOpt, header, formOptDay with appropriate grid areas-->
-						
-						<div class = "labelOptionRemoveOption" id = "labelOption1RemoveOption1">
-							<h2 class = "labelOption" id = "labelOption1">Option 1</h2>
-						</div>
-						<div class = "formOptAllDays" id = "formOptAllDaysOpt1">
-							<div class = "formOptDay" id = "formOpt1Day1">
-								<div class = "labelDayRemoveDay" id = "labelOption1RemoveDay1">
-									<h3 class = "labelDay" id="labelOption1Day1">Day 1</h3>
-								</div>
-								<div class = "formOptDayDetails" id = "formOpt1DayDetails1">
-									
-									<div class ="dayOfWeek" id = "dayOfWeekOpt1Day1">
-										<label for = "dayOfWeekSelectorOpt1Day1">Day of Week</label><br>
-										<select class = "dayOfWeekSelector" id = "dayOfWeekSelectorOpt1Day1">		<!--dynamically generate days of week, start/end times, and Weiss options-->
-											<option value = "Sunday">Sunday</option>
-											<option value = "Monday">Monday</option>
-											<option value = "Tuesday">Tuesday</option>
-											<option value = "Wednesday">Wednesday</option>
-											<option value = "Thursday">Thursday</option>
-											<option value = "Friday">Friday</option>
-											<option value = "Saturday">Saturday</option>
-										</select>
-									</div>
-									<div class = "startTime" id = "startTimeOpt1Day1">
-										<label for = "startTimeSelectorOpt1Day1">Start Time</label><br>
-										<select class ="startTimeSelector" id = "startTimeSelectorOpt1Day1">
-										</select>
-									</div>
-									<div class = "endTime" id = "endTimeOpt1Day1">
-										<label for = "endTimeSelectorOpt1Day1">End Time</label><br>
-										<select class ="endTimeSelector" id = "endTimeSelectorOpt1Day1">
-										</select>
-									</div>
-									<div class ="inWiess" id ="inWeissOpt1Day1">
-										<p class = "inWeissLabel">In Weiss</p>
-										<input type = "radio" class = "inWeissYes" id = "inWeissYesSelectorOpt1Day1" name = "inWeissSelectorOpt1Day1" checked value = "yes">
-										<label for = "inWeissYesSelectorOpt1Day1">Yes</label>
-										<input type = "radio" class = "inWeissNo" id = "inWeissNoSelectorOpt1Day1" name = "inWeissSelectorOpt1Day1" value = "no">
-										<label for = "inWeissNoSelectorOpt1Day1">No</label>
-									</div>
-
-								</div>
-							</div>
-						</div>
-						<button class = "addTrainingDay" button id = "addTrainingDay1">Add Training Day</button>	
-					</div>
 				</div>
 				<div id = "addTrainingOptionDiv">
 					<button id = "addTrainingOption">Add Training Option</button>
