@@ -685,99 +685,11 @@ function modifiedCartesian(...teamRequestArray) {
             let bestChoice = []           
             
             //function that checks active Team availability against current scheduling stack
-            function checkCoachSpaceAvailability(activeTeam, activeScheduleStack){
-    
-                /*function that populates the blank schedule with each team of the current scheduling stack, 
-                by "occupying" (subtracting) the appropriate # of slots out of total weight room space (unless they are training in remote location), 
-                marking the respective strength coach as no longer available, and adding the team to a list of teams in that slot;
-                doing it for every 15 mins that the team has up to the duration of the session*/
-                function populateScheduleObjectWithExistingScheduleStack(){
-                    for(let existingTeamIndex = 0; existingTeamIndex < activeScheduleStack.length; existingTeamIndex++){
-                        let existingTeamTrainingWeek = activeScheduleStack[existingTeamIndex];
-                        for(let day = 0; day<existingTeamTrainingWeek.length; day++){
-                            let existingTeamTrainingDay = existingTeamTrainingWeek[day];
-                            let team = existingTeamTrainingDay[0]
-                            let dayOfWeek = existingTeamTrainingDay[1]
-                            let start = existingTeamTrainingDay[2];
-                            let stop = existingTeamTrainingDay[3]
-                            let inWeightRoom = existingTeamTrainingDay[4]
-                            for(let time = start; time < stop; time += 15){
-                                if(inWeightRoom == "yes"){
-                                    scheduleObject[dayOfWeek][time].slots -= teamObject[team].size;
-                                    scheduleObject[dayOfWeek][time].existingTeams.push(teamObject[team].name)
-                                }else{
-                                    scheduleObject[dayOfWeek][time].existingTeams.push(`${teamObject[team].name} off-site`)
-                                }
-                                scheduleObject[dayOfWeek][time].strengthCoachAvailability[teamObject[team].coach] = "no";
-                            }    
-                        }
-                    }
-                }
-                /* function that compares each day of the "to be scheduled" team's current proposal, checking that for every 15min
-                between start and stop, both the space and coach is free, with a variable that imitates (but does not shallow copy) the current proposal */
-                function checkActiveTeam(){
-                    for(let dayProposalIndex = 0; dayProposalIndex<activeTeam.length; dayProposalIndex++){
-                        let trainingDay = activeTeam[dayProposalIndex]
-                        let team = trainingDay[0];
-                        let dayOfWeek = trainingDay[1]
-                        let start = trainingDay[2];
-                        let stop = trainingDay[3];
-                        let inWeightRoom = trainingDay[4]
-                        let validTime = [team, dayOfWeek, start, stop, inWeightRoom, "yes"  ];
-                       
-                        
-                        function evaluateTime(modifier){                                                     
-                            for(let time = start + modifier; time < stop + modifier;time+=15){
-                                if(scheduleObject[dayOfWeek][time].strengthCoachAvailability[teamObject[team].coach] == "no"){                                    
-                                    return "conflict"
-                                }else if(scheduleObject[dayOfWeek][time].slots - teamObject[team].size <0){                                  
-                                    return "conflict"
-                                }
-                            }   
-                        }
-                        /*conditions of checkActiveTeam that assess: if original proposed day works, push it to bestChoice array;
-                        if not, if adding/subtracting up to 30 mins from start and end time will allow a conflicting proposed time to still fit in a relatively similar spot, 
-                        modify the proposal imitation to change the start/end times appropriately(without modifiying the actual proposed times, just in case). 
-                        Otherwise, returns completeConflict to indicate that no variation of the time proposed for that day works,
-                        and pushes conflicting day/time to conflictArray*/
-                        if(evaluateTime(0) == "conflict"){
-                            if(evaluateTime(-15) == "conflict"){
-                                if(evaluateTime(15) == "conflict"){
-                                    if(evaluateTime(-30) == "conflict"){
-                                        if(evaluateTime(30) == "conflict"){
-                                            conflictArray.push([`${team}`,`${dayOfWeek}`,`${start}(+/-30)`])
-                                            return "completeConflict"
-                                        }else{
-                                            validTime[2] = start + 30
-                                            validTime[3] = stop + 30
-                                            bestChoice.push(validTime)  
-                                        }
-                                    }else{
-                                        validTime[2] = start + -30
-                                        validTime[3] = stop + -30
-                                        bestChoice.push(validTime)
-                                    }
-                                }else{
-                                    validTime[2] = start + 15
-                                    validTime[3] = stop + 15
-                                    bestChoice.push(validTime)
-                                }
-                            }else{
-                                validTime[2] = start + -15
-                                validTime[3] = stop + -15
-                                bestChoice.push(validTime)
-                            }
-                        }else{
-                            bestChoice.push(validTime)
-                        }
-                    }                              
-                }
-                populateScheduleObjectWithExistingScheduleStack()
-                if(checkActiveTeam() == "completeConflict"){
-                   return "completeConflict"
-                }             
-        
-            }
+
+
+            checkCurrentTeamOptions
+
+
             //if a day in the current proposal cannot fit after all variations, moves on to the next full proposal set for that team
             if(checkCoachSpaceAvailability(currentRequest,currentScheduleStackSlice) == "completeConflict"){
                 continue loop1;
@@ -897,7 +809,7 @@ for teams that were no longer actually scheduled due to the recursion backtracki
 
 //edit formNew to be object with buildScheudleObject method, and slot as property
 
-const scheduleObject = {
+const scheduleObject = { //add conflict array, completeSchedules, longestStack arrays as properties
     Sun:{},
     Mon:{},
     Tue:{},
@@ -940,7 +852,86 @@ const scheduleObject = {
         }
         }
         return scheduleObject
-    }
+    },
+
+    trackLongestStack: function trackLongestStack(){},
+
+    checkCurrentTeamOptions: function checkCurrentTeamOptions(currentRequest, currentTeam, cachedTeamStack, schedObj, validOption){
+        this.insertAllCachedTeams(cachedTeamStack, schedObj);
+        if(this.checkCurrentTeamDays(currentRequest, currentTeam, schedObj, validOption) == "conflict"){
+            return "conflict" //more to this?
+        }
+    },
+
+    insertAllCachedTeams: function insertAllCachedTeams(cachedTeamStack, schedObj){
+        for(let i = 0; i< cachedTeamStack.length; i++){
+            const cachedTeam = cachedTeamStack[i];
+            this.insertCachedTeam(cachedTeam, schedObj)
+        }
+    },
+
+    insertCachedTeam: function insertCachedTeam(cachedTeam, schedObj){
+        const totalCachedDays = Object.keys(cachedTeam.schedulePreferences).length;
+        for(let i = 0; i< totalCachedDays; i++){
+            const cachedDay = cachedTeam[`day${i}`];
+            this.insertCachedDay(cachedDay, cachedTeam, schedObj)
+        }
+    },
+
+    insertCachedDay: function insertCachedDay(cachedDay, cachedTeam, schedObj){ //recursion?
+        const {dayOfWeek, startTime, endTime, inWeiss} = cachedDay;
+        const {coach, size, name} = cachedTeam;
+        for(let time = startTime; time < endTime; time +=15){
+            schedObj[dayOfWeek][time].strengthCoachAvailability[coach] = "no"
+            if(inWeiss == "yes"){
+                schedObj[dayOfWeek][time].slots -= size;
+                schedObj[dayOfWeek][time].existingTeams.push({name: name, coach:coach});
+            }else{
+                schedObj[dayOfWeek][time].existingTeams.push({name: name, coach:coach, location: "off-site"})
+            }
+        }
+    },
+
+    checkCurrentTeamDays: function checkCurrenTeamDays(currentRequest, currentTeam, schedObj, validOption){ //recursion?
+        const currentRequestTotalDays = Object.keys(currentRequest.length);
+        for(let i = 0; i < currentRequestTotalDays; i++){
+            const currentDay = currentRequest[`day${i+1}`];
+            if(this.evaluateTimeBlock(currentDay, currentTeam, schedObj, validOption, 0) == "conflict"){
+                return "conflict"
+            }
+        }
+    },
+
+    evaluateTimeBlock: function evaluateTimeBlock(currentDay, currentTeam, schedObj, validOption, i){
+        const modifierArr = [0, -15, 15, -30, 30];
+        const timeRequest = this.checkConflicts(modifierArr[i], currentDay, currentTeam, schedObj);
+        if(i < modifierArr.length-1 && timeRequest == "conflict"){
+            evaluateTimeBlock(currentDay, currentTeam, schedObj, validOption, i++)
+        }else if(i == modifierArr.length-1 && timeRequest == "conflict"){
+            this.conflictArray.push(currentDay) //more content to this?
+            return "conflict" //more content to this?
+        }else{
+            const validDay = {day: currentDay};
+            validDay.startTime += modifierArr[i];
+            validDay.endTime += modifierArr[i];
+            const {coach, name} = currentTeam;
+            validOption.coach = coach;
+            validOption.name = name;
+            validOption.validDays.push(validDay);
+        }
+    },
+
+    checkConflicts: function checkConflicts(modifier, currentDay, currentTeam, schedObj){ //recursion?
+        const {coach, size} = currentTeam;
+        const {dayOfWeek, startTime, endTime} = currentDay;
+        for(let time = startTime + modifier; time < endTime + modifier; time += 15){
+            if(
+                schedObj[dayOfWeek][time].strengthCoachAvailability[coach] == "no" ||
+                schedObj[dayOfWeek][time].slots - size < 0){
+                    return "conflict"
+            }       
+        }
+    },
 };
 
 
