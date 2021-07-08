@@ -1,18 +1,42 @@
+import { events } from "./events";
+
 const scheduleBuilder = (function(){
+
+    events.subscribe("SOMETHINGABOUTSCHEDULEDATALOADED", buildEmptyScheduleTemplate)
     
-    function buildEmptyScheduleTemplate(scheduleData, coachPreferences){
+    function buildEmptyScheduleTemplate(scheduleData, coachPreferences){// do something about "reason", check this all for mutability issues for all functions here
         const scheduleTemplate = {}
         scheduleData.days.forEach(function(day){
-            scheduleTemplate[day] = Object.assign({}, "SEOMTHING");
-            for(let time = scheduleData.openTime; time < scheduleData.closeTime; time +=15){
-                scheduleTemplate[day][time] = { //where is coach preferences getting coaches from? not actually a question for here, but this made me think of it, also can these nested loops made into separate functions?
-
-                }
-            }
+            scheduleTemplate[day] = Object.assign({}, "SOMETHING");
+            buildTimeSlots(scheduleTemplate, scheduleData, day, coachPreferences)
         })
     }
-})();
 
+    function buildTimeSlots(scheduleTemplate, scheduleData, day, coachPreferences){
+        for(let time = scheduleData.openTime; time < scheduleData.closeTime; time +=15){
+            scheduleTemplate[day][time] = { 
+                slots: scheduleData.slots[1], //this may change to single value?
+                strengthCoachAvailability: setStrengthCoachAvailability(time, day, coachPreferences),
+                existingTeams:[]
+            }
+        }
+    }
+
+    function setStrengthCoachAvailability(time, day, coachPreferences){
+        const availabilityObject = {}
+        for(let coach in coachPreferences){
+                for(let timeRange in coach[day]){
+                    if(time >= timeRange.start && time < timeRange.end){
+                        availabilityObject[coach] = "no"
+                    }else{
+                        availabilityObject[coach] = "yes"
+                    }
+                }
+        }
+        return availabilityObject
+    }
+    
+})();
 
 /*function to build blank schedule object for each new team evaluation, for each day of week, 6am-8pm, with every 15m(we have 15 mins in our intervals for scheduling)
 having x slots (available training spaces, an array to indicate each coach's availability, (accounting for requests in coachPreference Object),
@@ -23,60 +47,18 @@ for teams that were no longer actually scheduled due to the recursion backtracki
 //edit formNew to be object with buildScheudleObject method, and slot as property
 
 const scheduleObject = { //add conflict array, completeSchedules, longestStack arrays as properties
-    Sun:{},
-    Mon:{},
-    Tue:{},
-    Wed:{},
-    Thu:{},
-    Fri:{},
-    Sat:{},
-    slots: 6,
-    buildScheduleObjectNew: function buildScheduleObjectNew(){
-    
-    
-        for(let day in scheduleObject){
-            if(day != "slots" && day != "buildScheduleObjectNew"){
-            for(let time = 360; time<1200; time+=15){
-        
-                scheduleObject[day][time] =
-                    {
-                        slots : scheduleObject.slots,
-                        strengthCoachAvailability:{
-                            Dolan: "yes",
-                            Pifer: "yes",
-                            Rivera: "yes",
-                            Brindle: "yes",
-                            Walts: "yes",
-                            Weeks: "yes",
-                        },
-                        existingTeams:[],
-                    }
-                for(let name in coachPreferencesObject){
-                    if(coachPreferencesObject[name][day]){
-                        let coach = coachPreferencesObject[name][day]
-                        for(let preference = 0; preference<coach.length; preference++){ 
-                            if(time>=coach[preference][0] && time<coach[preference][1]){
-                                scheduleObject[day][time].strengthCoachAvailability[name] = "no"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        }
-        return scheduleObject
-    },
+   
 
     buildTeamsSchedule: function buildTeamsSchedule(teamRequestArray){
         scheduleObject.completeSchedules = [];
-        scheduleObject.conflictArray = [];
+        scheduleObject.conflictObj = {};
         scheduleObject.longestStack = [];
         this.checkAllTeams([], 0, teamRequestArray);
         if(scheduleObject.completeSchedules.length == 0){
-            return [scheduleObject.longestStack, scheduleObject.conflictArray]
+            return [scheduleObject.longestStack, scheduleObject.conflictObj]
         }
         else{
-            return [scheduleObject.completeSchedules, scheduleObject.conflictArray]
+            return [scheduleObject.completeSchedules, scheduleObject.conflictObj]
         }  
     },
 
@@ -101,7 +83,7 @@ const scheduleObject = { //add conflict array, completeSchedules, longestStack a
         this.checkStackCompletion(currentTeamIndex, teamRequestArray, cachedTeamStackSlice);
 
         if(scheduleObject.completeSchedules.length == 5){ //does this one go here?
-            return [scheduleObject.completeSchedules, scheduleObject.conflictArray]
+            return [scheduleObject.completeSchedules, scheduleObject.conflictObj]
         }
         checkCurrentTeam(currentTeam, cachedTeamStack, currentTeamIndex, teamRequestArray, i++)
     },
@@ -169,12 +151,33 @@ const scheduleObject = { //add conflict array, completeSchedules, longestStack a
 
     evaluateTimeBlock: function evaluateTimeBlock(currentDay, currentTeam, schedObj, validOption, i){
         const modifierArr = [0, -15, 15, -30, 30];
+        const conflictArray = []
         const timeRequest = this.checkConflicts(modifierArr[i], currentDay, currentTeam, schedObj);
-        if(i < modifierArr.length-1 && timeRequest == "conflict"){
+        if(i < modifierArr.length-1 && timeRequest != "undefined"){
+            if(i == 0 || i == 3){
+                conflictArray.push(timeRequest)
+            }
             evaluateTimeBlock(currentDay, currentTeam, schedObj, validOption, i++)
-        }else if(i == modifierArr.length-1 && timeRequest == "conflict"){
-            this.conflictArray.push(currentDay) //more content to this?
-            return "conflict" //more content to this?
+        }else if(i == modifierArr.length-1 && timeRequest!= "undefined"){
+            conflictArray.push(timeRequest)
+            if(!this.conflictObj.hasProperty(currentTeam.name)){
+                this.conflictObj[currentTeam.name] = {
+                    [currentDay.dayOfWeek] : {
+                        [currentDay.startTime]: []
+                    }
+                }    
+            }else if(this.conflictObj.hasProperty(currentTeam.name)){
+                if(!this.conflictObj[currentTeam.name].hasProperty([currentDay.dayOfWeek])){
+                    this.conflictObj[currentTeam.name][currentDay.dayOfWeek] = {
+                        [currentDay.startTime]: []
+                    }
+                }else if(!this.conflictObj[currentTeam.name][currentDay.dayOfWeek].hasProperty([currentDay.startTime])){
+                    this.conflictObj[currentTeam.name][currentDay.dayOfWeek][currentDay.startTime] = [];
+                }
+
+            }
+            this.conflictObj[currentTeam.name][currentDay.dayOfWeek][currentDay.startTime].push(conflictArray)
+            return "conflict" 
         }else{
             const validDay = {day: currentDay};
             validDay.startTime += modifierArr[i];
@@ -190,14 +193,39 @@ const scheduleObject = { //add conflict array, completeSchedules, longestStack a
         const {coach, size} = currentTeam;
         const {dayOfWeek, startTime, endTime} = currentDay;
         for(let time = startTime + modifier; time < endTime + modifier; time += 15){
-            if(
-                schedObj[dayOfWeek][time].strengthCoachAvailability[coach] == "no" ||
-                schedObj[dayOfWeek][time].slots - size < 0){
-                    return "conflict"
-            }       
+            try{
+                const thisTimeExistingTeams = schedObj[dayOfWeek][time].existingTeams
+
+                //if condition for changed start end times (if this time is not actually a valid time to schedule, then..., or should that be in validator)
+                if(schedObj[dayOfWeek][time].strengthCoachAvailability[coach] == "no"){
+                    const coachConflictArray = thisTimeExistingTeams
+                        .slice()
+                        .filter(function(team){
+                            team.coach == coach;
+                        })
+                        .map(function(team){
+                            team.name
+                        })
+                    throw({time: startTime, reason: "Coach not available", teams: coachConflictArray});
+                }else if(schedObj[dayOfWeek][time].slots - size < 0){
+                    const spaceConflictArray = thisTimeExistingTeams
+                        .slice()
+                        .map(function(team){
+                        team.name
+                        })
+                    throw({time: startTime, reason: "Space not available", teams: spaceConflictArray})
+                }
+            }catch(conflict){ 
+                return conflict;
+            }
         }
-    },
-};
+            
+    }
+        
+}
+       
+    
+
 
 
     

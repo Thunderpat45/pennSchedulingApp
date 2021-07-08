@@ -1,4 +1,4 @@
-import events from "events"
+import {events} from "../events"
 /*
 actions: contains and modifies data built for current teamRequest
 
@@ -59,7 +59,7 @@ const teamRequestModel = (function(){
             teamSize: "default",
             //myTeamIndex: null,
             //allTeamsIndex: null, FIGURE THIS OUT
-            allOpts: [[defaultDayDetails]]
+            allOpts: [[Object.assign({}, defaultDayDetails)]]
         };
         teamRequest = [];
         events.publish("workingModelPopulated", workingModel)

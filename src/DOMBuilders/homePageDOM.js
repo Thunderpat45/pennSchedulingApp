@@ -1,0 +1,3 @@
+const homePageDOM = (function(){
+    
+})()

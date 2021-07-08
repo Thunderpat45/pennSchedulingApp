@@ -1,4 +1,4 @@
-import events from "events"
+import {events} from "../events"
 
 /*
 actions: loads user's teams' data from Mongo, updates data on each team's requests

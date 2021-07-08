@@ -1,4 +1,4 @@
-import events from "events"
+import {events} from "../events"
 /*
 actions: builds DOM for submitting team requests, captures inputs for teamRequestModel
 

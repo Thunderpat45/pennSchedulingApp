@@ -4,27 +4,32 @@ const masterScheduleData = (function(){
     
     events.subscribe("SOMETHINGABOUTLOADINGVALUES", loadAdjustedOptions);
     events.subscribe("SOMETHINGABOUTLOADINGCOACHPREFERENCES", loadCoachPreferences);
-    events.subscribe("SOMETHINGABOUTADJUSTINGADMINOPTIONS", function publishDefaultOptions(){
-        events.publish("SOMETHINGABOUTPUBLISHINGDEFAULTOPTIONS", defaultOptions)
+    events.subscribe("SOMETHINGABOUTADJUSTINGADMINOPTIONS", function publishAdminOptionRanges(){
+        events.publish("SOMETHINGABOUTPUBLISHINGADMINOPTIONRANGES", adminOptionRanges)
+    })
+    events.subscribe("SOMETHINGABOUTVALUESLOADED", function publishScheduleBuilderInfo(){
+        events.publish("SOMETHINGABOUTSCHEDULEDATALOADED", adjustedOptions, coachPreferences)
     })
 
-    const defaultOptions = {
+    const adminOptionRanges = {
         days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-        openTime: 0, //12am
-        closeTime: 1425, //11:45pm
-        slots: [1, null] // is null the right value?
+        openTime: 0, 
+        closeTime: 1440, 
+        slots: [1, null] //make this input?
     }
 
-    /* adjustedOptions  loadFROMDATABASE?*/
+   //set default adjustedOptions in the database
     
     const adjustedOptions = {
         days: [],
         openTime: null, 
         closeTime: null, 
-        slots: [1, null]
+        slots: [1, null] //make this input?
     }
 
-    let coachPreferences = {}
+    let coachPreferences = {} //{coachName: {day: {start, stop, reason}, {start, stop, reason}}}
+
+    
 
     function loadAdjustedOptions(mongoDBStuff){
         for(let prop in mongoDBStuff){
