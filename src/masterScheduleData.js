@@ -34,6 +34,7 @@ const masterScheduleData = (function(){
     function loadAdjustedOptions(mongoDBStuff){
         for(let prop in mongoDBStuff){
             adjustedOptions[prop] = mongoDBStuff[prop]
+            events.publish()
         }
     }
 

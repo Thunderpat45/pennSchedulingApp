@@ -7,13 +7,21 @@ publishes:
 
 subscribes to:
     teamRequest validation requests
+        from teamRequestData
+    adjustedAdminOption loads
+        from masterScheduleData
 */
 
 const validator = (function(){
 
-    // get size/day/time ranges from scheduleObj for outOfRange function tests
+    let selectorValueRanges;
 
     events.subscribe("validateTeamRequest", validateAllInputs);
+    events.subscribe("SOMETHINGABOUTADJUSTEDADMINOPTIONSLOADING", setValueRanges)
+
+    function setValueRanges(adminRanges){
+        selectorValueRanges = Object.assign({}, adminRanges)
+    }
 
     function validateAllInputs(workingModel, teamRequest){
         const errorArray = [];
@@ -33,61 +41,71 @@ const validator = (function(){
     function validateName(workingModel,array){
         const name = workingModel.teamName;
         const nameRegex = /[^A-Za-z0-9]/;
-        let message;
-        if(nameRegex.test(name)){
-            message = "Team names can only include letters and numbers (no spaces or symbols).";
-            array.push(message);
-        }else if(name == ""){
-            message = "Team name must have a value.";
-            array.push(message);
+        try{
+            if(nameRegex.test(name)){
+                throw("Team names can only include letters and numbers (no spaces or symbols).");
+            }else if(name == ""){
+                throw("Team name must have a value.");
+            }
+        }catch(err){
+            array.push(err)
         }
     }
 
-    function validateSize(workingModel,array){ //somewhere about out of range values
+    function validateSize(workingModel,array){
         const size = workingModel.teamSize;
-        let message
-        if(size == "default"){
-            message = "Team size must have a value.";
-            array.push(message);
+        try{
+            if(size == "default"){
+                throw("Team size must have a value.")
+            }else if(size > selectorValueRanges.slots){
+                throw("Team size is greater than max size value. Discuss max size value changes with administrator.")
+            }
+        }catch(err){
+            array.push(err)
         }
     }
 
-    function validateSchedulePreferences(workingModel,array){ //somewhere about early/late (6am, 8pm) selections that might get errored out by changes in open/close time
-        let message;
+    function validateSchedulePreferences(workingModel,array){
         workingModel.allOpts.forEach(function(option){
             const optNum = workingModel.allOpts.indexOf(option) + 1;
             const validatedDayArray = [];
 
             option.forEach(function(day){
                 const dayNum = option.indexOf(day)+1;
-                catchDefaultInputs();
+                catchInvalidInputs();
                 catchConflictingDays();
 
-                function catchDefaultInputs(){
+                function catchInvalidInputs(){
                     for(const prop in day){
-                        if(prop == "default"){
-                            message = `Option${optNum} Day${dayNum} ${prop} must have a value.`;
-                            array.push(message);
-                        }
+                        try{
+                            if(prop.value == "default"){
+                                throw(`Option${optNum} Day${dayNum} ${prop} must have a value.`);
+                            }else if((prop == "startTime" || prop == "endTime") && (prop.value < selectorValueRanges.openTime || prop.value > selectorValueRanges.closeTime)){
+                                throw(`Option${optNum} Day ${dayNum} ${prop} is outside operating hours. Discuss operating hour changes with administrator.`);
+                            }
+                        }catch(err){
+                            array.push(err)
+                        }  
                     }
                 }
 
                 function catchConflictingDays(){
                     validatedDayArray.forEach(function(validatedDay){
                         const validatedNum = validatedDayArray.indexOf(validatedDay);
-
-                        if(validatedDay.dayOfWeek == day.dayOfWeek && validatedDay.startTime == day.startTime && validatedDay.inWeiss == day.inWeiss){
-                            message = `Option${optNum} Day${validatedNum} and Day${dayNum} are duplicates.`;
-                            array.push(message);
-                        }else if(validatedDay.dayOfWeek == day.dayOfWeek && validatedDay.startTime > day.startTime && validatedDay.inWeiss < day.inWeiss){
-                            message = `Option${optNum} Day${dayNum}'s end time is in the middle of  Day${validatedDay}'s session.`;
-                            array.push(message);
-                        }else if(validatedDay.dayOfWeek == day.dayOfWeek && validatedDay.startTime < day.startTime && validatedDay.inWeiss > day.inWeiss){
-                            message = `Option${optNum} Day${dayNum}'s start time is in the middle of  Day${validatedDay}'s session.`;
-                            array.push(message);
-                        }else{
-                            validatedDayArray.push(day)
+                        try{
+                            if(validatedDay.dayOfWeek == day.dayOfWeek && validatedDay.startTime == day.startTime && validatedDay.inWeiss == day.inWeiss){
+                                throw(`Option${optNum} Day${validatedNum} and Day${dayNum} are duplicates.`);
+                            }else if(validatedDay.dayOfWeek == day.dayOfWeek && validatedDay.startTime > day.startTime && validatedDay.inWeiss < day.inWeiss){
+                                throw(`Option${optNum} Day${dayNum}'s end time is in the middle of  Day${validatedDay}'s session.`);
+                            }else if(validatedDay.dayOfWeek == day.dayOfWeek && validatedDay.startTime < day.startTime && validatedDay.inWeiss > day.inWeiss){
+                                throw(`Option${optNum} Day${dayNum}'s start time is in the middle of  Day${validatedDay}'s session.`);
+                            }else{
+                                validatedDayArray.push(day)
+                            }
+                        }catch(err){
+                            array.push(err)
                         }
+                        
                     })
                 }
             })

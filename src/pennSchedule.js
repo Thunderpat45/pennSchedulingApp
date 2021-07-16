@@ -1,3 +1,6 @@
+/* eslint-disable no-prototype-builtins */
+
+/*add pubsub */
 import { events } from "./events";
 
 const scheduleBuilder = (function(){
@@ -67,25 +70,26 @@ const scheduleObject = { //add conflict array, completeSchedules, longestStack a
         this.checkCurrentTeam(currentTeam, cachedTeamStack, currentTeamIndex, teamRequestArray, 0);
     },
 
-    checkCurrentTeam: function checkCurrentTeam(currentTeam, cachedTeamStack, currentTeamIndex, teamRequestArray, i){ // RESOLVE sched Pref is [[{}]], validOption is {[{}]}
-        const currentRequest = currentTeam.schedulePreferences[i];
+    checkCurrentTeam: function checkCurrentTeam(currentTeam, cachedTeamStack, currentTeamIndex, teamRequestArray, i){ 
+        const currentRequest = currentTeam.allOpts[i];
         const cachedTeamStackSlice = cachedTeamStack.slice[0];
         const schedObj = Object.assign({}, /*SCHEDULE OBJECT GENERATOR */);
-        const validOption = {validDays:[]};
+        const validOption = {validDays:[], coach: [currentTeam].coach, name: [currentTeam].name};
 
-        if(this.checkCurrentTeamOptions(currentRequest, currentTeam, cachedTeamStackSlice, schedObj, validOption) == "conflict"){
-            //report conflict!!
+        if(i == currentTeam.allOpts.length-1){
+            return
+        }else{
+            if(this.checkCurrentTeamOptions(currentRequest, currentTeam, cachedTeamStackSlice, schedObj, validOption) != "conflict"){
+                cachedTeamStackSlice.push(currentTeam.validOption);
+                this.trackLongestStack(cachedTeamStackSlice);
+                this.checkStackCompletion(currentTeamIndex, teamRequestArray, cachedTeamStackSlice);
+
+                if(scheduleObject.completeSchedules.length == 5){ 
+                    return [scheduleObject.completeSchedules, scheduleObject.conflictObj]
+                }
+            }
             checkCurrentTeam(currentTeam, cachedTeamStack, currentTeamIndex, teamRequestArray, i++);
         }
-
-        cachedTeamStackSlice.push(validOption);
-        this.trackLongestStack(cachedTeamStackSlice);
-        this.checkStackCompletion(currentTeamIndex, teamRequestArray, cachedTeamStackSlice);
-
-        if(scheduleObject.completeSchedules.length == 5){ //does this one go here?
-            return [scheduleObject.completeSchedules, scheduleObject.conflictObj]
-        }
-        checkCurrentTeam(currentTeam, cachedTeamStack, currentTeamIndex, teamRequestArray, i++)
     },
 
     checkStackCompletion: function checkStackCompletion(currentTeamIndex, teamRequestArray, cachedTeamStackSlice){
@@ -103,9 +107,10 @@ const scheduleObject = { //add conflict array, completeSchedules, longestStack a
     },
 
     checkCurrentTeamOptions: function checkCurrentTeamOptions(currentRequest, currentTeam, cachedTeamStack, schedObj, validOption){
+        currentTeam.validOption = Object.assign({}, validOption)
         this.insertAllCachedTeams(cachedTeamStack, schedObj);
-        if(this.checkCurrentTeamDays(currentRequest, currentTeam, schedObj, validOption) == "conflict"){
-            return "conflict" //more to this?
+        if(this.checkCurrentTeamDays(currentRequest, currentTeam, schedObj) == "conflict"){
+            return "conflict"
         }
     },
 
@@ -118,14 +123,14 @@ const scheduleObject = { //add conflict array, completeSchedules, longestStack a
     },
 
     insertCachedTeam: function insertCachedTeam(cachedTeam, schedObj){
-        const totalCachedDays = cachedTeam.schedulePreferences.length;
+        const totalCachedDays = cachedTeam.allOpts.length;
         for(let i = 0; i< totalCachedDays; i++){
             const cachedDay = cachedTeam[i];
             this.insertCachedDay(cachedDay, cachedTeam, schedObj)
         }
     },
 
-    insertCachedDay: function insertCachedDay(cachedDay, cachedTeam, schedObj){ //recursion?
+    insertCachedDay: function insertCachedDay(cachedDay, cachedTeam, schedObj){ 
         const {dayOfWeek, startTime, endTime, inWeiss} = cachedDay;
         const {coach, size, name} = cachedTeam;
         for(let time = startTime; time < endTime; time +=15){
@@ -139,17 +144,17 @@ const scheduleObject = { //add conflict array, completeSchedules, longestStack a
         }
     },
 
-    checkCurrentTeamDays: function checkCurrentTeamDays(currentRequest, currentTeam, schedObj, validOption){ //recursion?
+    checkCurrentTeamDays: function checkCurrentTeamDays(currentRequest, currentTeam, schedObj){
         const currentRequestTotalDays = currentRequest.length;
         for(let i = 0; i < currentRequestTotalDays; i++){
             const currentDay = currentRequest[i];
-            if(this.evaluateTimeBlock(currentDay, currentTeam, schedObj, validOption, 0) == "conflict"){
+            if(this.evaluateTimeBlock(currentDay, currentTeam, schedObj, 0) == "conflict"){
                 return "conflict"
             }
         }
     },
 
-    evaluateTimeBlock: function evaluateTimeBlock(currentDay, currentTeam, schedObj, validOption, i){
+    evaluateTimeBlock: function evaluateTimeBlock(currentDay, currentTeam, schedObj, i){
         const modifierArr = [0, -15, 15, -30, 30];
         const conflictArray = []
         const timeRequest = this.checkConflicts(modifierArr[i], currentDay, currentTeam, schedObj);
@@ -157,24 +162,21 @@ const scheduleObject = { //add conflict array, completeSchedules, longestStack a
             if(i == 0 || i == 3){
                 conflictArray.push(timeRequest)
             }
-            evaluateTimeBlock(currentDay, currentTeam, schedObj, validOption, i++)
+            evaluateTimeBlock(currentDay, currentTeam, schedObj, i++)
         }else if(i == modifierArr.length-1 && timeRequest!= "undefined"){
             conflictArray.push(timeRequest)
-            if(!this.conflictObj.hasProperty(currentTeam.name)){
+            if(!this.conflictObj.hasOwnProperty(currentTeam.name)){
                 this.conflictObj[currentTeam.name] = {
                     [currentDay.dayOfWeek] : {
                         [currentDay.startTime]: []
                     }
                 }    
-            }else if(this.conflictObj.hasProperty(currentTeam.name)){
-                if(!this.conflictObj[currentTeam.name].hasProperty([currentDay.dayOfWeek])){
+            }else if(!this.conflictObj[currentTeam.name].hasOwnProperty([currentDay.dayOfWeek])){
                     this.conflictObj[currentTeam.name][currentDay.dayOfWeek] = {
                         [currentDay.startTime]: []
-                    }
-                }else if(!this.conflictObj[currentTeam.name][currentDay.dayOfWeek].hasProperty([currentDay.startTime])){
+                    }   
+            }else if(!this.conflictObj[currentTeam.name][currentDay.dayOfWeek].hasOwnProperty([currentDay.startTime])){
                     this.conflictObj[currentTeam.name][currentDay.dayOfWeek][currentDay.startTime] = [];
-                }
-
             }
             this.conflictObj[currentTeam.name][currentDay.dayOfWeek][currentDay.startTime].push(conflictArray)
             return "conflict" 
@@ -182,38 +184,36 @@ const scheduleObject = { //add conflict array, completeSchedules, longestStack a
             const validDay = {day: currentDay};
             validDay.startTime += modifierArr[i];
             validDay.endTime += modifierArr[i];
-            const {coach, name} = currentTeam;
-            validOption.coach = coach;
-            validOption.name = name;
-            validOption.validDays.push(validDay);
+            currentTeam.validOption.validDays.push(validDay);
         }
     },
 
-    checkConflicts: function checkConflicts(modifier, currentDay, currentTeam, schedObj){ //recursion?
+    checkConflicts: function checkConflicts(modifier, currentDay, currentTeam, schedObj){ 
         const {coach, size} = currentTeam;
         const {dayOfWeek, startTime, endTime} = currentDay;
         for(let time = startTime + modifier; time < endTime + modifier; time += 15){
             try{
-                const thisTimeExistingTeams = schedObj[dayOfWeek][time].existingTeams
+                const thisTimeExistingTeams = schedObj[dayOfWeek][time].existingTeams;
 
-                //if condition for changed start end times (if this time is not actually a valid time to schedule, then..., or should that be in validator)
-                if(schedObj[dayOfWeek][time].strengthCoachAvailability[coach] == "no"){
+                if(schedObj[dayOfWeek][time] == "undefined"){
+                    throw({time: startTime + modifier, reason:"Potential uncaught operating hours change. Part of session time outside operating hours."})
+                }else if(schedObj[dayOfWeek][time].strengthCoachAvailability[coach] == "no"){
                     const coachConflictArray = thisTimeExistingTeams
                         .slice()
                         .filter(function(team){
-                            team.coach == coach;
+                            return team.coach == coach;
                         })
                         .map(function(team){
-                            team.name
+                            return team.name
                         })
-                    throw({time: startTime, reason: "Coach not available", teams: coachConflictArray});
+                    throw({time: startTime + modifier, reason: "Coach not available", teams: coachConflictArray});
                 }else if(schedObj[dayOfWeek][time].slots - size < 0){
                     const spaceConflictArray = thisTimeExistingTeams
                         .slice()
                         .map(function(team){
-                        team.name
+                            return team.name
                         })
-                    throw({time: startTime, reason: "Space not available", teams: spaceConflictArray})
+                    throw({time: startTime + modifier, reason: "Space not available", teams: spaceConflictArray})
                 }
             }catch(conflict){ 
                 return conflict;
