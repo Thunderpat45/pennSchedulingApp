@@ -17,13 +17,16 @@ subscribes:
 const selectorBuilder = (function(){ 
 
 
-    const selectionOptions = { //source this into userSchedObj
+    const selectionOptions = { //source this into userSchedObj, need all selectors?
         startTime: null,
         endTime: null,
         teamSize: null,
         dayOfWeek: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], 
         inWeiss: ["yes", "no"],
     };
+
+    const selectors = {}
+    
 
     events.subscribe("SOMETHINGABOUTSELECTIONOPTIONSLOADED", setSelectionOptions); //edit, from userSchedObj
 
@@ -33,9 +36,9 @@ const selectorBuilder = (function(){
         selectionOptions.teamSize = MONGODBSTUFF.teamSize;
         
         for(let option in selectionOptions){
-            const selection = buildSelector(option);
-            events.publish("selectorBuilt", option, selection);
+            selectors[option] = buildSelector(option);
         }
+        events.publish("selectorsBuilt", selectors);
     }
 
 //figure out how to load selection options/all teams from DB on page load; move this question to userSchedObj

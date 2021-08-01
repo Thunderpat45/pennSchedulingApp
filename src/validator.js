@@ -1,6 +1,6 @@
 import {events} from "../events"
 /*
-actions: checks for conflicts/errors in workingModels submitted for database posts
+actions: checks for conflicts/errors in team workingModels submitted for database posts
 
 publishes: 
     workingModel validations
@@ -14,31 +14,31 @@ subscribes to:
 
 const validator = (function(){
 
+    events.subscribe("validateTeamRequest", validateAllInputs);
+    events.subscribe("SOMETHINGABOUTADJUSTEDADMINOPTIONSLOADED", setValueRanges) //get these from DB
+
     let selectorValueRanges;
 
-    events.subscribe("validateTeamRequest", validateAllInputs);
-    events.subscribe("SOMETHINGABOUTADJUSTEDADMINOPTIONSLOADING", setValueRanges)
-
-    function setValueRanges(adminRanges){
+    function setValueRanges(adminRanges){//adjust this when data incoming is more clear
         selectorValueRanges = Object.assign({}, adminRanges)
     }
 
-    function validateAllInputs(workingModel, teamRequest){
+    function validateAllInputs(obj){
         const errorArray = [];
 
-        validateName(workingModel, errorArray);
-        validateSize(workingModel, errorArray);
-        validateSchedulePreferences(workingModel, errorArray);
+        validateName(obj.workingModel, errorArray);
+        validateSize(obj.workingModel, errorArray);
+        validateSchedulePreferences(obj.workingModel, errorArray);
 
         if(errorArray.length > 0){
             const errorAlert = errorArray.join(" ");
             alert(errorAlert);
         }else{
-            events.publish("workingModelValidated", workingModel, teamRequest); //this should push to DB
+            events.publish("workingModelValidated", {workingModel : obj.workingModel, teamRequest : obj.teamRequest}); //this should push myTeams
         }
     }
 
-    function validateName(workingModel,array){
+    function validateName(workingModel, array){
         const name = workingModel.teamName;
         const nameRegex = /[^A-Za-z0-9]/;
         try{
@@ -90,23 +90,23 @@ const validator = (function(){
                 }
 
                 function catchConflictingDays(){
-                    validatedDayArray.forEach(function(validatedDay){
-                        const validatedNum = validatedDayArray.indexOf(validatedDay);
-                        try{
+                    try{
+                        validatedDayArray.forEach(function(validatedDay){
+                            const validatedNum = validatedDayArray.indexOf(validatedDay) + 1 ;
                             if(validatedDay.dayOfWeek == day.dayOfWeek && validatedDay.startTime == day.startTime && validatedDay.inWeiss == day.inWeiss){
                                 throw(`Option${optNum} Day${validatedNum} and Day${dayNum} are duplicates.`);
-                            }else if(validatedDay.dayOfWeek == day.dayOfWeek && validatedDay.startTime > day.startTime && validatedDay.inWeiss < day.inWeiss){
-                                throw(`Option${optNum} Day${dayNum}'s end time is in the middle of  Day${validatedDay}'s session.`);
-                            }else if(validatedDay.dayOfWeek == day.dayOfWeek && validatedDay.startTime < day.startTime && validatedDay.inWeiss > day.inWeiss){
+                            }else if(validatedDay.dayOfWeek == day.dayOfWeek && day.startTime < validatedDay.startTime && day.endTime > validatedDay.endTime){
+                                throw(`Option${optNum} Day${dayNum}'s session runs through Day${validatedDay}'s session.`);
+                            }else if(validatedDay.dayOfWeek == day.dayOfWeek && day.startTime > validatedDay.startTime && day.startTime < validatedDay.endTime){
                                 throw(`Option${optNum} Day${dayNum}'s start time is in the middle of  Day${validatedDay}'s session.`);
-                            }else{
-                                validatedDayArray.push(day)
-                            }
-                        }catch(err){
-                            array.push(err)
-                        }
-                        
-                    })
+                            }else if(validatedDay.dayOfWeek == day.dayOfWeek && day.endTime < validatedDay.endTime && day.endTime > validatedDay.startTime){
+                                throw(`Option${optNum} Day${dayNum}'s end time is in the middle of  Day${validatedDay}'s session.`);
+                            }   
+                        })
+                        validatedDayArray.push(day)
+                    }catch(err){
+                        array.push(err)
+                    }
                 }
             })
         })

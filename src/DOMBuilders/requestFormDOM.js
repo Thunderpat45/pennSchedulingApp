@@ -13,10 +13,7 @@ publishes:
 subscribes to:
 
     workingModel updates to:
-        option length
-        option rank
-        day length
-        dayDetail values
+        option length/ option rank/ day length/ dayDetail values
     workingModel builds
 
         FROM: teamRequestModel
@@ -27,7 +24,13 @@ subscribes to:
 
 const requestFormDOM = (function(){
     
-    let allTeamsNamesList = [];
+    events.subscribe("workingModelPopulated", publishRequestFormRender)
+    events.subscribe("optionsModified", renderAllOpts)
+    events.subscribe("selectorsBuilt", setSelectorNodes)
+    events.subscribe("allTeamsLoaded", loadAllTeamsNamesList); //get this from DB
+
+    
+    let allTeamsNamesList;
 
     const selectorNodes = {
         startTime: null,
@@ -37,23 +40,13 @@ const requestFormDOM = (function(){
         inWeiss: null
     };
 
-    
-
-    events.subscribe("workingModelPopulated", publishRequestFormRender)
-
-    events.subscribe("optionsModified", renderAllOpts)
-
-    events.subscribe("selectorsBuilt", setSelectorNodes)
-
-    events.subscribe("allTeamsLoaded", loadAllTeamsNamesList); 
-
     function loadAllTeamsNamesList(myTeams){ //make sure data types align here
         allTeamsNamesList = [];
         allTeamsNamesList == [...myTeams]
         
     }
 
-    function setSelectorNodes(obj, value){// make sure selectorNodeDOM sends obj
+    function setSelectorNodes(obj){
         for(let prop in obj){
             switch(prop){
                 case `dayOfWeek`:
@@ -61,7 +54,7 @@ const requestFormDOM = (function(){
                 case `endTime`:
                 case `teamSize`:
                 case `inWeiss`:
-                    selectorNodes[prop] = prop[value];
+                    selectorNodes[prop] = prop.value;
                     break;
                 default:
                     return;
@@ -103,7 +96,7 @@ const requestFormDOM = (function(){
         }
         
         function updateTeamRequest(){
-            events.publish("updateRequest")
+            events.publish("updateTeamRequest")
         }
         
         function cancelTeamRequest(){
@@ -124,7 +117,7 @@ const requestFormDOM = (function(){
         teamNameNew.value = workingModel.teamName;
 
         teamNameNew.addEventListener("blur", function modifyTeamNameValue(){
-            if(workingModel.teamName != teamNameNew.value && blockTeamDuplication(teamNameNew.value) == true){
+            if(workingModel.teamName != teamNameNew.value && blockTeamDuplication(teamNameNew.value) == true){ //make sure teamNameNew.value refers to correct location
                 alert(`Data already exists for ${teamNameNew.value}. Use another team name or select edit for ${teamNameNew.value}`);
                 teamNameNew.value = "";
             }   
@@ -216,12 +209,14 @@ const requestFormDOM = (function(){
             labelButtonDiv.appendChild(deleteButton)
 
             if(optNum !=1){
-                const upButton = document.createElement("button"); //up icon if possible, set class and CSS, append to labelButtonDiv
+                const upButton = document.createElement("button"); //up icon if possible, set class and CSS
                 upButton.addEventListener("click", moveOptionUp);
+                labelButtonDiv.appendChild(upButton)
             }
             if(optNum != allOptsDetails.length){
-                const downButton = document.createElement("button"); //down icon if possible, set class and CSS, append to labelButtonDiv
+                const downButton = document.createElement("button"); //down icon if possible, set class and CSS
                 downButton.addEventListener("click", moveOptionDown);
+                labelButtonDiv.appendChild(downButton)
             }
         }
         renderAllDaysDetails(optionDetails, optNum, allDaysModel); 
@@ -237,19 +232,19 @@ const requestFormDOM = (function(){
         }
 
         function moveOptionUp(){
-            events.publish("modifyOptOrder", optNum, -1)
+            events.publish("modifyOptOrder", {optNum, modifier:-1}) 
         }
 
         function moveOptionDown(){
-            events.publish("modifyOptOrder", optNum, 1)
+            events.publish("modifyOptOrder", {optNum, modifier:1})
         }
 
-        function renderModifiedDayDetails(publishedOptionDetails, publishedOptNum){
-            if(publishedOptNum == optNum){
+        function renderModifiedDayDetails(obj){
+            if(obj.publishedOptNum == optNum){
                 const allOpts = document.querySelector("#formAllOpts");
                 const thisOption = Array.from(allOpts.children)[optNum-1];
                 const allDaysDOM = thisOption.querySelector(".formAllDays");
-                renderAllDaysDetails(publishedOptionDetails,publishedOptNum, allDaysDOM)
+                renderAllDaysDetails(obj.publishedOptionDetails, obj.publishedOptNum, allDaysDOM)
             }
         }
     }
@@ -294,7 +289,7 @@ const requestFormDOM = (function(){
         }
 
         function deleteDay(){
-            events.publish("deleteDay", optNum, dayNum)
+            events.publish("deleteDay", {optNum, dayNum})
         } 
     }
     
@@ -324,7 +319,7 @@ const requestFormDOM = (function(){
             function publishSelectionValueChange(){
                 const selector = primaryClass;
                 const value = selectionNew.value
-                events.publish("modifySelectorValue", optNum, dayNum, selector, value)
+                events.publish("modifySelectorValue", {optNum, dayNum, selector, value})
             }
         });
 

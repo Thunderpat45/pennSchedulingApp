@@ -1,65 +1,59 @@
 import {events} from "../events"
 /*
-actions: contains and modifies data built for current teamRequest
+action: contains and modifies data built for current teamRequest
 
 publishes:
     workingModel modifications to:
-        option length
-        option rank
-        day length
-        dayDetail values
+        option length/ option rank/ day length/ dayDetail values
     new workingModel builds
     existing workingModel loads
+    update requests to myTeamsModel
 
 subscribes to: 
     team Addition request
-        FROM: myTeams
+        FROM: myTeamsDOM
 
     teamRequest edit loads
         FROM: myTeamsModel
     
     workingModel update requests for:
-        teamName
-        teamSize
-        option length
-        option size
-        day length
-        dayDetail values
+        teamName/ teamSize/ option length/ day length/ dayDetail values
     teamRequest update validation requests
         FROM: teamRequestDOM
 */ 
 const teamRequestModel = (function(){
-
-    let workingModel;
     
-    let teamRequest;
-
-    const defaultDayDetails = {
-        dayOfWeek: "default",
-        startTime: "default",
-        endTime: "default",
-        inWeiss: "default"
-    };
-
+    events.subscribe("addTeam", createWorkingModel);
+    events.subscribe("teamEditDataLoaded", populateWorkingModel); //get this from myTeams
+    events.subscribe("updateTeamRequest", validateTeamUpdate);
+   
+    events.subscribe("addOpt", addOption);
+    events.subscribe("deleteOpt", deleteOption);
+    events.subscribe("modifyOptOrder", modifyOptionsOrder);
+   
+    events.subscribe("addDay", addDay);
     events.subscribe("modifySelectorValue", modifySelectorValue);
     events.subscribe("deleteDay", deleteDay);
-    events.subscribe("addDay", addDay);
-    events.subscribe("deleteOpt", deleteOption);
-    events.subscribe("addOpt", addOption);
-    events.subscribe("modifyOptOrder", modifyOptionsOrder);
+    
     events.subscribe("modifyTeamSizeValue", modifyTeamSizeValue);
     events.subscribe("modifyTeamNameValue", modifyTeamNameValue);
-    events.subscribe("updateTeamRequest", validateTeamUpdate);
-    events.subscribe("addTeam", createWorkingModel);
-    events.subscribe("teamEditDataLoaded", populateWorkingModel);
+    
+    
+
+
+    let workingModel;
+    let teamRequest;
     
     function createWorkingModel(){
         workingModel = {
             teamName: "",
             teamSize: "default",
-            //myTeamIndex: null,
-            //allTeamsIndex: null, FIGURE THIS OUT
-            allOpts: [[Object.assign({}, defaultDayDetails)]]
+            /*rank: {
+                myTeamIndex: null,
+                allTeamsIndex: null
+            },
+            */
+            allOpts: [[createDefaultDayDetails()]]
         };
         teamRequest = [];
         events.publish("workingModelPopulated", workingModel)
@@ -71,8 +65,32 @@ const teamRequestModel = (function(){
         events.publish("workingModelPopulated", workingModel)
     }
 
+    function buildWorkingModelDeepCopy(thisTeamRequest){
+        const workingModel = Object.assign({}, thisTeamRequest);
+        workingModel.allOpts = thisTeamRequest.allOpts.concat();
+        thisTeamRequest.allOpts.forEach(function(option){
+            const optIndex = thisTeamRequest.allOpts.indexOf(option);
+            workingModel.allOpts[optIndex] = thisTeamRequest.allOpts[optIndex].concat();
+            option.forEach(function(day){
+                const dayIndex = option.indexOf(day);
+                workingModel.allOpts[optIndex][dayIndex] = Object.assign({}, option[dayIndex])
+            })
+        })
+        return workingModel;
+    }
+
+    function createDefaultDayDetails(){
+        const defaultDayDetails = {
+            dayOfWeek: "default",
+            startTime: "default",
+            endTime: "default",
+            inWeiss: "default"
+        };
+        return defaultDayDetails
+    }
+
     function validateTeamUpdate(workingModel){
-        events.publish("validateTeamRequest", workingModel, teamRequest)
+        events.publish("validateTeamRequest", {workingModel, teamRequest}) //change path to validator, then myTeams, which makes deep copy of myTeamsData, send that to DB, change parameters for validator
     }
 
     /*
@@ -82,7 +100,7 @@ const teamRequestModel = (function(){
     */
 
     function addOption(){
-        workingModel.allOpts.push([defaultDayDetails]);
+        workingModel.allOpts.push([createDefaultDayDetails()]);
         events.publish("optionsModified");
     }
 
@@ -92,32 +110,32 @@ const teamRequestModel = (function(){
         events.publish("optionsModified");
     }
 
-    function modifyOptionsOrder(optNum, modifier){
-        const index = optNum - 1;
+    function modifyOptionsOrder(obj){
+        const index = obj.optNum - 1;
         const option = workingModel.allOpts.splice(index, 1)[0];
-        workingModel.allopts.splice(index + modifier, 0, option);
+        workingModel.allopts.splice(index + obj.modifier, 0, option);
         events.publish("optionsModified");
     }
 
     function addDay(optNum){
         const optIndex = optNum - 1;
         const optionDetails = workingModel.allOpts[optIndex];
-        optionDetails.push(defaultDayDetails);
-        events.publish("daysModified", optionDetails, optNum)
+        optionDetails.push(createDefaultDayDetails());
+        events.publish("daysModified", {optionDetails, optNum})
     }
 
-    function deleteDay(optNum, dayNum){
-        const optIndex = optNum - 1;
-        const dayIndex = dayNum - 1;
+    function deleteDay(obj){
+        const optIndex = obj.optNum - 1;
+        const dayIndex = obj.dayNum - 1;
         const optionDetails = workingModel.allOpts[optIndex];
         optionDetails.splice(dayIndex, 1);
-        events.publish("daysModified", optionDetails, optNum)
+        events.publish("daysModified", {optionDetails, optNum:obj.optNum})
     }
 
-    function modifySelectorValue(optNum, dayNum, selector, value){
-        const optIndex = optNum - 1;
-        const dayIndex = dayNum - 1;
-        workingModel.allOpts[optIndex][dayIndex][selector] = value
+    function modifySelectorValue(obj){
+        const optIndex = obj.optNum - 1;
+        const dayIndex = obj.dayNum - 1;
+        workingModel.allOpts[optIndex][dayIndex][obj.selector] = obj.value
     }
 
     function modifyTeamSizeValue(size){
@@ -128,19 +146,7 @@ const teamRequestModel = (function(){
         workingModel.teamName = name
     }
 
-    function buildWorkingModelDeepCopy(teamRequest){ //make sure data types are correct here
-        const workingModel = Object.assign({}, teamRequest);
-        workingModel.allOpts = teamRequest.allOpts.concat();
-        teamRequest.allOpts.forEach(function(option){
-            const optIndex = teamRequest.allOpts.indexOf(option);
-            workingModel.allOpts[optIndex] = teamRequest.allOpts[optIndex].concat();
-            option.forEach(function(day){
-                const dayIndex = option.indexOf(day);
-                workingModel.allOpts[optIndex][dayIndex] = Object.assign({}, option[dayIndex])
-            })
-        })
-        return workingModel;
-    }
+    
 
 })();
 
