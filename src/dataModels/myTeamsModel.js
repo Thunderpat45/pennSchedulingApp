@@ -21,10 +21,10 @@ const myTeamsModel = (function(){
     let myTeams; //should the below functions attempt immutability on this object?
 
     events.subscribe("editTeam", editTeam)
-    events.subscribe("SOMETHINGABOUTTEAMORDER", modifyTeamOrder) //edit
+    events.subscribe("modifyMyTeamOrder", modifyTeamOrder) 
     events.subscribe("SOMETHINGABOUTMONGODBUPDATE", loadMyTeams) //edit
     events.subscribe("workingModelValidated", addEditTeamForDatabaseUpdate)
-    events.subscribe("SOMETHINGABOUTDELETE", deleteTeamForDatabaseUpdate)
+    events.subscribe("deleteTeam", deleteTeamForDatabaseUpdate)
 
     function loadMyTeams(MongoDBInfoOrLocalStorage){ //adjust params
          myTeams = Object.values(MongoDBInfoOrLocalStorage).sort(function(a,b){

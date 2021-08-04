@@ -53,7 +53,8 @@ const teamRequestModel = (function(){
                 allTeamsIndex: null
             },
             */
-            allOpts: [[createDefaultDayDetails()]]
+            allOpts: [[createDefaultDayDetails()]],
+            //coach: something
         };
         teamRequest = [];
         events.publish("workingModelPopulated", workingModel)
