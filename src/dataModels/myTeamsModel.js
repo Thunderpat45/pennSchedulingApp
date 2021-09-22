@@ -1,57 +1,56 @@
 import {events} from "../events"
 
 /*
-actions: loads user's teams' data from Mongo, updates data on each team's requests
+actions: stores current userTeams, makes modifications on a copy
 
 publishes: 
-    updated database myTeams info for:
+    myTeams database updates for :
         teamAdditions
         teamDeletions
         teamEdits
-    teamData for teamRequestModel edit requests
-    myTeam order rearrangements
+        teamOrder changes
+    single teamData for teamRequestModel edits
 
 subscribes to: 
-    database myTeam loads/changes
-        from: MongoDB
+    requests to fetch single team data for edits
+    requests to update database with added/edited/deleted/order changed team
 */
 
 const myTeamsModel = (function(){
 
-    let myTeams; //should the below functions attempt immutability on this object?
+    let myTeams;
 
     events.subscribe("editTeam", editTeam)
     events.subscribe("modifyMyTeamOrder", modifyTeamOrder) 
-    events.subscribe("SOMETHINGABOUTMONGODBUPDATE", loadMyTeams) //edit
+    events.subscribe("mainPageModelBuilt", populateMyTeams)
     events.subscribe("workingModelValidated", addEditTeamForDatabaseUpdate)
     events.subscribe("deleteTeam", deleteTeamForDatabaseUpdate)
 
-    function loadMyTeams(MongoDBInfoOrLocalStorage){ //adjust params
-         myTeams = Object.values(MongoDBInfoOrLocalStorage).sort(function(a,b){
-             return a.rank.myTeams - b.rank.myTeams
-         })
-        events.publish("allTeamsLoaded", myTeams)
+     function populateMyTeams(userMyTeams){ 
+         myTeams = Object.assign({}, userMyTeams) //does this need any more recursive copying?
     }
-    //all teams from DB on page load; subscribe?, window eventListener?; local storage to maintain data on DOM after refresh? move this question to allTeams
 
-    function editTeam(teamRequest){
+    function editTeam(teamRequest){ 
         const thisTeam = myTeams.filter(function(team){
-            teamRequest == team
+            teamRequest.teamName == team.teamName
         })[0];
         events.publish("teamEditDataLoaded", thisTeam);
     }
 
     function modifyTeamOrder(teamIndex, modifier){
-        const team = myTeams.splice(teamIndex, 1)[0];
-        myTeams.splice(teamIndex + modifier, 0, team);
-        myTeams.forEach(function(team){//check this
-            team.rank.myTeams = myTeams.indexOf(team)
+        const myTeamsSlice = myTeams.concat();
+        const team = myTeamsSlice.splice(teamIndex, 1)[0];
+        myTeamsSlice.splice(teamIndex + modifier, 0, team);
+        myTeamsSlice.forEach(function(team){
+            team.rank.myTeams = myTeamsSlice.findIndex(function(teams){ //FIND A WAY TO REDUCE THE DUPLICATION OF THIS FINDINDEX FUNCTION
+                return teams.teamName = team.teamName
+            })
         })     
-        events.publish("teamOrderModified", myTeams); //send to DB for save?
+        events.publish("myTeamsDataUpdated", myTeamsSlice); //send to DB for save? inclined to say yes
     }
 
     function addEditTeamForDatabaseUpdate(obj){
-        let myTeamsSlice = myTeams.slice();
+        const myTeamsSlice = myTeams.concat();
         const existingTeamIndex = findExistingTeam()
         
        if(existingTeamIndex != undefined){
@@ -59,29 +58,37 @@ const myTeamsModel = (function(){
        }else{
             myTeamsSlice.push(obj.workingModel)
        }
-       myTeams.forEach(function(team){//check this
-            team.rank.myTeams = myTeams.indexOf(team)
-    })
-        events.publish("myTeamsUpdateRequested", myTeamsSlice)
+       myTeamsSlice.forEach(function(team){
+            team.rank.myTeams = myTeamsSlice.findIndex(function(teams){
+                return teams.teamName = team.teamName
+            })
+        })
+        events.publish("myTeamsDataUpdated", myTeamsSlice) //send to DB for save
 
         function findExistingTeam(){
             myTeamsSlice.filter(function(team){
                 if(obj.teamRequest.teamName == team.teamName){
-                    return myTeamsSlice.indexOf(team)
+                    return myTeamsSlice.findIndex(function(teams){ 
+                        return teams.teamName = team.teamName
+                    })
                 }
             })
         }
     }
 
     function deleteTeamForDatabaseUpdate(team){
-        let myTeamsSlice = myTeams.slice();
-        const existingTeamIndex = myTeamsSlice.indexOf(team)
+        const myTeamsSlice = myTeams.concat();
+        const existingTeamIndex = myTeamsSlice.findIndex(function(teams){ 
+            return teams.teamName = team.teamName
+        })
 
         myTeamsSlice.splice(existingTeamIndex, 1)
-        myTeams.forEach(function(team){//check this
-        team.rank.myTeams = myTeams.indexOf(team)
-    })
-        events.publish("myTeamsUpdateRequested", myTeamsSlice)   
+        myTeamsSlice.forEach(function(team){
+            team.rank.myTeams = myTeamsSlice.findIndex(function(teams){ 
+                return teams.teamName = team.teamName
+            })
+        })
+        events.publish("myTeamsDataUpdated", myTeamsSlice)   //send to DB for save
     }
 
 

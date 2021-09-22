@@ -1,19 +1,19 @@
 import {events} from "../events"
 /*
-action: contains and modifies data built for current teamRequest
+action: stores current single team data, makes modifications on a copy
 
 publishes:
-    workingModel modifications to:
+    DOM modifications to:
         option length/ option rank/ day length/ dayDetail values
-    new workingModel builds
-    existing workingModel loads
-    update requests to myTeamsModel
+    new team workingModels 
+    existing workingModels
+    addition/edit updates to myTeamsModel
 
 subscribes to: 
     team Addition request
         FROM: myTeamsDOM
 
-    teamRequest edit loads
+    teamRequest edit request
         FROM: myTeamsModel
     
     workingModel update requests for:
@@ -24,7 +24,7 @@ subscribes to:
 const teamRequestModel = (function(){
     
     events.subscribe("addTeam", createWorkingModel);
-    events.subscribe("teamEditDataLoaded", populateWorkingModel); //get this from myTeams
+    events.subscribe("teamEditDataLoaded", populateWorkingModel); 
     events.subscribe("updateTeamRequest", validateTeamUpdate);
    
     events.subscribe("addOpt", addOption);
@@ -38,25 +38,22 @@ const teamRequestModel = (function(){
     events.subscribe("modifyTeamSizeValue", modifyTeamSizeValue);
     events.subscribe("modifyTeamNameValue", modifyTeamNameValue);
     
-    
-
-
-    let workingModel;
+    // workingModel stores current teamData in a copy to make modifications on; teamRequest holds the original data (used by myTeams after validation to check if a team is new, or needs to be overwritten)
+    let workingModel; 
     let teamRequest;
     
     function createWorkingModel(){
         workingModel = {
             teamName: "",
-            teamSize: "default",
-            /*rank: {
-                myTeamIndex: null,
-                allTeamsIndex: null
+            teamSize: "default", 
+            rank: {
+                myTeams: null,
+                allTeams: null
             },
-            */
             allOpts: [[createDefaultDayDetails()]],
-            //coach: something
+           //coach needs a source of data, work on that
         };
-        teamRequest = [];
+        teamRequest = {}; 
         events.publish("workingModelPopulated", workingModel)
     }
 
@@ -91,14 +88,8 @@ const teamRequestModel = (function(){
     }
 
     function validateTeamUpdate(workingModel){
-        events.publish("validateTeamRequest", {workingModel, teamRequest}) //change path to validator, then myTeams, which makes deep copy of myTeamsData, send that to DB, change parameters for validator
+        events.publish("validateTeamRequest", {workingModel, teamRequest}) 
     }
-
-    /*
-    function cancelTeamRequest(){ //this needs to go somewhere else, likely in mainPageDOM to render
-        events.publish("renderPage", mainPage)
-    }
-    */
 
     function addOption(){
         workingModel.allOpts.push([createDefaultDayDetails()]);

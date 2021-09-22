@@ -1,29 +1,53 @@
 import { events } from "../events"
 import { timeValueConverter } from "../timeConverter";
 
-const homePageDOM = (function(){
+/*
+
+actions: mainPage interface for reviewing and requesting modifications to availability and myTeams data
+
+publishes:
+    request to render mainPage
+    set season requests
+    request to fetch availabilityData
+    request to fetch myTeamsData for edits/deletes/order modification
+    request to generate workingModel for new team
+
+subscribes to: 
+    requests to generate mainPageDOM
+
+
+*/
+
+const mainPageDOM = (function(){
 
     let season; //figure this out
     
-    events.subscribe("dataLoadedFromDatabase", buildHomePageDOM); //check for intermediate steps here; make sure DB load publishes to availabilityModel, change this, this needs to come from both avaiablity and myTeams dataModels
-    events.subscribe("teamsDeletedOrderModified", renderHomePageMyTeams);
+    events.subscribe("mainPageModelBuilt", publishMainPageRender);
 
-    function buildHomePageDOM(obj){ //fix these params
-        const template = document.querySelector("#homePageTemplate");
+    function publishMainPageRender(mainPageData){
+        const mainPageDOM = buildMainPageDOM(mainPageData)
+        events.publish("pageRenderRequested", mainPageDOM)
+    }
+
+    
+    function buildMainPageDOM(mainPageData){ 
+        const template = document.querySelector("#mainPageTemplate");
         const content = document.importNode(template.content, true);
-        const homePageAvailability = content.querySelector("availability");
-        const homePageMyTeams = content.querySelector("teamGridContainer");
+        const mainPageAvailability = content.querySelector("availability");
+        const mainPageMyTeams = content.querySelector("teamGridContainer");
         const fallButton = content.querySelector("#fallButton");
         const springButton = content.querySelector("#springButton");
 
-        const homePageAvailabilityNew = renderHomePageAvailability(obj.availability);
-        const homePageMyTeamsNew = renderHomePageMyTeams(obj.myTeams); //change and find params for each of these
+        const mainPageAvailabilityNew = renderMainPageAvailability(mainPageData.availability);
+        const mainPageMyTeamsNew = renderMainPageMyTeams(mainPageData.myTeams); 
         
-        homePageAvailability.replaceWith(homePageAvailabilityNew);
-        homePageMyTeams.replaceWith(homePageMyTeamsNew);
+        mainPageAvailability.replaceWith(mainPageAvailabilityNew);
+        mainPageMyTeams.replaceWith(mainPageMyTeamsNew);
 
         fallButton.addEventListener("click", setSeasonFall);
         springButton.addEventListener("click", setSeasonSpring); //deactivate button of current season
+
+        return content
 
         function setSeasonFall(){ //is this all
             events.publish("setSeasonFall")
@@ -34,7 +58,7 @@ const homePageDOM = (function(){
         }
     }
 
-    function renderHomePageAvailability(availability){
+    function renderMainPageAvailability(availability){
         const template = document.querySelector("#userAvailabilityTemplate");
         const content = document.importNode(template.content, true);
         const availabilityDisplay = content.querySelector("#availabilityDisplay");
@@ -84,17 +108,16 @@ const homePageDOM = (function(){
         return availabilityDisplayNew
     }
 
-    function renderHomePageMyTeams(teamArray){
-        const template = document.querySelector("homePageTeamGridTemplate");
+    function renderMainPageMyTeams(teamArray){
+        const template = document.querySelector("mainPageTeamGridTemplate");
         const content = document.importNode(template.content, true);
         const teamGrid = content.querySelector("#teamGrid"); 
         const addButton = content.querySelector("#teamGridAddTeam");
 
-        teamArray.sort(function(a,b){
-            return a.rank.myTeamIndex - b.rank.myTeamIndex
-        })
-        teamArray.forEach(function(team){
-            const teamDOM = buildTeam(team, teamArray);
+        const teamArraySlice = teamArray.concat(); 
+    
+        teamArraySlice.forEach(function(team){
+            const teamDOM = buildTeam(team, teamArraySlice); 
             teamGrid.appendChild(teamDOM)
         })
 
@@ -113,8 +136,8 @@ const homePageDOM = (function(){
         }
     }
 
-    function buildTeam(team, teamArray){
-        const template = document.querySelector("#homePageTeamTemplate");
+    function buildTeam(team, teamArraySlice){
+        const template = document.querySelector("#mainPageTeamTemplate");
         const content = document.importNode(template.content, true);
         const teamName = content.querySelector(".teamGridTeamName");
         const teamSize = content.querySelector(".teamGridTeamSize");
@@ -132,27 +155,27 @@ const homePageDOM = (function(){
             optionContainer.appendChild(option);
         })
 
-        if(teamArray.length >1 && team.rank.myTeamIndex !=0){
+        if(teamArraySlice.length >1 && team.rank.myTeamIndex != 0){
             const upButton = document.createElement("button"); //up icon if possible, set class and CSS
-            upButton.addEventListener("click", moveMyTeamUp);
+            upButton.addEventListener("click", moveMyTeamUp);//
             content.insertBefore(upButton, editButton);
-       }else if(teamArray.length >1 && team.rank.myTeamIndex != teamArray.length-1){
+       }else if(teamArraySlice.length >1 && team.rank.myTeamIndex != teamArraySlice.length-1){
             const downButton = document.createElement("button"); //up icon if possible, set class and CSS
-            downButton.addEventListener("click", moveMyTeamDown);
+            downButton.addEventListener("click", moveMyTeamDown);//
             content.insertBefore(downButton, editButton);
        }
 
-        editButton.addEventListener(editTeam);
-        deleteButton.addEventListener(deleteTeam);
+        editButton.addEventListener("click", editTeam);
+        deleteButton.addEventListener("click", deleteTeam);
 
         return content
 
-        function editTeam(){
-            events.publish("editTeam", team.teamName); //check this for redundancy in myTeamsModel
+        function editTeam(){ 
+            events.publish("editTeam", team); 
         }
     
         function deleteTeam(){
-            events.publish("deleteTeam", team.teamName); //or just team?
+            events.publish("deleteTeam", team);
         }
 
         function moveMyTeamUp(){
@@ -165,7 +188,7 @@ const homePageDOM = (function(){
     }
 
     function buildTeamOption(optionDetails, optNum){
-        const template = document.querySelector("#homePageTeamOptionTemplate");
+        const template = document.querySelector("#mainPageTeamOptionTemplate");
         const content = document.importNode(template.content, true);
         const option = content.querySelector(".teamGridTeamOption");
         const dayContainer = content.querySelector(".teamGridTeamDayContainer");
@@ -181,7 +204,7 @@ const homePageDOM = (function(){
     }
     
     function buildTeamDayDetails(day){
-        const template = document.querySelector("#homePageTeamDayTemplate");
+        const template = document.querySelector("#mainPageTeamDayTemplate");
         const content = document.importNode(template.content, true);
         const dayOfWeek = content.querySelector(".teamGridTeamDayOfWeek");
         const startTime = content.querySelector(".teamGridTeamStartTime");
@@ -196,3 +219,5 @@ const homePageDOM = (function(){
         return content
     }
 })()
+
+export {mainPageDOM}

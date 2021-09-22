@@ -2,14 +2,17 @@ import {events} from "../events"
 
 const masterScheduleData = (function(){
     
-    events.subscribe("SOMETHINGABOUTLOADINGVALUES", loadAdjustedOptions);
-    events.subscribe("SOMETHINGABOUTLOADINGCOACHPREFERENCES", loadCoachPreferences);
+    events.subscribe("SOMETHINGABOUTLOADINGVALUES", setAdjustedOptionRanges);
+    events.subscribe("SOMETHINGABOUTLOADINGCOACHPREFERENCES", setCoachPreferences);
     events.subscribe("SOMETHINGABOUTADJUSTINGADMINOPTIONS", function publishAdminOptionRanges(){
         events.publish("SOMETHINGABOUTPUBLISHINGADMINOPTIONRANGES", adminOptionRanges)
     })
     events.subscribe("SOMETHINGABOUTVALUESLOADED", function publishScheduleBuilderInfo(){
         events.publish("SOMETHINGABOUTSCHEDULEDATALOADED", adjustedOptions, coachPreferences)
     })
+
+    let adjustedOptions
+    let coachPreferences = {} //{coachName: {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, coachName2...}
 
     const adminOptionRanges = {
         days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -18,27 +21,21 @@ const masterScheduleData = (function(){
         slots: [1, null] //make this input?
     }
 
-   //set default adjustedOptions in the database
-    
-    const adjustedOptions = {
-        days: [],
-        openTime: null, 
-        closeTime: null, 
-        slots: [1, null] //make this input?
+    const defaultOptionRanges = { //make this default in database for first load, before admin edits
+        days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+        openTime: 360, 
+        closeTime: 1200, 
+        slots: [1, 6] 
     }
 
-    let coachPreferences = {} //{coachName: {day: {start, stop, reason}, {start, stop, reason}}}
-
-    
-
-    function loadAdjustedOptions(mongoDBStuff){
-        for(let prop in mongoDBStuff){
-            adjustedOptions[prop] = mongoDBStuff[prop]
+    function setAdjustedOptionRanges(databaseOptionRanges){
+        for(let prop in databaseOptionRanges){
+            adjustedOptions[prop] = databaseOptionRanges[prop]
             events.publish()
         }
     }
 
-    function loadCoachPreferences(mongoDBStuff){//is all this nesting necessary, or can I just use JSON object as is?
+    function setCoachPreferences(mongoDBStuff){//is all this nesting necessary, or can I just use JSON object as is?
         coachPreferences = {}
         for(let coach in mongoDBStuff){
             coachPreferences[coach] = mongoDBStuff[coach];

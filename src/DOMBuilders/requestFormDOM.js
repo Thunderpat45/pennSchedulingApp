@@ -1,11 +1,11 @@
 import {events} from "../events"
 /*
-actions: builds DOM for submitting team requests, captures inputs for teamRequestModel
+actions: single team interface for creating/editing/deleting teamRequest data
 
 publishes:
-    teamName value changes
-    teamSize value changes
-    dayOfWeek, startTime, endTime, inWeiss value changes
+    teamName changes
+    teamSize changes
+    dayOfWeek, startTime, endTime, inWeiss changes
     add/delete/reorder option requests
     add/delete day requests
     teamRequest validation requests
@@ -14,7 +14,7 @@ subscribes to:
 
     workingModel updates to:
         option length/ option rank/ day length/ dayDetail values
-    workingModel builds
+    workingModel generation
 
         FROM: teamRequestModel
     
@@ -27,7 +27,7 @@ const requestFormDOM = (function(){
     events.subscribe("workingModelPopulated", publishRequestFormRender)
     events.subscribe("optionsModified", renderAllOpts)
     events.subscribe("selectorsBuilt", setSelectorNodes)
-    events.subscribe("allTeamsLoaded", loadAllTeamsNamesList); //get this from DB
+    events.subscribe("allTeamsDataLoaded", loadAllTeamsNamesList); //this seems like bad separation of concerns/SR principle, but this is my current solution
 
     
     let allTeamsNamesList;
@@ -40,9 +40,9 @@ const requestFormDOM = (function(){
         inWeiss: null
     };
 
-    function loadAllTeamsNamesList(myTeams){ //make sure data types align here
+    function loadAllTeamsNamesList(allTeams){ //make sure data types align here
         allTeamsNamesList = [];
-        allTeamsNamesList == [...myTeams]
+        allTeamsNamesList = [...allTeams]
         
     }
 
@@ -100,14 +100,15 @@ const requestFormDOM = (function(){
         }
         
         function cancelTeamRequest(){
-            events.publish()// send control back to homePage data to render;
+            events.publish("mainPageDOMRequested")
         }
+    
         
         return content;
     }
     
 
-    function renderTeamName(workingModel){
+    function renderTeamName(workingModel){ //check this
         
         const template = document.querySelector("#teamNameTemplate");
         const content = document.importNode(template.content, true);
@@ -116,7 +117,7 @@ const requestFormDOM = (function(){
         
         teamNameNew.value = workingModel.teamName;
 
-        teamNameNew.addEventListener("blur", function modifyTeamNameValue(){
+        teamNameNew.addEventListener("blur", function modifyTeamNameValue(){ 
             if(workingModel.teamName != teamNameNew.value && blockTeamDuplication(teamNameNew.value) == true){ //make sure teamNameNew.value refers to correct location
                 alert(`Data already exists for ${teamNameNew.value}. Use another team name or select edit for ${teamNameNew.value}`);
                 teamNameNew.value = "";
@@ -138,7 +139,7 @@ const requestFormDOM = (function(){
 
         return content;
 
-        function blockTeamDuplication(thisTeamName){
+        function blockTeamDuplication(thisTeamName){//make sure proper object comparision occurs here
             const teamCheck = allTeamsNamesList.filter(function(team){
                 return team == thisTeamName
             })

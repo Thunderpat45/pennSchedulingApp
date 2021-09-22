@@ -34,7 +34,7 @@ const validator = (function(){
             const errorAlert = errorArray.join(" ");
             alert(errorAlert);
         }else{
-            events.publish("workingModelValidated", {workingModel : obj.workingModel, teamRequest : obj.teamRequest}); //this should push myTeams
+            events.publish("workingModelValidated", {workingModel : obj.workingModel, teamRequest : obj.teamRequest});
         }
     }
 

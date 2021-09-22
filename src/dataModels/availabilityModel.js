@@ -1,69 +1,77 @@
 import {events} from "../events"
 
 /*
-actions: loads user's availability from Mongo, updates data on modifications to availability
+actions: stores current availability, makes modifications on a copy
 
 publishes: 
-    availability model loads
-    availability model changes to
-        added/edited/deleted availabilities
-    update data to db for availability changes
+    availability data + changes to:
+        availabilityPageDOM
+        database module (?)
     
 subscribes to: 
-    requests to add/delete/modify availability block data
-    requests to update availability in DB
+    requests to display/add/delete/modify/update availability data
+
 */
 
 const availabilityModel = (function(){
 
+    //availabilityModel is immutable current data reflecting database, Copy is mutable, unstable version until published to database
     let availabilityModel;
-    let timeBlockDefault = {
-        start:null,
-        end:null
+    let availabilityModelCopy;
+    let timeBlockDefault = { //issue with default vs null?
+        start:"default",
+        end:"default"
     };
 
-    events.subscribe("availabilityLoaded", populateAvailabilityModel); //get this from DB
+    events.subscribe("mainPageModelBuilt", setAvailabilityModel); 
     events.subscribe("availabilityModelRequested", publishAvailabilityModel)
     events.subscribe("deleteTimeBlockClicked", deleteAvailabilityRow);
     events.subscribe("addTimeBlockClicked", addAvailabilityRow);
     events.subscribe("modifyAvailabilitySelectorValues", modifyAvailabilityValue);
     events.subscribe("updateAvailabilityClicked", updateAvailability);
 
-    function populateAvailabilityModel(userAvailability){
-        availabilityModel = Object.assign({}, userAvailability);
+    
+    function setAvailabilityModel(userAvailability){
+        availabilityModel = userAvailability
+    }
+
+    function setAvailabilityModelCopy(){
+        availabilityModelCopy = Object.assign({}, availabilityModel);
         for(let day in availabilityModel){
-            availabilityModel[day] = userAvailability[day].concat();
+            availabilityModelCopy[day] = availabilityModel[day].concat();
             day.forEach(function(timeBlock){
-                availabilityModel[day][timeBlock] = Object.assign(userAvailability[day][timeBlock])
+                availabilityModelCopy[day][timeBlock] = Object.assign({}, availabilityModel[day][timeBlock])
             });
         }
     }
 
     function publishAvailabilityModel(){
-        events.publish("availabilityDOMPageRequested", availabilityModel)
+        setAvailabilityModelCopy();
+        events.publish("availabilityDOMPageRequested", availabilityModelCopy) 
     }
+
 
     function addAvailabilityRow(day){
-        availabilityModel[day].push(Object.assign({}, timeBlockDefault));
+        availabilityModelCopy[day].push(Object.assign({}, timeBlockDefault));
 
-        events.publish("availabilityModelModified", availabilityModel);
+        events.publish("availabilityModelModified", availabilityModelCopy);
     }
 
-    function deleteAvailabilityRow(obj){
-        const blockIndex = obj.blockNumber -1;
-        const timeBlock = availabilityModel[obj.day][blockIndex];
-        availabilityModel[obj.day].splice(timeBlock, 1);
+    function deleteAvailabilityRow(rowObj){
+        const blockIndex = rowObj.blockNumber -1;
+        const timeBlock = availabilityModelCopy[rowObj.day][blockIndex];
+        availabilityModelCopy[rowObj.day].splice(timeBlock, 1);
 
-        events.publish("availabilityModelModified", availabilityModel);
+        events.publish("availabilityModelModified", availabilityModelCopy);
     }
 
-    function modifyAvailabilityValue(obj){
-        const blockIndex = obj.blockNumber - 1;
-        availabilityModel[obj.day][blockIndex][obj.selector] = obj.value
+    function modifyAvailabilityValue(rowObj){
+        const blockIndex = rowObj.blockNumber - 1;
+        availabilityModelCopy[rowObj.day][blockIndex][rowObj.selector] = rowObj.value
     }
 
-    function updateAvailability(){
-        events.publish("updateAvailabilityRequested", availabilityModel)
+    function updateAvailability(){ //listener is not yet specified, should be module that updates the DB
+        events.publish("availabilityDataUpdated", availabilityModelCopy)
     }
 
 })()

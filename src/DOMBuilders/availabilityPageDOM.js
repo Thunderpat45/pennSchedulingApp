@@ -1,7 +1,24 @@
 
 import {events} from "../events"
 
-const availabilityDOM = (function(){
+/*
+
+actions: displays availabilityPage for creating/editing/delete availability data
+
+publishes:
+    request to render availabilityPage
+    data update requests for database
+    cancellation of data changes
+    requests to add/delete/modify timeBlock data in dataModel
+
+subscribes to:
+    selector generation
+    modifications to availabilityModelCopy
+    requests to generate availabilityDOM elements
+
+*/
+
+const availabilityPageDOM = (function(){
 
     let selectorNodes = {
         startTime:null, 
@@ -27,13 +44,13 @@ const availabilityDOM = (function(){
 
     function publishAvailabilityPageRender(availability){
         const availabilityPage = renderAvailabilityDOM(availability);
-        events.publish("renderPage", availabilityPage)
+        events.publish("pageRenderRequested", availabilityPage)
     }
 
     function renderAvailabilityDOM(availability){
         const template = document.querySelector("#availabilityDOMTemplate");
         const content = document.importNode(template.content, true);
-        const grid = content.querySelector("#avaiabilityGrid");
+        const grid = content.querySelector("#availabilityGrid");
         const gridNew = buildAvailabilityGrid(availability);
         const updateButton = content.querySelector("#availabilityUpdateButton");
         const cancelButton = content.querySelector("#availabilityCancelButton");
@@ -41,10 +58,7 @@ const availabilityDOM = (function(){
         grid.replaceWith(gridNew);
         gridNew.id = "availabilityGrid";
 
-        updateButton.innerText = "Update";
         updateButton.addEventListener("click", updateAvailability)
-
-        cancelButton.innerText = "Cnacel";
         cancelButton.addEventListener("click", cancelAvailabilityChanges);
 
         return content
@@ -53,8 +67,8 @@ const availabilityDOM = (function(){
             events.publish("updateAvailabilityClicked", availability)
         }
 
-        function cancelAvailabilityChanges(){ // find subscriber to this, fix param
-            events.publish("cancelAvailabilityChangesClicked", "?")
+        function cancelAvailabilityChanges(){
+            events.publish("mainPageDOMRequested")
         }
     }
 
@@ -63,27 +77,27 @@ const availabilityDOM = (function(){
 
         for(let day in availability){
             const dayDiv = document.createElement("div");
-            dayDiv.classList.add(`availability${day}`) //why did I add this?
+            dayDiv.classList.add("availabilityDay")
             
             const label = document.createElement("h3");
             const addButton = document.createElement("button");
 
             label.innerText = `${day}`
-            day.forEach(function(timeBlock){
+            day.forEach(function(timeBlock){ //ensure that all days are present at start when profile is first created, as there is no function to add a day, only add a time to an existing day
                 const blockNumber = day.indexOf(timeBlock) + 1;
                 const row = buildAvailabilityRow(day, timeBlock, blockNumber);
                 dayDiv.appendChild(row)
             })
-            addButton.addEventListener("click", addTimeBlock);
+            addButton.addEventListener("click", 
+                function addTimeBlock(){
+                    events.publish("addTimeBlockClicked", day)
+                }
+            );
             
             dayDiv.appendChild(label);
             dayDiv.appendChild(addButton);
 
             gridNew.appendChild(dayDiv);
-
-            function addTimeBlock(){ //linter doesn't want inner declaration, but day is not available outside the loop; resolve how?
-                events.publish("addTimeBlockClicked", day)
-            }
         }
 
         const grid = document.querySelector("#availabilityGrid");
@@ -99,10 +113,11 @@ const availabilityDOM = (function(){
     function buildAvailabilityRow(day, timeBlock, blockNumber){
         const template = document.querySelector("#availabilityGridRowTemplate");
         const content = document.importNode(template.content, true);
-        const children = Array.from(content.children);
+        const row = content.querySelector(".availabilityGridRow")
+        const children = Array.from(row.children);
         const deleteButton = content.querySelector(".availabilityDeleteButton");
 
-        children.forEach(function(child){ //does children refer to children of template or children of first div?
+        children.forEach(function(child){
             const selection = child.querySelector(".selector");
             if(selection != undefined){ 
                 const selectionNew = buildSelector(day, timeBlock, blockNumber, selection)
@@ -114,7 +129,7 @@ const availabilityDOM = (function(){
         return content
         
         function deleteTimeBlock(){
-            events.publish("deleteTImeBlockClicked", {day, blockNumber})
+            events.publish("deleteTimeBlockClicked", {day, blockNumber})
         }
     }
 
@@ -122,7 +137,7 @@ const availabilityDOM = (function(){
             const primaryClass = Array.from(selection.classList)[0];
             const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
             selectionNew.addEventListener("change", publishAvailabilitySelectionChange)
-            selectionNew.value = timeBlock[primaryClass];
+            selectionNew.value = timeBlock[primaryClass];  
             const selectedOption = selectionNew.querySelector(`option[value = ${selectionNew.value}]`);
             selectedOption.selected = true;
             if(selectedOption.value != "default"){
@@ -140,4 +155,4 @@ const availabilityDOM = (function(){
 
 })()
 
-export {availabilityDOM}
+export {availabilityPageDOM}

@@ -12,7 +12,7 @@ subscribes to:
 
 const pageRenderer = (function(){
 
-    events.subscribe("renderPage", renderPageContent);
+    events.subscribe("pageRenderRequested", renderPageContent);
 
     function renderPageContent(page){
         const mainContent = document.getElementsByTagName("main")[0];
