@@ -115,6 +115,7 @@ const requestFormDOM = (function(){
         const teamName = content.querySelector("#formTeamName");
         const teamNameNew = document.createElement("input");
         
+        teamNameNew.type = "text"
         teamNameNew.value = workingModel.teamName;
 
         teamNameNew.addEventListener("blur", function modifyTeamNameValue(){ 
@@ -141,7 +142,7 @@ const requestFormDOM = (function(){
 
         function blockTeamDuplication(thisTeamName){//make sure proper object comparision occurs here
             const teamCheck = allTeamsNamesList.filter(function(team){
-                return team == thisTeamName
+                return team.teamName == thisTeamName
             })
             return teamCheck.length>0;
         }

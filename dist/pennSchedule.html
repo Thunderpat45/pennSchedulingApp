@@ -128,7 +128,7 @@
 <template id = "optionTemplate">
 	<div class = "formOpt">
 		<div class = "labelDeleteOptButton">
-			<h2 class = "optLabel"></h2>
+			<h2 class = "optLabeavailabilityl"></h2>
 		</div>
 		<div class = "formAllDays"></div>
 		<button class = "addTrainingDay">Add Training Day</button>
@@ -187,6 +187,69 @@
 		</div>
 		<div class = "availabilityDeleteButtonDiv">
 			<button class = "availabilityDeleteButton">X</button>
+		</div>
+	</div>
+</template>
+
+<template id = "adminUserGeneratorTemplate">
+	<div id = "userGeneratorDiv">
+		<title></title> <!--is title right?--><!--check the below for correct content-->
+		<div id = "userGeneratorNameDiv"></div>
+		<div id = "userGeneratorPasswordDiv"></div>
+		<div id = "userGeneratorPrivilegeDiv">	</div>
+		<div id = "userGeneratorColorDiv"></div>
+		<div id = "userGeneratorButtonsDiv">
+			<button id = "userGeneratorSaveButton">Save Changes</button>
+			<button id = "userGeneratorCancelButton">Cancel Changes</button>
+		</div>
+	</div>
+</template>
+
+<template id= " adminUserGeneratorNameTemplate">
+	<div id = "userGeneratorNameDiv">
+		<label for = "userGeneratorName">Name</label><br>
+		<input type = "text" id = "userGeneratorName" name ="userGeneratorName" maxlength="25"><br>
+	</div>
+</template>
+
+<template id= " adminUserGeneratorPasswordTemplate">
+	<div id = "userGeneratorPasswordDiv">
+		<label for = "userGeneratorPassword">Password</label><br>
+		<input type = "text" id = "userGeneratorPassword" name ="userGeneratorPassword" maxlength="25"><br>
+	</div>
+</template>
+
+<template id= " adminUserGeneratorPrivilegeTemplate">
+	<p>Privilege Level</p><br>
+			<select id = "userPrivilege">
+				<option id = "userPrivilegeStandard" value = "standard">Standard</option>
+				<option id = "userPrivilegeAdmin" value = "admin">Admin</option>
+			</select>
+</template>
+
+<template id= " adminUserGeneratorColorTemplate">
+	<div id = "userGeneratorColorDiv">
+		<label for = "userGeneratorColor">User Schedule Color</label><br>
+		<input type = "color" id = "userGeneratorColor">
+	</div>
+</template>
+
+<template id = "adminUserListTemplate">
+	<div id = "userListDiv">
+		<title>User List</title>
+		<div id = "userListTableDiv"></div>
+		<button id = "userListAddUserButton">Add User</button>
+	</div>
+</template>
+
+<template id = "adminUserListUserTemplate">
+	<div class = "userListUserDiv">
+		<div class = "userListUserName"></div>
+		<div class = "userListUserColor"></div>\
+		<div class = "userListUserLastVerified"></div>
+		<div class = "userListUserButtons">
+			<button class = "userListEditUserButton">Edit User</button>
+			<button class = "userListDeleteUserButton">Delete User</button>
 		</div>
 	</div>
 </template>

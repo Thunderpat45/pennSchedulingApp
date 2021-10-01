@@ -3,7 +3,7 @@ import {events} from "../events"
 
 /*
 
-actions: displays availabilityPage for creating/editing/delete availability data
+actions:  availabilityPage interface for creating/editing/delete availability data
 
 publishes:
     request to render availabilityPage

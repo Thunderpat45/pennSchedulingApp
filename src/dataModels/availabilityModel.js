@@ -32,7 +32,7 @@ const availabilityModel = (function(){
 
     
     function setAvailabilityModel(userAvailability){
-        availabilityModel = userAvailability
+        availabilityModel = userAvailability.availability
     }
 
     function setAvailabilityModelCopy(){
