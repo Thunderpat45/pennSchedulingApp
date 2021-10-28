@@ -47,7 +47,7 @@ const adminUserGeneratorDOM = (function(){
         cancelButton.addEventListener("click", cancelUserChanges) //other eventListeners for dataValidation
         
         const userNameNew = renderUserName(userModel) 
-        const userPasswordSetNew = document.createElement("input") //this may not be necessary, but consider for validationFunctions
+        const userPasswordSetNew = renderUserPassword() //this may not be necessary, but consider for validationFunctions
         const userPrivilegeNew = renderUserPrivilege(userModel)
         const userColorNew = renderUserColor(userModel)
 
@@ -80,6 +80,10 @@ const adminUserGeneratorDOM = (function(){
             if(userModel.name != userNameNew.value && blockNameDuplication(userNameNew.value) == true){ //make sure userNameNew.value refers to correct location
                 alert(`Data already exists for ${userNameNew.value}. Use another name or edit/delete the other user for the name you are trying to switch to.`);
                 userNameNew.value = "";
+                userNameNew.focus()
+            }else if(userNameNew.value == ""){
+                alert("User name must have a value");
+                userNameNew.focus();
             }   
             else if(userModel.name != "" && userNameNew.value != userModel.name){
                 const confirmation = confirm(`If you submit changes, this will change the user name from ${userModel.name} to ${userNameNew.value}. Proceed? `);
@@ -107,8 +111,70 @@ const adminUserGeneratorDOM = (function(){
     }
 
 
+    function renderUserPassword(){ //COME BACK TO THIS
+        const template = document.querySelector("#adminUserGeneratorPasswordTemplate");
+        const content = document.importNode(template.content, true);
+        const userPassword = content.querySelector("#userGeneratorPassword");
+        const userGeneratorPasswordChangeVerification = content.querySelector("#userGeneratorPasswordChangeVerification");
+        const userPasswordNew = document.createElement("input");
+        const userGeneratorPasswordChangeVerificationNew = document.createElement("input");
 
-    function renderUserPrivilege(){}
+        userPasswordNew.type = "text"
+        userPasswordNew.value = ""
+        userGeneratorPasswordChangeVerificationNew.type = "checkbox";
+
+        userPasswordNew.addEventListener("blur", function validatePasswordInput(){
+            const passwordRegex = /[^A-Za-z0-9]/;
+            if(passwordRegex.test(userPasswordNew.value)){
+                alert("Passwords can only include letters and numbers (no spaces or symbols).");
+                userPasswordNew.value = ""
+                userPasswordNew.focus(); 
+            }
+        })
+
+        if(userGeneratorPasswordChangeVerificationNew.value == "on"){
+            const confirmation = confirm("This will overwrite the user's previous password. Continue?")
+            if(confirmation){
+
+            }else{}
+        }
+                
+            
+        
+
+
+        userPassword.replaceWith(userPasswordNew);
+        userPasswordNew.id = "userGeneratorPassword"
+
+        return content;
+
+    }
+
+
+    //user password??
+
+
+
+    function renderUserPrivilege(userModel){
+        const template = document.querySelector("#adminUserGeneratorPrivilegeTemplate");
+        const content = document.importNode(template.content, true);
+        const userPrivilege = content.querySelector("#userGeneratorPrivilege");
+        const userPrivilegeNew = document.createElement("input");
+
+        userPrivilegeNew.type = "radio"
+        userPrivilegeNew.value = userModel.privilege
+
+        userPrivilegeNew.addEventListener("change", updateUserPrivilege)
+
+        userPrivilege.replaceWith(userPrivilegeNew);
+        userPrivilegeNew.id = "userGeneratorPrivilege"
+
+        return content;
+
+        function updateUserPrivilege(){
+            events.publish("") //PUT SOMETHING HERE
+        }
+    }
 
     function renderUserColor(){}
 

@@ -38,7 +38,7 @@ const validator = (function(){
         }
     }
 
-    function validateName(workingModel, array){
+    function validateName(workingModel, array){ //MOVE THIS TO requestFormDOM
         const name = workingModel.teamName;
         const nameRegex = /[^A-Za-z0-9]/;
         try{
@@ -52,7 +52,7 @@ const validator = (function(){
         }
     }
 
-    function validateSize(workingModel,array){
+    function validateSize(workingModel,array){ //MOVE THIS TO requestFormDOM
         const size = workingModel.teamSize;
         try{
             if(size == "default"){
