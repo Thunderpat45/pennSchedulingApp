@@ -113,36 +113,35 @@ const requestFormDOM = (function(){
         const template = document.querySelector("#teamNameTemplate");
         const content = document.importNode(template.content, true);
         const teamName = content.querySelector("#formTeamName");
-        const teamNameNew = document.createElement("input");
         
-        teamNameNew.type = "text"
-        teamNameNew.value = workingModel.teamName;
+        teamName.value = workingModel.teamName;
 
-        teamNameNew.addEventListener("blur", function modifyTeamNameValue(){ 
-            if(workingModel.teamName != teamNameNew.value && blockTeamDuplication(teamNameNew.value) == true){ //make sure teamNameNew.value refers to correct location
-                alert(`Data already exists for ${teamNameNew.value}. Use another team name or select edit for ${teamNameNew.value}`);
-                teamNameNew.value = "";
-            }   
-            else if(workingModel.teamName != "" && teamNameNew.value != workingModel.teamName){
-                const confirmation = confirm(`If you submit changes, this will change team name from ${workingModel.teamName} to ${teamNameNew.value}. Proceed? `);
+        teamName.addEventListener("blur", function modifyTeamNameValue(){ 
+            if(workingModel.teamName != teamName.value && blockTeamDuplication() == true){ //make sure teamNameNew.value refers to correct location
+                alert(`Data already exists for ${teamName.value}. Use another team name or select edit for ${teamName.value}`);
+                teamName.value = "";
+                teamName.focus();
+            }else if(teamName.value == ""){
+                alert("Team name must have a value.");
+                teamName.focus();
+            }
+            else if(workingModel.teamName != "" && teamName.value != workingModel.teamName){
+                const confirmation = confirm(`If you submit changes, this will change team name from ${workingModel.teamName} to ${teamName.value}. Proceed? `);
                 if(confirmation){
-                    events.publish("modifyTeamNameValue", teamNameNew.value)
+                    events.publish("modifyTeamNameValue", teamName.value)
                 }else{
-                    teamNameNew.value = workingModel.teamName;
+                    teamName.value = workingModel.teamName;
                 }
-            }else{
-                events.publish("modifyTeamNameValue", teamNameNew.value)
+            }else if(workingModel.teamname != teamName.value){
+                events.publish("modifyTeamNameValue", teamName.value)
             } 
         })
 
-        teamName.replaceWith(teamNameNew);
-        teamNameNew.id = "formTeamName"
-
         return content;
 
-        function blockTeamDuplication(thisTeamName){//make sure proper object comparision occurs here
+        function blockTeamDuplication(){//make sure proper object comparision occurs here
             const teamCheck = allTeamsNamesList.filter(function(team){
-                return team.teamName == thisTeamName
+                return team.teamName == teamName.value
             })
             return teamCheck.length>0;
         }
@@ -163,9 +162,21 @@ const requestFormDOM = (function(){
         if(selectedOption.value != "default"){
             selection.firstChild.disabled = true;
         }
+
+        selection.addEventListener("change", publishTeamSizeChange)
+        selection.addEventListener("blur", function validateTeamSizeValue(){
+            if(selection.value == "default"){
+                alert("Team size must have a value.");
+                selection.focus();
+            }
+        })
         
         formTeamSize.replaceWith(selection);
         selection.id = "formTeamSize";
+
+        function publishTeamSizeChange(){
+            events.publish("modifyTeamSizeValue", selection.value)
+        }
 
         return content
     }

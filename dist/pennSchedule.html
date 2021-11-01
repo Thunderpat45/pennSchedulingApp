@@ -216,23 +216,19 @@
 	<div id = "userGeneratorPasswordDiv">
 		<label for = "userGeneratorPassword">Password</label><br>
 		<input type = "text" id = "userGeneratorPassword" name ="userGeneratorPassword" maxlength="25">
-		<label for = "userGeneratorPasswordChangeVerification">Overwrite Current Password?</label>
-		<input type = "checkbox" id = "userGeneratorPasswordChangeVerification" name = "userGeneratorPasswordChangeVerification"><br>
 	</div>
 </template>
 
 <template id= " adminUserGeneratorPrivilegeTemplate">
 	<p>Privilege Level</p><br>
-			<select id = "userPrivilege">
-				<option id = "userPrivilegeStandard" value = "standard">Standard</option>
-				<option id = "userPrivilegeAdmin" value = "admin">Admin</option>
-			</select>
+			<label for = "userGeneratorPrivilege">Set to Admin Role</label><br>
+			<input id = "userGeneratorPrivilege" name = "userGeneratorPrivilege" type = "checkbox" value = "true"><br>
 </template>
 
 <template id= " adminUserGeneratorColorTemplate">
 	<div id = "userGeneratorColorDiv">
 		<label for = "userGeneratorColor">User Schedule Color</label><br>
-		<input type = "color" id = "userGeneratorColor">
+		<input type = "color" id = "userGeneratorColor" name = "userGeneratorColor">
 	</div>
 </template>
 

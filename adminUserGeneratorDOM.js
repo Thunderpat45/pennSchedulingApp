@@ -1,32 +1,14 @@
+/* eslint-disable no-prototype-builtins */
 import { events } from "./src/events";
 
-/* */
+/* displays screen for creating/editing user profiles via admin access */
 
 const adminUserGeneratorDOM = (function(){
 
     let allUsersList //bad separation of concerns?
 
-    /*let selectorNodes = {
-        privilegeLevel:null, 
-        color: null //is this valid, right here?
-    };
-
-    events.subscribe("selectorsBuilt", setSelectorNodes);
-
-    function setSelectorNodes(obj){
-        for(let prop in obj){
-            switch(prop){
-                case `privilegeLevel`:
-                case `color`:
-                    selectorNodes[prop] = prop.value;
-                    break;
-                default:
-                    return;
-            }  
-        }  
-    }*/
-
     events.subscribe("userModelPopulated", publishUserGeneratorPageRender)
+    //event to set allUsersList
 
     function publishUserGeneratorPageRender(userModel){
         const userGeneratorPage = renderUserGeneratorDOM(userModel);
@@ -47,12 +29,12 @@ const adminUserGeneratorDOM = (function(){
         cancelButton.addEventListener("click", cancelUserChanges) //other eventListeners for dataValidation
         
         const userNameNew = renderUserName(userModel) 
-        const userPasswordSetNew = renderUserPassword() //this may not be necessary, but consider for validationFunctions
+        const userPasswordSetNew = renderUserPassword(userModel) //this may not be necessary, but consider for validationFunctions
         const userPrivilegeNew = renderUserPrivilege(userModel)
         const userColorNew = renderUserColor(userModel)
 
         userName.replaceWith(userNameNew);
-        userPasswordSet.replaceWith(userPasswordSetNew); //is this right?
+        userPasswordSet.replaceWith(userPasswordSetNew);
         userPrivilege.replaceWith(userPrivilegeNew);
         userColor.replaceWith(userColorNew);
        
@@ -71,34 +53,29 @@ const adminUserGeneratorDOM = (function(){
         const template = document.querySelector("#adminUserGeneratorNameTemplate");
         const content = document.importNode(template.content, true);
         const userName = content.querySelector("#userGeneratorName");
-        const userNameNew = document.createElement("input");
-        
-        userNameNew.type = "text";
-        userNameNew.value = userModel.name;
+       
+        userName.value = userModel.name;
 
-        userNameNew.addEventListener("blur", function modifyTeamNameValue(){ 
-            if(userModel.name != userNameNew.value && blockNameDuplication(userNameNew.value) == true){ //make sure userNameNew.value refers to correct location
-                alert(`Data already exists for ${userNameNew.value}. Use another name or edit/delete the other user for the name you are trying to switch to.`);
-                userNameNew.value = "";
-                userNameNew.focus()
-            }else if(userNameNew.value == ""){
+        userName.addEventListener("blur", function modifyUserNameValue(){ 
+            if(userModel.name != userName.value && blockNameDuplication(userName.value) == true){ //make sure userNameNew.value refers to correct location
+                alert(`Data already exists for ${userName.value}. Use another name or edit/delete the other user for the name you are trying to switch to.`);
+                userName.value = "";
+                userName.focus()
+            }else if(userName.value == ""){
                 alert("User name must have a value");
-                userNameNew.focus();
+                userName.focus();
             }   
-            else if(userModel.name != "" && userNameNew.value != userModel.name){
-                const confirmation = confirm(`If you submit changes, this will change the user name from ${userModel.name} to ${userNameNew.value}. Proceed? `);
+            else if(userModel.name != "" && userName.value != userModel.name){
+                const confirmation = confirm(`If you submit changes, this will change the user name from ${userModel.name} to ${userName.value}. Proceed? `);
                 if(confirmation){
-                    events.publish("modifyUserNameValue", userNameNew.value)
+                    events.publish("modifyUserNameValue", userName.value)
                 }else{
-                    userNameNew.value = userModel.name;
+                    userName.value = userModel.name;
                 }
-            }else{
-                events.publish("modifyUserNameValue", userNameNew.value)
+            }else if(userModel.name != userName.value){
+                events.publish("modifyUserNameValue", userName.value)
             } 
         })
-
-        userName.replaceWith(userNameNew);
-        userNameNew.id = "userGeneratorName"
 
         return content;
 
@@ -111,72 +88,97 @@ const adminUserGeneratorDOM = (function(){
     }
 
 
-    function renderUserPassword(){ //COME BACK TO THIS
+    function renderUserPassword(userModel){ //COME BACK TO THIS
         const template = document.querySelector("#adminUserGeneratorPasswordTemplate");
         const content = document.importNode(template.content, true);
         const userPassword = content.querySelector("#userGeneratorPassword");
-        const userGeneratorPasswordChangeVerification = content.querySelector("#userGeneratorPasswordChangeVerification");
-        const userPasswordNew = document.createElement("input");
-        const userGeneratorPasswordChangeVerificationNew = document.createElement("input");
-
-        userPasswordNew.type = "text"
-        userPasswordNew.value = ""
-        userGeneratorPasswordChangeVerificationNew.type = "checkbox";
-
-        userPasswordNew.addEventListener("blur", function validatePasswordInput(){
-            const passwordRegex = /[^A-Za-z0-9]/;
-            if(passwordRegex.test(userPasswordNew.value)){
-                alert("Passwords can only include letters and numbers (no spaces or symbols).");
-                userPasswordNew.value = ""
-                userPasswordNew.focus(); 
-            }
-        })
-
-        if(userGeneratorPasswordChangeVerificationNew.value == "on"){
-            const confirmation = confirm("This will overwrite the user's previous password. Continue?")
-            if(confirmation){
-
-            }else{}
-        }
-                
-            
+        
         
 
-
-        userPassword.replaceWith(userPasswordNew);
-        userPasswordNew.id = "userGeneratorPassword"
+        userPassword.addEventListener("blur", function confirmPasswordChange(){ 
+            if(userModel.hasOwnProperty("password") && userModel.password == "" && userPassword.value == ""){
+                alert("A default password must be set.");
+                userPassword.focus();
+            }else if(!userModel.hasOwnProperty("password") && userPassword.value != ""){
+                const confirmation = confirm("This will attempt to overwrite the user's previous password. Continue?")
+                if(confirmation){
+                    events.publish("modifyUserPasswordDefaultValue", userPassword.value)
+                }else{
+                    userPassword.value = "";
+                }
+            }else if(userPassword.value != ""){
+                events.publish("modifyUserPasswordDefaultValue", userPassword.value)
+            }
+        })
 
         return content;
 
     }
 
 
-    //user password??
-
-
-
-    function renderUserPrivilege(userModel){
+    function renderUserPrivilege(userModel){ 
         const template = document.querySelector("#adminUserGeneratorPrivilegeTemplate");
         const content = document.importNode(template.content, true);
         const userPrivilege = content.querySelector("#userGeneratorPrivilege");
-        const userPrivilegeNew = document.createElement("input");
+        
 
-        userPrivilegeNew.type = "radio"
-        userPrivilegeNew.value = userModel.privilege
-
-        userPrivilegeNew.addEventListener("change", updateUserPrivilege)
-
-        userPrivilege.replaceWith(userPrivilegeNew);
-        userPrivilegeNew.id = "userGeneratorPrivilege"
+        userPrivilege.value = userModel.privilegeLevel
+        if(userPrivilege.value == "true"){
+            userPrivilege.checked = true
+        }
+       
+        userPrivilege.addEventListener("blur", updateUserPrivilege)
 
         return content;
 
         function updateUserPrivilege(){
-            events.publish("") //PUT SOMETHING HERE
+            if(userModel.privilegeLevel == "true" & !userPrivilege.checked){
+                alert("Admins cannot be demoted.")
+                userPrivilege.checked = true;
+            }else if(userPrivilege.checked){
+                const confirmation = confirm("Admins cannot be demoted. Continue?")
+                if(confirmation){
+                    userPrivilege.value = "true"
+                }else{
+                    userPrivilege.value = "false"
+                   
+                }events.publish("modifyUserPrivilegeLevelValue", userPrivilege.value)
+            }else{
+                userPrivilege.value = "false"
+                events.publish("modifyUserPrivilegeLevelValue", userPrivilege.value)
+            } 
         }
     }
 
-    function renderUserColor(){}
+    function renderUserColor(userModel){
+        const template = document.querySelector("#adminUserGeneratorColorTemplate");
+        const content = document.importNode(template.content, true);
+        const userColor = content.querySelector("#userGeneratorColor");
+
+        userColor.value = userModel.color
+
+        userColor.addEventListener("blur", function verifyColorChange(){
+            if(userModel.color != userColor.value && blockColorDuplication() == true){
+                alert(`Another user is already using this color. Considering all the possible colors available, the odds are pretty low. Unlucky pick, I guess!`)
+                userColor.value = userModel.color; 
+                userColor.focus();
+            }else if(userColor.value == "default"){
+                alert("Color must have a value.");
+                userColor.focus();
+            }else if(userModel.color != userColor.value){
+                events.publish("modifyUserColorValue", userColor.value)
+            }
+            
+            function blockColorDuplication(){//make sure proper object comparision occurs here
+                const nameCheck = allUsersList.filter(function(user){
+                    return (user.name != userModel.name && user.color == userColor.value)
+                })
+                return nameCheck.length>0;
+            }
+        })
+
+        return content
+    }
 
 })()
 

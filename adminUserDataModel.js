@@ -1,3 +1,5 @@
+import { events } from "../events";
+
 /* */
 
 const adminUserDataModel = (function(){
@@ -5,16 +7,22 @@ const adminUserDataModel = (function(){
     let userModel;
     let userModelCopy;
 
+    events.subscribe("modifyUserNameValue", setName);
+    events.subscribe("modifyUserPasswordDefaultValue", setPasswordDefault)
+    events.subscribe("modifyUserPrivilegeLevelValue", setPrivilegeLevel)
+    events.subscribe("modifyUserColorValue", setColor)
+    events.subscribe();
     
     function populateUserModelCopy(){
-        userModelCopy = Object.assign({}, userModel); //make sure it goes appropriately recursive for necessary levels of each property, as they are fleshed out
+        userModelCopy = Object.assign({}, userModel); //make sure it goes appropriately recursive for necessary levels of each property, as they are fleshed out, add event.publish, DO ALL THIS EXCEPT ENSURE PASSWORD DOES NOT COME TO FRONT END
+        events.publish("userModelPopulated", userModel)
     }
     
     function createNewUser(){
         userModel = { //check all these default values
-            name: null,
-            color: null,
-            password: null,
+            name: "",
+            color: "default",
+            password: "",
             privilegeLevel: null,
             teams:{},
             availability:{},
@@ -30,8 +38,8 @@ const adminUserDataModel = (function(){
         userModelCopy.color = color
     }
 
-    function setPasswordDefault(password){//check this to make sure this makes sense/is allowed
-        if(userModelCopy.password == null){
+    function setPasswordDefault(password){
+        if(password && password.value != ""){
             userModelCopy.password = password
         }
     }
@@ -40,9 +48,9 @@ const adminUserDataModel = (function(){
         userModelCopy.privilege = privilege;
     }
 
-    function deleteUser(){} //figure these 3 out
+    function deleteUser(){} //figure these 3 out, this one doesn't go here(?)
 
-    function saveChanges(){}
+    function saveChanges(){} //send this to userValidator first, especially for password stuff
 
     function cancelChanges(){}
 
