@@ -68,7 +68,7 @@ const selectorBuilder = (function(){
         })
     }
 
-    function buildSelector(primaryClass){
+    function buildSelector(primaryClass){ //include stuff from admin : userGenerator (privilegeLvl, color?)
         const selection = document.createElement("select");
         selection.classList.add(primaryClass);
         selection.classList.add("selector");

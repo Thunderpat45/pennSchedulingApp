@@ -252,4 +252,128 @@
 	</div>
 </template>
 
+<template id = "adminMainPageTemplate">
+	<div id = "adminMainPage">
+		<div id = "seasonsButtons">   //can these have same id as mainPage seasonsButtons?
+			<button id = "fallButton">Fall</button>
+			<button id = "springButton">Spring<button>
+		</div>
+		<div id = "adminTeamsGridContainer"></div>
+		<div id = "adminUsersGridContainer"></div>
+		<div id = "facilityDataGridContainer"></div>
+		<div id = "setAllUsersAvailabilityGridContainer"></div>
+		<button id = "runScheduleBuilderButton">Run Schedule Builder</button>
+	</div>
+</template>
+
+<template id = "adminMainPageTeamsGridTemplate">
+	<div id = "adminMainPageTeamGridContainer">
+	<h2>All Teams</h2>
+		<div id = "adminMainPageTeamGridLabels">
+			<div>Name</div>
+			<div>Coach</div>
+			<div>Size</div>
+			<div>Rank</div>
+			<div>Buttons</div>
+		</div>
+		<div id = "adminMainPageTeamGrid"></div>
+	</div>
+</template>
+
+<template id = "adminMainPageTeamTemplate"> //make sure up/down ranks render just this, not whole page (see availabilityDOM and requestDOM)
+	<div class = "adminMainPageTeamGridTeam">
+		<div class = "adminMainPageTeamGridTeamName"></div>
+		<div class = "adminMainPageTeamGridTeamCoach"></div>
+		<div class = "adminMainPageTeamGridTeamSize"></div>
+		<div class = "adminMainPageTeamGridTeamRank"></div>
+		<div class = "adminMainPageTeamGridTeamButtons">
+			<button class = "adminMainPageTeamGridTeamUprankButton"></button>
+			<button class = "adminMainPageTeamGridTeamDownrankButton"></button>
+		</div>
+	</div>
+</template>
+
+<template id = "adminMainPageUsersGridTemplate">
+	<div id = "adminUsersGridContainer">
+	<h2>Users</h2>
+		<div id = "adminUsersGridLabels">
+			<div>Name</div>
+			<div>Color</div>
+			<div>Privilege</div>
+			<div>Last Verified</div>
+		</div>
+		<div id = "adminUsersGrid"></div>
+		<button id = "adminUsersGridAddUser">Add User</button>
+	</div>
+</template>
+
+<template id = "adminMainPageUserGridUserTemplate">
+	<div class = "adminUserGridUser">
+		<div class = "adminUserGridUserName"></div>
+		<div class = "adminUserGridUserColor">
+			<div class = "adminUserColor"></div></div>
+		<div class = "adminUserGridUserPrivilege"></div>
+		<div class = "adminUserGridUserLastVerified"></div>
+
+		<button class = "adminUserGridUserEditButton">Edit User</button>
+		<button class = "adminUserGridUserDeleteButton">Delete User</button>  
+	</div>
+</template>
+
+<template id = "adminMainPageFacilitySelectorsGridTemplate">
+	<div id = "adminMainPageFacilitySelectorsGrid">
+		<div id ="adminMainPageFacilityHoursSelectorsGrid">
+		<h2>Facility Hours</h2>
+			<div id = "adminMainPageFacilityHoursSelectorsOpen">
+				<p>Open</p>
+				<select class = "facilityOpen selector"></select>
+			</div>
+			<div id = "adminMainPageFacilityHoursSelectorsClose">
+				<p>Close</p>
+				<select class = "facilityClose selector"></select>
+			</div>
+		</div>
+		<div id = "adminMainPageFacilityCapacitySelectors">
+		<h2>Facility Capacity</h2>
+			<div id = "adminMainPageFacilityCapacitySelectorsMax">
+				<p>Max</p>
+				<select class = "facilityMax selector"></select>
+			</div>
+		</div>
+		<button id = "adminMainPageFacilitySelectorsSaveButton">Save Changes</button>
+		<button id = "adminMainPageFacilitySelectorsCancelButton">Cancel Changes</button>
+	</div>
+</template>
+
+<template id = "adminMainPageAddAvailabilityBlockAllUsersTemplate">
+	<div id = "adminMainPageAddAvaiabilityBlockAllUsersDiv">
+		<h2>Add Time Block To All Users</h2>
+		<div id = "adminMainPageAddAvailabilityBlockAllUsersGrid"></div>
+		<button id = "adminMainPageAddAvailabilityBlockAllUsersAddButton">Add Block</button>
+		<button id = "adminMainPageAddAvailabilityBlockAllUsersSaveButton">Save Changes</button>
+		<button id = "adminMainPageAddAvailabilityBlockAllUsersCancelButton">Cancel Changes</button>		
+	</div>
+</template>
+
+
+<template id = "adminMainPageAddAvailabilityBlockAllUsersBlockTemplate">
+	<div class = "adminMainPageAddAvailabilityBlockAllUsersBlock">
+		<div class = "adminMainPageAddAvailabilityBlockAllUsersBlockDay">
+			<p>Day</p>
+			<select class = "dayOfWeek selector"></select>
+		</div>
+		<div class = "adminMainPageAddAvailabilityBlockAllUsersBlockStart">
+			<p>Start Time</p>
+			<select class = "startTime selector"></select>
+		</div>
+		<div class = "adminMainPageAddAvailabilityBlockAllUsersBlockEnd">
+			<p>End Time</p>
+			<select class = "endTime selector"></select>
+		</div>
+		<button class = "adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton">Delete Block</button>
+	</div>
+</template>
+
+<template></template>
+
 </html>

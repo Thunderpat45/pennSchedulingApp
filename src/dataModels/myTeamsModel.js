@@ -27,7 +27,7 @@ const myTeamsModel = (function(){
     events.subscribe("deleteTeam", deleteTeamForDatabaseUpdate)
 
      function populateMyTeams(userMyTeams){ 
-         myTeams = Object.assign({}, userMyTeams) //does this need any more recursive copying?
+         myTeams = Object.assign({}, userMyTeams.myTeams) //does this need any more recursive copying?
     }
 
     function editTeam(teamRequest){ 
