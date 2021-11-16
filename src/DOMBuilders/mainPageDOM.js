@@ -33,13 +33,13 @@ const mainPageDOM = (function(){
     function buildMainPageDOM(mainPageData){ 
         const template = document.querySelector("#mainPageTemplate");
         const content = document.importNode(template.content, true);
-        const mainPageAvailability = content.querySelector("availability");
+        const mainPageAvailability = content.querySelector("userAvailability");
         const mainPageMyTeams = content.querySelector("teamGridContainer");
         const fallButton = content.querySelector("#fallButton");
         const springButton = content.querySelector("#springButton");
 
-        const mainPageAvailabilityNew = renderMainPageAvailability(mainPageData.availability);
-        const mainPageMyTeamsNew = renderMainPageMyTeams(mainPageData.myTeams); 
+        const mainPageAvailabilityNew = renderMainPageAvailability(mainPageAvailability, mainPageData.availability);
+        const mainPageMyTeamsNew = renderMainPageMyTeams(mainPageMyTeams, mainPageData.myTeams); 
         
         mainPageAvailability.replaceWith(mainPageAvailabilityNew);
         mainPageMyTeams.replaceWith(mainPageMyTeamsNew);
@@ -58,27 +58,17 @@ const mainPageDOM = (function(){
         }
     }
 
-    function renderMainPageAvailability(availability){
-        const template = document.querySelector("#userAvailabilityTemplate");
-        const content = document.importNode(template.content, true);
-        const availabilityDisplay = content.querySelector("#availabilityDisplay");
-        const editAvailability = content.querySelector("#editAvailability");
+    function renderMainPageAvailability(availabilityDOM, availability){
+        const availabilityDisplay = availabilityDOM.querySelector("#availabilityDisplay");
+        const editAvailability = availabilityDOM.querySelector("#editAvailability");
 
         const availabilityDisplayNew = buildAvailabilityDisplay(availability);
         availabilityDisplay.replaceWith(availabilityDisplayNew);
 
         editAvailability.addEventListener("click", getAvailabilityModel);
 
-        const userAvailability = document.querySelector("#userAvailability");
+        return availabilityDOM
         
-        if(userAvailability != null){
-            userAvailability.replaceWith(content);
-            content.id = "userAvailability"
-        }else{
-            content.id = "userAvailability";
-            return content
-        }
-
         function getAvailabilityModel(){
             events.publish("availabilityModelRequested")
         }
@@ -108,11 +98,10 @@ const mainPageDOM = (function(){
         return availabilityDisplayNew
     }
 
-    function renderMainPageMyTeams(teamArray){
-        const template = document.querySelector("mainPageTeamGridTemplate");
-        const content = document.importNode(template.content, true);
-        const teamGrid = content.querySelector("#teamGrid"); 
-        const addButton = content.querySelector("#teamGridAddTeam");
+    function renderMainPageMyTeams(teamsDOM, teamArray){
+        
+        const teamGrid = teamsDOM.querySelector("#teamGrid"); 
+        const addButton = teamsDOM.querySelector("#teamGridAddTeam");
 
         const teamArraySlice = teamArray.concat(); 
     
@@ -122,14 +111,9 @@ const mainPageDOM = (function(){
         })
 
         addButton.addEventListener("click", addTeam);
-
-        const teamGridContainer = document.querySelector("#teamGridContainer");
-        if(teamGridContainer != null){
-            teamGridContainer.replaceWith(content);
-        }
-        else{
-            return content
-        }
+        
+        return teamsDOM
+        
             
         function addTeam(){
             events.publish("addTeam")

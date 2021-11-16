@@ -72,8 +72,8 @@ const requestFormDOM = (function(){
         
         const template = document.querySelector("#requestFormPageTemplate");
         const content = document.importNode(template.content, true);
-        const teamName = content.querySelector("#formTeamNameDiv");
-        const teamSize = content.querySelector("#formTeamSizeDiv"); 
+        const teamName = content.querySelector("#formTeamName");
+        const teamSize = content.querySelector("#formTeamSize"); 
         const allOpts = content.querySelector("#formAllOpts");
         const addButton = content.querySelector("#addTrainingOption");
         const updateButton = content.querySelector("#updateTeamRequest");
@@ -83,8 +83,8 @@ const requestFormDOM = (function(){
         updateButton.addEventListener("click", updateTeamRequest);
         cancelButton.addEventListener("click", cancelTeamRequest);
 
-        const teamNameNew = renderTeamName(workingModel);
-        const teamSizeNew = renderTeamSizeSelection(workingModel);
+        const teamNameNew = renderTeamName(teamName, workingModel);
+        const teamSizeNew = renderTeamSizeSelection(teamSize, workingModel);
         const allOptsNew = renderAllOpts(workingModel);
 
         teamName.replaceWith(teamNameNew);
@@ -108,11 +108,7 @@ const requestFormDOM = (function(){
     }
     
 
-    function renderTeamName(workingModel){ //check this
-        
-        const template = document.querySelector("#teamNameTemplate");
-        const content = document.importNode(template.content, true);
-        const teamName = content.querySelector("#formTeamName");
+    function renderTeamName(teamName, workingModel){ //check this
         
         teamName.value = workingModel.teamName;
 
@@ -137,7 +133,7 @@ const requestFormDOM = (function(){
             } 
         })
 
-        return content;
+        return teamName;
 
         function blockTeamDuplication(){//make sure proper object comparision occurs here
             const teamCheck = allTeamsNamesList.filter(function(team){
@@ -148,11 +144,8 @@ const requestFormDOM = (function(){
     }
 
     
-    function renderTeamSizeSelection(workingModel){
+    function renderTeamSizeSelection(teamSize, workingModel){
 
-        const template = document.querySelector("#teamSizeTemplate");
-        const content = document.importNode(template.content, true);
-        const formTeamSize = content.querySelector("#formTeamSize");
         const selection = selectorNodes[`${primaryClass}`].cloneNode(true);
         const primaryClass = Array.from(this.classList)[0];
             
@@ -171,14 +164,14 @@ const requestFormDOM = (function(){
             }
         })
         
-        formTeamSize.replaceWith(selection);
+        teamSize.replaceWith(selection);
         selection.id = "formTeamSize";
 
         function publishTeamSizeChange(){
             events.publish("modifyTeamSizeValue", selection.value)
         }
 
-        return content
+        return selection
     }
 
     

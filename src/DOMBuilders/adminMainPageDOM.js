@@ -6,7 +6,7 @@ const adminMainPageDOM = (function(){
     let allTeams //set this on dataLoad
     
     events.subscribe("adminMainPageModelBuilt", publishAdminMainPageRender);
-    events.subscribe("selectorsBuilt", setSelectorNodes) //add selector builds to selectiorBuildDOM for the fac Open/Close/Min/Max
+    events.subscribe("selectorsBuilt", setSelectorNodes) //add selector builds to selectorBuildDOM module for the fac Open/Close/Min/Max
     
     const selectorNodes = {
         facilityOpen: null,
@@ -45,14 +45,14 @@ const adminMainPageDOM = (function(){
         
         const fallButton = content.querySelector("#fallButton");
         const springButton = content.querySelector("#springButton");
-        const adminAllTeams = content.querySelector("#adminTeamsGridContainer");
+        const adminAllTeams = content.querySelector("#adminMainPageTeamGrid");
         const adminAllUsers = content.querySelector("#adminUsersGridContainer");
         const adminFacilityData = content.querySelector("#facilityDataGridContainer");
         const adminAddTimeBlock = content.querySelector("#setAllUsersAvailabilityGridContainer");
         const schedulerButton = content.querySelector("#runScheduleBuilderButton");
     
-        const adminAllTeamsNew = renderAdminAllTeamsGrid(adminMainPageData.allTeams);
-        const adminAllUsersNew = renderAdminAllUsersGrid(adminMainPageData);
+        const adminAllTeamsNew = renderAdminAllTeamsGrid(adminAllTeams, adminMainPageData.allTeams);
+        const adminAllUsersNew = renderAdminAllUsersGrid(adminAllUsers, adminMainPageData);
         const adminFacilityDataNew = renderFacilityDataGrid(adminMainPageData);
         const adminAddTimeBlockNew = renderAdminTimeBlocker(adminMainPageData);
     
@@ -79,28 +79,19 @@ const adminMainPageDOM = (function(){
         */	
     }
     
-    function renderAdminAllTeamsGrid(allTeamsData){
-        const template = document.querySelector("#adminMainPageTeamsGridTemplate");
-        const content = document.importNode(template.content, true);
-    
-        const teamGrid = content.querySelector("#adminMainPageTeamGrid");
-        const teamGridNew = renderAdminAllTeams(allTeamsData);
+    function renderAdminAllTeamsGrid(teamGrid, allTeamsData){
+       
+        const teamGridNew = document.createElement("div")
+
+        allTeamsData.forEach(function(team){
+            const teamRow = buildAdminTeamRow(team, allTeamsData);
+            teamGridNew.appendChild(teamRow);
+        })
     
         teamGrid.replaceWith(teamGridNew);
         teamGridNew.id = "adminMainPageTeamGrid"
     
-        return content
-    }
-    
-    function renderAdminAllTeams(allTeamsData){
-        const allTeams = document.createElement("div")
-    
-        allTeamsData.forEach(function(team){
-            const teamRow = buildAdminTeamRow(team, allTeamsData);
-            allTeams.appendChild(teamRow);
-        })
-    
-        return allTeams;
+        return teamGridNew
     }
     
     function buildAdminTeamRow(teamData, allTeamsData){
@@ -145,12 +136,10 @@ const adminMainPageDOM = (function(){
         }
     }
     
-    function renderAdminAllUsersGrid(adminMainPageData){
-        const template = document.querySelector("#adminMainPageUsersGridTemplate");
-        const content = document.importNode(template.content, true);
+    function renderAdminAllUsersGrid(adminAllUsersContainer, adminMainPageData){
     
-        const userGrid = content.querySelector("#adminUsersGrid");
-        const addUserButton = content.querySelector("#adminUsersGridAddUser");
+        const userGrid = adminAllUsersContainer.querySelector("#adminUsersGrid");
+        const addUserButton = adminAllUsersContainer.querySelector("#adminUsersGridAddUser");
         const userGridNew = renderAdminAllUsers((adminMainPageData));
     
         userGrid.replaceWith(userGridNew);
@@ -158,7 +147,7 @@ const adminMainPageDOM = (function(){
     
         //addUserButton eventListener
     
-        return content
+        return adminAllUsersContainer
     }
     
     function renderAdminAllUsers(adminMainPageData){

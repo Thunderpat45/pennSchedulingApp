@@ -1,37 +1,55 @@
 /* eslint-disable no-prototype-builtins */
 import { events } from "../events";
 
-/* displays screen for creating/editing user profiles via admin access */
+/*
+
+actions:  admin interface for creating/editing/deleting users
+
+publishes:
+    request to render adminUserGeneratorPage
+    data update requests for database
+    cancellation of data changes
+    requests to add/delete/modify name/password/privilege/color data
+
+subscribes to:
+    userModel builds/loads
+        FROM: adminUserModel
+    ANOTHER
+
+*/
+
 
 const adminUserGeneratorDOM = (function(){
 
     let allUsersList //bad separation of concerns?
 
-    events.subscribe("userModelPopulated", publishUserGeneratorPageRender)
-    //event to set allUsersList
+    events.subscribe("userModelPopulated", publishUserGeneratorPageRender);
+    events.subscribe("adminMainPageModelBuilt", setAllUsersAndAllSOMETHING);
 
     function publishUserGeneratorPageRender(userModel){
         const userGeneratorPage = renderUserGeneratorDOM(userModel);
         events.publish("pageRenderRequested", userGeneratorPage)
     }
 
+    function setAllUsersAndAllSOMETHING(){}
+
     function renderUserGeneratorDOM(userModel){
         const template = document.querySelector("#adminUserGeneratorTemplate");
         const content = document.importNode(template.content, true);
-        const userName = content.querySelector("#userGeneratorNameDiv");
-        const userPasswordSet = content.querySelector("#userGeneratorPasswordDiv");
-        const userPrivilege = content.querySelector("#userPrivilegeDiv");
-        const userColor = content.querySelector("#userGeneratorColorDiv");
+        const userName = content.querySelector("#userGeneratorName");
+        const userPasswordSet = content.querySelector("#userGeneratorPassword");
+        const userPrivilege = content.querySelector("#userGeneratorPrivilege");
+        const userColor = content.querySelector("#userGeneratorColor");
         const saveButton = content.querySelector("#userGeneratorSaveButton");
         const cancelButton = content.querySelector("#userGeneratorCancelButton");
 
         saveButton.addEventListener("click", saveUserData) 
         cancelButton.addEventListener("click", cancelUserChanges) //other eventListeners for dataValidation
         
-        const userNameNew = renderUserName(userModel) 
-        const userPasswordSetNew = renderUserPassword(userModel) //this may not be necessary, but consider for validationFunctions
-        const userPrivilegeNew = renderUserPrivilege(userModel)
-        const userColorNew = renderUserColor(userModel)
+        const userNameNew = renderUserName(userName, userModel) 
+        const userPasswordSetNew = renderUserPassword(userPasswordSet, userModel)
+        const userPrivilegeNew = renderUserPrivilege(userPrivilege, userModel)
+        const userColorNew = renderUserColor(userColor, userModel)
 
         userName.replaceWith(userNameNew);
         userPasswordSet.replaceWith(userPasswordSetNew);
@@ -49,11 +67,7 @@ const adminUserGeneratorDOM = (function(){
         }
     }
 
-    function renderUserName(userModel){
-        const template = document.querySelector("#adminUserGeneratorNameTemplate");
-        const content = document.importNode(template.content, true);
-        const userName = content.querySelector("#userGeneratorName");
-       
+    function renderUserName(userName, userModel){  
         userName.value = userModel.name;
 
         userName.addEventListener("blur", function modifyUserNameValue(){ 
@@ -77,7 +91,7 @@ const adminUserGeneratorDOM = (function(){
             } 
         })
 
-        return content;
+        return userName;
 
         function blockNameDuplication(thisName){//make sure proper object comparision occurs here
             const nameCheck = allUsersList.filter(function(user){
@@ -88,12 +102,7 @@ const adminUserGeneratorDOM = (function(){
     }
 
 
-    function renderUserPassword(userModel){ //COME BACK TO THIS
-        const template = document.querySelector("#adminUserGeneratorPasswordTemplate");
-        const content = document.importNode(template.content, true);
-        const userPassword = content.querySelector("#userGeneratorPassword");
-        
-        
+    function renderUserPassword(userPassword, userModel){
 
         userPassword.addEventListener("blur", function confirmPasswordChange(){ 
             if(userModel.hasOwnProperty("password") && userModel.password == "" && userPassword.value == ""){
@@ -111,49 +120,43 @@ const adminUserGeneratorDOM = (function(){
             }
         })
 
-        return content;
+        return userPassword;
 
     }
 
 
-    function renderUserPrivilege(userModel){ 
-        const template = document.querySelector("#adminUserGeneratorPrivilegeTemplate");
-        const content = document.importNode(template.content, true);
-        const userPrivilege = content.querySelector("#userGeneratorPrivilege");
-        
+    function renderUserPrivilege(userPrivilege, userModel){ 
 
         userPrivilege.value = userModel.privilegeLevel
-        if(userPrivilege.value == "true"){
+        if(userPrivilege.value == "true"){ //make sure this isn't circular with template loading value as true
             userPrivilege.checked = true
         }
        
         userPrivilege.addEventListener("blur", updateUserPrivilege)
 
-        return content;
+        return userPrivilege;
 
         function updateUserPrivilege(){
-            if(userModel.privilegeLevel == "true" & !userPrivilege.checked){
-                alert("Admins cannot be demoted.")
+            if(userModel.privilegeLevel == "true" & !userPrivilege.checked && !checkForLastAdmin()){
+                alert("Cannot demote last admin.")
                 userPrivilege.checked = true;
-            }else if(userPrivilege.checked){
-                const confirmation = confirm("Admins cannot be demoted. Continue?")
-                if(confirmation){
-                    userPrivilege.value = "true"
-                }else{
-                    userPrivilege.value = "false"
-                   
-                }events.publish("modifyUserPrivilegeLevelValue", userPrivilege.value)
-            }else{
-                userPrivilege.value = "false"
+            }else if(userPrivilege.value != userModel.privilegeLevel){
                 events.publish("modifyUserPrivilegeLevelValue", userPrivilege.value)
             } 
+
+            function checkForLastAdmin(){
+                const adminUsers = allUsersList.filter(function(user){
+                    return user.privilegeLevel == "true"
+                })
+
+                return adminUsers.length >1
+
+
+            }
         }
     }
 
-    function renderUserColor(userModel){
-        const template = document.querySelector("#adminUserGeneratorColorTemplate");
-        const content = document.importNode(template.content, true);
-        const userColor = content.querySelector("#userGeneratorColor");
+    function renderUserColor(userColor, userModel){
 
         userColor.value = userModel.color
 
@@ -177,7 +180,7 @@ const adminUserGeneratorDOM = (function(){
             }
         })
 
-        return content
+        return userColor
     }
 
 })()

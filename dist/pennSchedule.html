@@ -29,29 +29,29 @@
 			<button id = "fallButton">Fall</button>
 			<button id = "springButton">Spring</button>
 		</div>
-		<div id = "availability"></div>
-		<div id = "teamGridContainer"></div>
+		<div id = "userAvailability">
+			<h3 id = "userAvailabilityLabel">Availabililty</h3>
+			<div id = "availabilityDisplay"></div>
+			<button id = "editAvailability">Edit Availability</button>
+		</div>
+		<div id = "teamGridContainer">
+			<div id = "teamGridLabels">
+				<div>Name</div>
+				<div>Size</div>
+				<div>Option</div>
+				<div>Day</div>
+				<div>Start</div>
+				<div>End</div>
+				<div>Weiss</div>
+				<div>Buttons</div>
+			</div>
+			<div id = "teamGrid"></div>
+			<button id = "teamGridAddTeam">Add Team</button>
+		</div>
 		<div id = "verifyButtonDiv">
 			<button id = "verifyButton">Verify Teams Up To Date</button>
 		</div>
 		
-	</div>
-</template>
-
-<template id ="mainPageTeamGridTemplate">
-	<div id = "teamGridContainer">
-		<div id = "teamGridLabels">
-			<div>Name</div>
-			<div>Size</div>
-			<div>Option</div>
-			<div>Day</div>
-			<div>Start</div>
-			<div>End</div>
-			<div>Weiss</div>
-			<div>Buttons</div>
-		</div>
-		<div id = "teamGrid"></div>
-		<button id = "teamGridAddTeam">Add Team</button>
 	</div>
 </template>
 
@@ -80,22 +80,22 @@
 	<div class = "teamGridTeamInWeiss"></div>
 </template>
 
-<template id = "userAvailabilityTemplate">
-	<div id = "userAvailability">
-		<h3 id = "userAvailabilityLabel">Availabililty</h3>
-		<div id = "availabilityDisplay"></div>
-		<button id = "editAvailability">Edit Availability</button>
-	</div>
-</template>
-
 <template id = "requestPageTemplate">
 	<div id = "fillFormPage" class = "hidden">
 		<div id = "fillformTitle">
 		<h1>Add Team Requests</h1>
 		</div>
 			<form id = "teamRequestForm">
-				<div id = "formTeamNameDiv"></div>
-				<div id = "formTeamSizeDiv"></div>
+				<div id = "formTeamNameDiv">
+					<label for = "formTeamName">Team Name</label><br>
+					<input type = "text" id = "formTeamName" name ="formTeamName" maxlength="25"><br>
+				</div>
+				<div id = "formTeamSizeDiv">
+					<label for = "formTeamSize">Team Size</label><br>
+					<select id = "formTeamSize" name ="formTeamSize" class = "teamSize"><br>
+						<option value = "default">--</option>
+					</select>
+				</div>
 				<div id = "formAllOpts"></div>
 				<div id = "addTrainingOptionDiv">
 					<button id = "addTrainingOption">Add Training Option</button>
@@ -106,22 +106,6 @@
 					<button id = "cancelTeamRequest">Cancel</button>
 				</div>
 			</form>
-	</div>
-</template>
-
-<template id = "teamNameTemplate">
-	<div id = "formTeamNameDiv">
-		<label for = "formTeamName">Team Name</label><br>
-		<input type = "text" id = "formTeamName" name ="formTeamName" maxlength="25"><br>
-	</div>
-</template >
-	
-<template id = "teamSizeTemplate">
-	<div id = "formTeamSizeDiv">
-		<label for = "formTeamSize">Team Size</label><br>
-		<select id = "formTeamSize" name ="formTeamSize" class = "teamSize"><br>
-				<option value = "default">--</option>
-		</select>
 	</div>
 </template>
 
@@ -193,42 +177,27 @@
 
 <template id = "adminUserGeneratorTemplate">
 	<div id = "userGeneratorDiv">
-		<title></title> <!--is title right?--><!--check the below for correct content-->
-		<div id = "userGeneratorNameDiv"></div>
-		<div id = "userGeneratorPasswordDiv"></div>
-		<div id = "userGeneratorPrivilegeDiv">	</div>
-		<div id = "userGeneratorColorDiv"></div>
+		<title>Create/Edit User</title>
+		<div id = "userGeneratorNameDiv">
+			<label for = "userGeneratorName">Name</label><br>
+			<input type = "text" id = "userGeneratorName" name ="userGeneratorName" maxlength="25"><br>
+		</div>
+		<div id = "userGeneratorPasswordDiv">
+			<label for = "userGeneratorPassword">Password</label><br>
+			<input type = "text" id = "userGeneratorPassword" name ="userGeneratorPassword" maxlength="25">
+		</div>
+		<div id = "userGeneratorPrivilegeDiv">
+			<label for = "userGeneratorPrivilege">Set to Admin Role</label><br>
+			<input id = "userGeneratorPrivilege" name = "userGeneratorPrivilege" type = "checkbox" value = "true"><br> 
+		</div>
+		<div id = "userGeneratorColorDiv">
+			<label for = "userGeneratorColor">User Schedule Color</label><br>
+			<input type = "color" id = "userGeneratorColor" name = "userGeneratorColor">
+		</div>
 		<div id = "userGeneratorButtonsDiv">
 			<button id = "userGeneratorSaveButton">Save Changes</button>
 			<button id = "userGeneratorCancelButton">Cancel Changes</button>
 		</div>
-	</div>
-</template>
-
-<template id= "adminUserGeneratorNameTemplate">
-	<div id = "userGeneratorNameDiv">
-		<label for = "userGeneratorName">Name</label><br>
-		<input type = "text" id = "userGeneratorName" name ="userGeneratorName" maxlength="25"><br>
-	</div>
-</template>
-
-<template id= " adminUserGeneratorPasswordTemplate">
-	<div id = "userGeneratorPasswordDiv">
-		<label for = "userGeneratorPassword">Password</label><br>
-		<input type = "text" id = "userGeneratorPassword" name ="userGeneratorPassword" maxlength="25">
-	</div>
-</template>
-
-<template id= " adminUserGeneratorPrivilegeTemplate">
-	<p>Privilege Level</p><br>
-			<label for = "userGeneratorPrivilege">Set to Admin Role</label><br>
-			<input id = "userGeneratorPrivilege" name = "userGeneratorPrivilege" type = "checkbox" value = "true"><br>
-</template>
-
-<template id= " adminUserGeneratorColorTemplate">
-	<div id = "userGeneratorColorDiv">
-		<label for = "userGeneratorColor">User Schedule Color</label><br>
-		<input type = "color" id = "userGeneratorColor" name = "userGeneratorColor">
 	</div>
 </template>
 
@@ -254,33 +223,40 @@
 
 <template id = "adminMainPageTemplate">
 	<div id = "adminMainPage">
-		<div id = "seasonsButtons">   //can these have same id as mainPage seasonsButtons?
+		<div id = "seasonsButtons">   <!--can these have same id as mainPage seasonsButtons?-->
 			<button id = "fallButton">Fall</button>
 			<button id = "springButton">Spring<button>
 		</div>
-		<div id = "adminTeamsGridContainer"></div>
-		<div id = "adminUsersGridContainer"></div>
+		<div id = "adminMainPageTeamsGridContainer">
+			<h2>All Teams</h2>
+			<div id = "adminMainPageTeamGridLabels">
+				<div>Name</div>
+				<div>Coach</div>
+				<div>Size</div>
+				<div>Rank</div>
+				<div>Buttons</div>
+			</div>
+			<div id = "adminMainPageTeamGrid"></div>
+		</div>
+		<div id = "adminUsersGridContainer">
+			<h2>Users</h2>
+			<div id = "adminUsersGridLabels">
+				<div>Name</div>
+				<div>Color</div>
+				<div>Privilege</div>
+				<div>Last Verified</div>
+			</div>
+			<div id = "adminUsersGrid"></div>
+			<button id = "adminUsersGridAddUser">Add User</button>
+		</div>
 		<div id = "facilityDataGridContainer"></div>
 		<div id = "setAllUsersAvailabilityGridContainer"></div>
 		<button id = "runScheduleBuilderButton">Run Schedule Builder</button>
 	</div>
 </template>
 
-<template id = "adminMainPageTeamsGridTemplate">
-	<div id = "adminMainPageTeamGridContainer">
-	<h2>All Teams</h2>
-		<div id = "adminMainPageTeamGridLabels">
-			<div>Name</div>
-			<div>Coach</div>
-			<div>Size</div>
-			<div>Rank</div>
-			<div>Buttons</div>
-		</div>
-		<div id = "adminMainPageTeamGrid"></div>
-	</div>
-</template>
 
-<template id = "adminMainPageTeamTemplate"> //make sure up/down ranks render just this, not whole page (see availabilityDOM and requestDOM)
+<template id = "adminMainPageTeamTemplate"> 
 	<div class = "adminMainPageTeamGridTeam">
 		<div class = "adminMainPageTeamGridTeamName"></div>
 		<div class = "adminMainPageTeamGridTeamCoach"></div>
@@ -290,20 +266,6 @@
 			<button class = "adminMainPageTeamGridTeamUprankButton"></button>
 			<button class = "adminMainPageTeamGridTeamDownrankButton"></button>
 		</div>
-	</div>
-</template>
-
-<template id = "adminMainPageUsersGridTemplate">
-	<div id = "adminUsersGridContainer">
-	<h2>Users</h2>
-		<div id = "adminUsersGridLabels">
-			<div>Name</div>
-			<div>Color</div>
-			<div>Privilege</div>
-			<div>Last Verified</div>
-		</div>
-		<div id = "adminUsersGrid"></div>
-		<button id = "adminUsersGridAddUser">Add User</button>
 	</div>
 </template>
 
@@ -320,7 +282,7 @@
 	</div>
 </template>
 
-<template id = "adminMainPageFacilitySelectorsGridTemplate">
+<template id = "adminMainPageFacilitySelectorsGridTemplate"> <!--continue review here-->
 	<div id = "adminMainPageFacilitySelectorsGrid">
 		<div id ="adminMainPageFacilityHoursSelectorsGrid">
 		<h2>Facility Hours</h2>
@@ -345,7 +307,7 @@
 	</div>
 </template>
 
-<template id = "adminMainPageAddAvailabilityBlockAllUsersTemplate">
+<template id = "adminMainPageAddAvailabilityBlockAllUsersTemplate"> <!-- this needs modification to include a grid and each selected time-->
 	<div id = "adminMainPageAddAvaiabilityBlockAllUsersDiv">
 		<h2>Add Time Block To All Users</h2>
 		<div id = "adminMainPageAddAvailabilityBlockAllUsersGrid"></div>
