@@ -52,6 +52,22 @@ const adminMainPageModel = (function(){
         events.publish("adminMainPageModelBuilt", adminMainPageModel)
      }
 
+     /*
+     allTeams:
+
+     allUsers:
+
+     facilitySelectors:
+
+     adminTimeBlocks:
+
+     {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, all days already input, make sure empties don't screw anything up
+
+
+
+
+     
+     */
      
 
 })()

@@ -113,16 +113,13 @@ const availabilityPageDOM = (function(){
     function buildAvailabilityRow(day, timeBlock, blockNumber){
         const template = document.querySelector("#availabilityGridRowTemplate");
         const content = document.importNode(template.content, true);
-        const row = content.querySelector(".availabilityGridRow")
-        const children = Array.from(row.children);
+
+        const availabilitySelectors = content.querySelectorAll(".selector")
         const deleteButton = content.querySelector(".availabilityDeleteButton");
 
-        children.forEach(function(child){
-            const selection = child.querySelector(".selector");
-            if(selection != undefined){ 
-                const selectionNew = buildSelector(day, timeBlock, blockNumber, selection)
-                selection.replaceWith(selectionNew)
-            }
+        availabilitySelectors.forEach(function(selection){
+            const selectionNew = buildSelector(day, timeBlock, blockNumber, selection)
+            selection.replaceWith(selectionNew)   
         });
         deleteButton.addEventListener("click", deleteTimeBlock);
 

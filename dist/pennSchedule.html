@@ -148,7 +148,7 @@
 	</div>
 </template>
 
-<template id= "availabilityDOMTemplate">
+<template id= "availabilityDOMTemplate"> <!--add button missing, check templates/functions for this to ensure days are not selectors-->
 	<div id = "availabilityDOM">
 		<h1 id= "availabilityTitle">Availability</h1>
 		<div id= "availabilityGrid"></div>
@@ -249,8 +249,34 @@
 			<div id = "adminUsersGrid"></div>
 			<button id = "adminUsersGridAddUser">Add User</button>
 		</div>
-		<div id = "facilityDataGridContainer"></div>
-		<div id = "setAllUsersAvailabilityGridContainer"></div>
+		<div id = "facilityDataGridContainer">
+			<div id ="adminMainPageFacilityHoursSelectorsGrid">
+			<h2>Facility Hours</h2>
+				<div id = "adminMainPageFacilityHoursSelectorsOpen">
+					<p>Open</p>
+					<select class = "facilityOpen selector"></select>
+				</div>
+				<div id = "adminMainPageFacilityHoursSelectorsClose">
+					<p>Close</p>
+					<select class = "facilityClose selector"></select>
+				</div>
+			</div>
+			<div id = "adminMainPageFacilityCapacitySelectors">
+			<h2>Facility Capacity</h2>
+				<div id = "adminMainPageFacilityCapacitySelectorsMax">
+					<p>Max</p>
+					<select class = "facilityMax selector"></select>
+				</div>
+			</div>
+			<button id = "adminMainPageFacilitySelectorsSaveButton">Save Changes</button>
+			<button id = "adminMainPageFacilitySelectorsCancelButton">Cancel Changes</button>
+		</div>
+		<div id = "setAllUsersAvailabilityGridContainer">
+			<h2>Add Time Block To All Users</h2>
+			<div id = "adminMainPageAddAvailabilityBlockAllUsersGrid"></div>
+			<button id = "adminMainPageAddAvailabilityBlockAllUsersSaveButton">Save Changes</button>
+			<button id = "adminMainPageAddAvailabilityBlockAllUsersCancelButton">Cancel Changes</button>	
+		</div>
 		<button id = "runScheduleBuilderButton">Run Schedule Builder</button>
 	</div>
 </template>
@@ -282,48 +308,8 @@
 	</div>
 </template>
 
-<template id = "adminMainPageFacilitySelectorsGridTemplate"> <!--continue review here-->
-	<div id = "adminMainPageFacilitySelectorsGrid">
-		<div id ="adminMainPageFacilityHoursSelectorsGrid">
-		<h2>Facility Hours</h2>
-			<div id = "adminMainPageFacilityHoursSelectorsOpen">
-				<p>Open</p>
-				<select class = "facilityOpen selector"></select>
-			</div>
-			<div id = "adminMainPageFacilityHoursSelectorsClose">
-				<p>Close</p>
-				<select class = "facilityClose selector"></select>
-			</div>
-		</div>
-		<div id = "adminMainPageFacilityCapacitySelectors">
-		<h2>Facility Capacity</h2>
-			<div id = "adminMainPageFacilityCapacitySelectorsMax">
-				<p>Max</p>
-				<select class = "facilityMax selector"></select>
-			</div>
-		</div>
-		<button id = "adminMainPageFacilitySelectorsSaveButton">Save Changes</button>
-		<button id = "adminMainPageFacilitySelectorsCancelButton">Cancel Changes</button>
-	</div>
-</template>
-
-<template id = "adminMainPageAddAvailabilityBlockAllUsersTemplate"> <!-- this needs modification to include a grid and each selected time-->
-	<div id = "adminMainPageAddAvaiabilityBlockAllUsersDiv">
-		<h2>Add Time Block To All Users</h2>
-		<div id = "adminMainPageAddAvailabilityBlockAllUsersGrid"></div>
-		<button id = "adminMainPageAddAvailabilityBlockAllUsersAddButton">Add Block</button>
-		<button id = "adminMainPageAddAvailabilityBlockAllUsersSaveButton">Save Changes</button>
-		<button id = "adminMainPageAddAvailabilityBlockAllUsersCancelButton">Cancel Changes</button>		
-	</div>
-</template>
-
-
 <template id = "adminMainPageAddAvailabilityBlockAllUsersBlockTemplate">
 	<div class = "adminMainPageAddAvailabilityBlockAllUsersBlock">
-		<div class = "adminMainPageAddAvailabilityBlockAllUsersBlockDay">
-			<p>Day</p>
-			<select class = "dayOfWeek selector"></select>
-		</div>
 		<div class = "adminMainPageAddAvailabilityBlockAllUsersBlockStart">
 			<p>Start Time</p>
 			<select class = "startTime selector"></select>

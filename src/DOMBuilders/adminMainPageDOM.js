@@ -53,8 +53,8 @@ const adminMainPageDOM = (function(){
     
         const adminAllTeamsNew = renderAdminAllTeamsGrid(adminAllTeams, adminMainPageData.allTeams);
         const adminAllUsersNew = renderAdminAllUsersGrid(adminAllUsers, adminMainPageData);
-        const adminFacilityDataNew = renderFacilityDataGrid(adminMainPageData);
-        const adminAddTimeBlockNew = renderAdminTimeBlocker(adminMainPageData);
+        const adminFacilityDataNew = renderFacilityDataGrid(adminFacilityData, adminMainPageData);
+        const adminAddTimeBlockNew = renderAdminTimeBlocker(adminAddTimeBlock, adminMainPageData);
     
         adminAllTeams.replaceWith(adminAllTeamsNew);
         adminAllUsers.replaceWith(adminAllUsersNew);
@@ -140,7 +140,7 @@ const adminMainPageDOM = (function(){
     
         const userGrid = adminAllUsersContainer.querySelector("#adminUsersGrid");
         const addUserButton = adminAllUsersContainer.querySelector("#adminUsersGridAddUser");
-        const userGridNew = renderAdminAllUsers((adminMainPageData));
+        const userGridNew = renderAdminAllUsers(adminMainPageData);
     
         userGrid.replaceWith(userGridNew);
         userGridNew.id = "adminUsersGrid"
@@ -195,11 +195,9 @@ const adminMainPageDOM = (function(){
         }
     }
     
-    function renderFacilityDataGrid(adminMainPageData){ //continue HERE
-        const template = document.querySelector("#adminMainPageFacilitySelectorsGridTemplate");
-        const content = document.importNode(template.content, true);
-    
-        const facilitySelectorsNodes = content.querySelectorAll(".select");
+    function renderFacilityDataGrid(adminFacilityDataContainer, adminMainPageData){ //continue HERE
+        
+        const facilitySelectorsNodes = adminFacilityDataContainer.querySelectorAll(".select");
     
         facilitySelectorsNodes.forEach(function(selector){
             const primaryClass = Array.from(selector.classList)[0];
@@ -221,20 +219,71 @@ const adminMainPageDOM = (function(){
         })
     
     
-        const saveButton = content.querySelector("#adminMainPageFacilitySelectorsSaveButton");
-        const cancelButton = content.querySelector("#adminMainPageFacilitySelectorsCancelButton");
+        const saveButton = adminFacilityDataContainer.querySelector("#adminMainPageFacilitySelectorsSaveButton");
+        const cancelButton = adminFacilityDataContainer.querySelector("#adminMainPageFacilitySelectorsCancelButton");
     
         //add eventListeners for save/cancel buttons
         
-        return content
+        return adminFacilityDataContainer
     
     } 
     
-    function renderAdminTimeBlocker(adminMainPageData){ //add property to adminMainPage data to hold adminSetTimeBlocks ,, compare this against availabilityDOM, make sure storage object looks similar
+    function renderAdminTimeBlocker(adminTimeBlockDiv, adminMainPageData){ //add property to adminMainPage data to hold adminSetTimeBlocks ,, compare this against availabilityDOM, make sure storage object looks similar
+     
+        const adminTimeBlockGrid = adminTimeBlockDiv.querySelect("#adminMainPageAddAvailabilityBlockAllUsersGrid");
+        const adminSaveTimeBlockButtons = adminTimeBlockDiv.querySelect("#adminMainPageAddAvailabilityBlockAllUsersSaveButton");
+        const adminCancelTimeBlockChangesButton = adminTimeBlockDiv.querySelect("#adminMainPageAddAvailabilityBlockAllUsersCancelButton");
+        
+        const adminTimeBlockGridNew = renderAdminAllTimeBlocks(adminMainPageData);
+
+        adminTimeBlockGrid.replaceWith(adminTimeBlockGridNew);
+        adminTimeBlockGridNew.id = "adminMainPageAddAvailabilityBlockAllUsersGrid"
+    
+        //save-cancel button eventListeners
+
+        return adminTimeBlockDiv
+    }
+
+    function renderAdminAllTimeBlocks(adminTimeBlockDiv, adminMainPageData){
+
+        const allTimeBlocksNew = document.createElement("div")
+    
+        for(let day in adminMainPageData.adminTimeBlocks){
+            const dayDiv = document.createElement("div");
+            dayDiv.classList.add("adminTimeBlockDay");
+
+            const label = document.createElement("h3");
+            const addButton = document.createElement("button");
+
+            label.innerText = `${day}`;
+            day.forEach(function(timeBlock){
+                const blockNumber = day.indexOf(timeBlock) + 1;
+                const row = buildAdminTimeBlockRow(day, timeBlock, blockNumber);
+                dayDiv.appendChild(row)
+            })
+
+            addButton.addEventListener("click", function addAdminTimeBlock(){
+                events.publish('addAdminTimeBlockClicked', day)
+            });
+
+            dayDiv.appendChild(label);
+            dayDiv.appendChild(addButton)
+        }
+
+        const allTimeBlocks = adminTimeBlockDiv.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid");
+        if(allTimeBlocks != null){
+            allTimeBlocks.replaceWith(allTimeBlocksNew)
+        }else{
+            return allTimeBlocksNew
+        }
+    }
+
+    function buildAdminTimeBlockRow(day, timeBlock, blockNumber){
         const template = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersBlockTemplate");
         const content = document.importNode(template.content, true);
-    
+
         const facilitySelectorsNodes = content.querySelectorAll(".select");
+        const deleteButton = content.querySelector("#adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton")
     
         facilitySelectorsNodes.forEach(function(selector){
             const primaryClass = Array.from(selector.classList)[0];
@@ -242,19 +291,32 @@ const adminMainPageDOM = (function(){
             const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
             selectionNew.addEventListener("change", publishSelectionValueChange)
     
-            selectionNew.value = adminMainPageData.facilitySelectors[primaryClass];
+            selectionNew.value = timeBlock.facilitySelectors[primaryClass]; //double check this call to make sure that adminTimeBlocks has a facilitySelectors property
             const selectedOption = selectionNew.querySelector(`option[value = ${selectionNew.value}]`);
             selectedOption.selected = true;
+            if(selectedOption.value != "default"){
+                selectionNew.firstChild.disabled = true;
+            }
             
             selector.replaceWith(selectionNew);
     
-            function publishSelectionValueChange(){ //block number??
+            function publishSelectionValueChange(){
                 const selector = primaryClass
                 const value = selectionNew.value;
-                events.publish("modifyAdminTimeBlockSelectorValue", {selector, value})
+                events.publish("modifyAdminTimeBlockSelectorValue", {blockNumber, day, selector, value})
             }
         })
-    } //
+
+        deleteButton.addEventListener("click", deleteAdminTimeBlock);
+
+        return content
+
+        function deleteAdminTimeBlock(){
+            events.publish("deleteAdminTimeBlockClicked", {day, blockNumber})
+        }
+
+
+    } 
 
 })()
 
