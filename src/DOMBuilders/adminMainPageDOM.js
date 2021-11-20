@@ -3,9 +3,9 @@ import { events } from "../events";
 const adminMainPageDOM = (function(){
 
     let season //figure this out
-    let allTeams //set this on dataLoad
     
     events.subscribe("adminMainPageModelBuilt", publishAdminMainPageRender);
+    events.subscribe("adminAvailabilityModelModified", renderAdminAllTimeBlocks)
     events.subscribe("selectorsBuilt", setSelectorNodes) //add selector builds to selectorBuildDOM module for the fac Open/Close/Min/Max
     
     const selectorNodes = {
@@ -52,9 +52,9 @@ const adminMainPageDOM = (function(){
         const schedulerButton = content.querySelector("#runScheduleBuilderButton");
     
         const adminAllTeamsNew = renderAdminAllTeamsGrid(adminAllTeams, adminMainPageData.allTeams);
-        const adminAllUsersNew = renderAdminAllUsersGrid(adminAllUsers, adminMainPageData);
-        const adminFacilityDataNew = renderFacilityDataGrid(adminFacilityData, adminMainPageData);
-        const adminAddTimeBlockNew = renderAdminTimeBlocker(adminAddTimeBlock, adminMainPageData);
+        const adminAllUsersNew = renderAdminAllUsersGrid(adminAllUsers, adminMainPageData.allUsers);
+        const adminFacilityDataNew = renderFacilityDataGrid(adminFacilityData, adminMainPageData.facilitySelectors);
+        const adminAddTimeBlockNew = renderAdminTimeBlocker(adminAddTimeBlock, adminMainPageData.adminTimeBlocks);
     
         adminAllTeams.replaceWith(adminAllTeamsNew);
         adminAllUsers.replaceWith(adminAllUsersNew);
@@ -153,7 +153,7 @@ const adminMainPageDOM = (function(){
     function renderAdminAllUsers(adminMainPageData){
         const allUsers = document.createElement("div")
     
-        adminMainPageData.allUsers.forEach(function(user){
+        adminMainPageData.forEach(function(user){
             const userRow = buildAdminUserRow(user);
             allUsers.appendChild(userRow);
         })
@@ -205,7 +205,7 @@ const adminMainPageDOM = (function(){
             const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
             selectionNew.addEventListener("change", publishSelectionValueChange)
     
-            selectionNew.value = adminMainPageData.facilitySelectors[primaryClass];
+            selectionNew.value = adminMainPageData[primaryClass];
             const selectedOption = selectionNew.querySelector(`option[value = ${selectionNew.value}]`);
             selectedOption.selected = true;
             
@@ -228,27 +228,36 @@ const adminMainPageDOM = (function(){
     
     } 
     
-    function renderAdminTimeBlocker(adminTimeBlockDiv, adminMainPageData){ //add property to adminMainPage data to hold adminSetTimeBlocks ,, compare this against availabilityDOM, make sure storage object looks similar
+    function renderAdminTimeBlocker(adminTimeBlockDiv, adminMainPageData){
      
         const adminTimeBlockGrid = adminTimeBlockDiv.querySelect("#adminMainPageAddAvailabilityBlockAllUsersGrid");
-        const adminSaveTimeBlockButtons = adminTimeBlockDiv.querySelect("#adminMainPageAddAvailabilityBlockAllUsersSaveButton");
+        const adminSaveTimeBlockButton = adminTimeBlockDiv.querySelect("#adminMainPageAddAvailabilityBlockAllUsersSaveButton");
         const adminCancelTimeBlockChangesButton = adminTimeBlockDiv.querySelect("#adminMainPageAddAvailabilityBlockAllUsersCancelButton");
         
-        const adminTimeBlockGridNew = renderAdminAllTimeBlocks(adminMainPageData);
+        const adminTimeBlockGridNew = renderAdminAllTimeBlocks({adminTimeBlockDiv, adminMainPageData});
 
         adminTimeBlockGrid.replaceWith(adminTimeBlockGridNew);
         adminTimeBlockGridNew.id = "adminMainPageAddAvailabilityBlockAllUsersGrid"
     
-        //save-cancel button eventListeners
+       adminSaveTimeBlockButton.addEventListener("click", updateAdminAvailability);
+       adminCancelTimeBlockChangesButton.addEventListener("click", cancelAdminAvailabilityChanges);
 
         return adminTimeBlockDiv
+
+        function updateAdminAvailability(){
+            events.publish("updateAdminAvailabilityClicked", adminMainPageData)
+        }
+        function cancelAdminAvailabilityChanges(){
+            events.publish("cancelAdminAvailabilityChangesClicked", adminTimeBlockDiv)
+        }
     }
 
-    function renderAdminAllTimeBlocks(adminTimeBlockDiv, adminMainPageData){
-
+    function renderAdminAllTimeBlocks(obj){
+        const adminTimeBlockDiv = obj.adminTimeBlockDiv;
+        const adminMainPageData = obj.adminMainPageData
         const allTimeBlocksNew = document.createElement("div")
     
-        for(let day in adminMainPageData.adminTimeBlocks){
+        for(let day in adminMainPageData){
             const dayDiv = document.createElement("div");
             dayDiv.classList.add("adminTimeBlockDay");
 
@@ -256,14 +265,14 @@ const adminMainPageDOM = (function(){
             const addButton = document.createElement("button");
 
             label.innerText = `${day}`;
-            day.forEach(function(timeBlock){
+            day.forEach(function(timeBlock){ //does blockNumber need a +1 here? made sense in teamRequestModel bc the number was displayed, maybe not so much here
                 const blockNumber = day.indexOf(timeBlock) + 1;
-                const row = buildAdminTimeBlockRow(day, timeBlock, blockNumber);
+                const row = buildAdminTimeBlockRow(adminTimeBlockDiv, day, timeBlock, blockNumber);
                 dayDiv.appendChild(row)
             })
 
             addButton.addEventListener("click", function addAdminTimeBlock(){
-                events.publish('addAdminTimeBlockClicked', day)
+                events.publish('addAdminTimeBlockClicked', {adminTimeBlockDiv, day})
             });
 
             dayDiv.appendChild(label);
@@ -278,20 +287,20 @@ const adminMainPageDOM = (function(){
         }
     }
 
-    function buildAdminTimeBlockRow(day, timeBlock, blockNumber){
+    function buildAdminTimeBlockRow(adminTimeBlockDiv, day, timeBlock, blockNumber){
         const template = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersBlockTemplate");
         const content = document.importNode(template.content, true);
 
-        const facilitySelectorsNodes = content.querySelectorAll(".select");
+        const selectorsNodes = content.querySelectorAll(".select");
         const deleteButton = content.querySelector("#adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton")
     
-        facilitySelectorsNodes.forEach(function(selector){
+        selectorsNodes.forEach(function(selector){
             const primaryClass = Array.from(selector.classList)[0];
             
             const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
             selectionNew.addEventListener("change", publishSelectionValueChange)
     
-            selectionNew.value = timeBlock.facilitySelectors[primaryClass]; //double check this call to make sure that adminTimeBlocks has a facilitySelectors property
+            selectionNew.value = timeBlock[primaryClass]; 
             const selectedOption = selectionNew.querySelector(`option[value = ${selectionNew.value}]`);
             selectedOption.selected = true;
             if(selectedOption.value != "default"){
@@ -312,7 +321,7 @@ const adminMainPageDOM = (function(){
         return content
 
         function deleteAdminTimeBlock(){
-            events.publish("deleteAdminTimeBlockClicked", {day, blockNumber})
+            events.publish("deleteAdminTimeBlockClicked", {adminTimeBlockDiv, day, blockNumber})
         }
 
 

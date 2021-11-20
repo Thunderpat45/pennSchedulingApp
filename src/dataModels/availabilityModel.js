@@ -11,6 +11,8 @@ publishes:
 subscribes to: 
     requests to display/add/delete/modify/update availability data
 
+    {coachName: {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, coachName2...}
+
 */
 
 const availabilityModel = (function(){
