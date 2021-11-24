@@ -22,7 +22,8 @@ const availabilityModel = (function(){
     let availabilityModelCopy;
     let timeBlockDefault = { //issue with default vs null?
         start:"default",
-        end:"default"
+        end:"default",
+        admin: "no"
     };
 
     events.subscribe("mainPageModelBuilt", setAvailabilityModel); 
@@ -60,7 +61,7 @@ const availabilityModel = (function(){
     }
 
     function deleteAvailabilityRow(rowObj){
-        const blockIndex = rowObj.blockNumber -1;
+        const blockIndex = rowObj.blockNumber;
         const timeBlock = availabilityModelCopy[rowObj.day][blockIndex];
         availabilityModelCopy[rowObj.day].splice(timeBlock, 1);
 
@@ -68,7 +69,7 @@ const availabilityModel = (function(){
     }
 
     function modifyAvailabilityValue(rowObj){
-        const blockIndex = rowObj.blockNumber - 1;
+        const blockIndex = rowObj.blockNumber;
         availabilityModelCopy[rowObj.day][blockIndex][rowObj.selector] = rowObj.value
     }
 

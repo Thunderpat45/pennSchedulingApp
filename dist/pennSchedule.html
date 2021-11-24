@@ -249,28 +249,7 @@
 			<div id = "adminUsersGrid"></div>
 			<button id = "adminUsersGridAddUser">Add User</button>
 		</div>
-		<div id = "facilityDataGridContainer">
-			<div id ="adminMainPageFacilityHoursSelectorsGrid">
-			<h2>Facility Hours</h2>
-				<div id = "adminMainPageFacilityHoursSelectorsOpen">
-					<p>Open</p>
-					<select class = "facilityOpen selector"></select>
-				</div>
-				<div id = "adminMainPageFacilityHoursSelectorsClose">
-					<p>Close</p>
-					<select class = "facilityClose selector"></select>
-				</div>
-			</div>
-			<div id = "adminMainPageFacilityCapacitySelectors">
-			<h2>Facility Capacity</h2>
-				<div id = "adminMainPageFacilityCapacitySelectorsMax">
-					<p>Max</p>
-					<select class = "facilityMax selector"></select>
-				</div>
-			</div>
-			<button id = "adminMainPageFacilitySelectorsSaveButton">Save Changes</button>
-			<button id = "adminMainPageFacilitySelectorsCancelButton">Cancel Changes</button>
-		</div>
+		<div id = "facilityDataGridContainer"></div>
 		<div id = "setAllUsersAvailabilityGridContainer">
 			<h2>Add Time Block To All Users</h2>
 			<div id = "adminMainPageAddAvailabilityBlockAllUsersGrid"></div>
@@ -281,6 +260,30 @@
 	</div>
 </template>
 
+<template id = "adminMainPageFacilityDataGridTemplate">
+	<div id = "facilityDataGrid">
+		<div id ="adminMainPageFacilityHoursSelectorsGrid">
+		<h2>Facility Hours</h2>
+			<div id = "adminMainPageFacilityHoursSelectorsOpen">
+				<p>Open</p>
+				<select class = "facilityOpen selector"></select>
+			</div>
+			<div id = "adminMainPageFacilityHoursSelectorsClose">
+				<p>Close</p>
+				<select class = "facilityClose selector"></select>
+			</div>
+		</div>
+		<div id = "adminMainPageFacilityCapacitySelectors">
+		<h2>Facility Capacity</h2>
+			<div id = "adminMainPageFacilityCapacitySelectorsMax">
+				<p>Max</p>
+				<select class = "facilityMax selector"></select>
+			</div>
+		</div>
+		<button id = "adminMainPageFacilitySelectorsSaveButton">Save Changes</button>
+		<button id = "adminMainPageFacilitySelectorsCancelButton">Cancel Changes</button>
+	</div>
+</template>
 
 <template id = "adminMainPageTeamTemplate"> 
 	<div class = "adminMainPageTeamGridTeam">
@@ -299,7 +302,9 @@
 	<div class = "adminUserGridUser">
 		<div class = "adminUserGridUserName"></div>
 		<div class = "adminUserGridUserColor">
-			<div class = "adminUserColor"></div></div>
+			<p>Color</p>
+			<div class = "adminUserColor"></div>
+		</div>
 		<div class = "adminUserGridUserPrivilege"></div>
 		<div class = "adminUserGridUserLastVerified"></div>
 

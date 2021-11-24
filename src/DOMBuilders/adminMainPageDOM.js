@@ -5,7 +5,8 @@ const adminMainPageDOM = (function(){
     let season //figure this out
     
     events.subscribe("adminMainPageModelBuilt", publishAdminMainPageRender);
-    events.subscribe("adminAvailabilityModelModified", renderAdminAllTimeBlocks)
+    events.subscribe("adminAvailabilityModelModified", renderAdminAllTimeBlocks);
+    events.subscribe("adminFacilityModelModified", renderFacilityDataGrid)
     events.subscribe("selectorsBuilt", setSelectorNodes) //add selector builds to selectorBuildDOM module for the fac Open/Close/Min/Max
     
     const selectorNodes = {
@@ -13,8 +14,7 @@ const adminMainPageDOM = (function(){
         facilityClose: null,
         facilityMaxCapacity: null,
         startTime: null,
-        endTime: null,
-        dayOfWeek: null
+        endTime: null
     }
     
     function setSelectorNodes(obj){
@@ -25,7 +25,6 @@ const adminMainPageDOM = (function(){
                 case `facilityMaxCapacity`:
                 case `startTime`: //does name overlap here (class overlap) cause conflict??
                 case `endTime`:
-                case `dayOfWeek`:
                     selectorNodes[prop] = prop.value
                     break;
                 default:
@@ -53,7 +52,7 @@ const adminMainPageDOM = (function(){
     
         const adminAllTeamsNew = renderAdminAllTeamsGrid(adminAllTeams, adminMainPageData.allTeams);
         const adminAllUsersNew = renderAdminAllUsersGrid(adminAllUsers, adminMainPageData.allUsers);
-        const adminFacilityDataNew = renderFacilityDataGrid(adminFacilityData, adminMainPageData.facilitySelectors);
+        const adminFacilityDataNew = renderFacilityDataGrid({adminFacilityDataContainer: adminFacilityData, adminMainPageData: adminMainPageData.facilitySelectors});
         const adminAddTimeBlockNew = renderAdminTimeBlocker(adminAddTimeBlock, adminMainPageData.adminTimeBlocks);
     
         adminAllTeams.replaceWith(adminAllTeamsNew);
@@ -128,7 +127,7 @@ const adminMainPageDOM = (function(){
     
         return content
     
-        function moveAdminRankUp(){
+        function moveAdminRankUp(){ //MAKE EVENTS ACTUALLY OCCUR FOR THIS, ALL TEAMS OR INDIVIDUAL TEAM LEVEL
             events.publish("modifyAdminTeamOrder", {index: teamData.rank.allTeams, modifier: -1})
         }
         function moveAdminRankDown(){
@@ -144,10 +143,14 @@ const adminMainPageDOM = (function(){
     
         userGrid.replaceWith(userGridNew);
         userGridNew.id = "adminUsersGrid"
-    
-        //addUserButton eventListener
+        
+        addUserButton.addEventListener("click", addUser)
     
         return adminAllUsersContainer
+
+        function addUser(){
+            events.publish("addUser")
+        }
     }
     
     function renderAdminAllUsers(adminMainPageData){
@@ -166,10 +169,9 @@ const adminMainPageDOM = (function(){
         const content = document.importNode(template.content, true);
     
         const userName = content.querySelector(".adminUserGridUserName");
-        const userColor = content.querySelector(".adminUserGridUserColor");
         const userPrivilege = content.querySelector(".adminUserGridUserPrivilege");
         const userLastVerified = content.querySelector(".adminUserGridUserLastVerified");
-        const userColorBlock = document.createElement("div");
+        const userColorBlock = content.querySelector(".adminUserColor");
     
         const editButton = content.querySelector(".adminUserGridUserEditButton");
         const deleteButton = content.querySelector(".adminUserGridUserDeleteButton");
@@ -177,13 +179,10 @@ const adminMainPageDOM = (function(){
         editButton.addEventListener("click", editUser);
         deleteButton.addEventListener("click", deleteUser);
     
-    
         userName.innerText = userData.name;
         userPrivilege.innerText = userData.privilegeLevel;
         userLastVerified.innerText = userData.lastVerified;
-    
         userColorBlock.style.background = userData.color
-        userColor.appendChild(userColorBlock);
     
         return content
     
@@ -194,10 +193,19 @@ const adminMainPageDOM = (function(){
             events.publish("deleteUser", userData)	
         }
     }
-    
-    function renderFacilityDataGrid(adminFacilityDataContainer, adminMainPageData){ //continue HERE
+    //renderFacilityDataGrid display is: facilityOpen selector, facilityClose selector, facility maxCapacity, saveButton, cancelButton
+    function renderFacilityDataGrid(obj){
         
-        const facilitySelectorsNodes = adminFacilityDataContainer.querySelectorAll(".select");
+        const adminFacilityDataContainer = obj.adminFacilityDataContainer;
+        const adminMainPageData = obj.adminMainPageData;
+
+        const template = document.querySelector("#adminMainPageFacilityDataGridTemplate");
+        const content = document.importNode(template.content, true);
+
+        const facilityGridNew = content.querySelector("#facilityDataGrid");
+        const facilitySelectorsNodes = content.querySelectorAll(".select");
+        const saveButton = content.querySelector("#adminMainPageFacilitySelectorsSaveButton");
+        const cancelButton = content.querySelector("#adminMainPageFacilitySelectorsCancelButton");
     
         facilitySelectorsNodes.forEach(function(selector){
             const primaryClass = Array.from(selector.classList)[0];
@@ -217,17 +225,28 @@ const adminMainPageDOM = (function(){
                 events.publish("modifyFacilitySelectorValue", {selector, value})
             }
         })
+
+        saveButton.addEventListener("click", updateFacilityData);
+        cancelButton.addEventListener("click", cancelFacilityDataChanges);
     
-    
-        const saveButton = adminFacilityDataContainer.querySelector("#adminMainPageFacilitySelectorsSaveButton");
-        const cancelButton = adminFacilityDataContainer.querySelector("#adminMainPageFacilitySelectorsCancelButton");
-    
-        //add eventListeners for save/cancel buttons
+        function updateFacilityData(){
+            events.publish("updateFacilityDataClicked", adminMainPageData)
+        }
+        function cancelFacilityDataChanges(){
+            events.publish("cancelFacilityDataChangesClicked", adminFacilityDataContainer)
+        }
         
-        return adminFacilityDataContainer
+        const facilityGrid = document.querySelector("#facilityDataGrid");
+        if(facilityGrid != null){
+            facilityGrid.replaceWith(facilityGridNew)
+        }else{
+            adminFacilityDataContainer.appendChild(facilityGridNew)
+            return adminFacilityDataContainer
+        }
     
     } 
     
+    //adminTimeBlocker display is blockGrid (allTimeBlocks), saveChanges, cancelChanges buttons
     function renderAdminTimeBlocker(adminTimeBlockDiv, adminMainPageData){
      
         const adminTimeBlockGrid = adminTimeBlockDiv.querySelect("#adminMainPageAddAvailabilityBlockAllUsersGrid");
@@ -251,7 +270,7 @@ const adminMainPageDOM = (function(){
             events.publish("cancelAdminAvailabilityChangesClicked", adminTimeBlockDiv)
         }
     }
-
+    //allTimeBlocks display is forEach day (Day Label, addButton, [row for each timeBlock])
     function renderAdminAllTimeBlocks(obj){
         const adminTimeBlockDiv = obj.adminTimeBlockDiv;
         const adminMainPageData = obj.adminMainPageData
@@ -265,8 +284,12 @@ const adminMainPageDOM = (function(){
             const addButton = document.createElement("button");
 
             label.innerText = `${day}`;
-            day.forEach(function(timeBlock){ //does blockNumber need a +1 here? made sense in teamRequestModel bc the number was displayed, maybe not so much here
-                const blockNumber = day.indexOf(timeBlock) + 1;
+
+            dayDiv.appendChild(label);
+            dayDiv.appendChild(addButton)
+
+            day.forEach(function(timeBlock){
+                const blockNumber = day.indexOf(timeBlock);
                 const row = buildAdminTimeBlockRow(adminTimeBlockDiv, day, timeBlock, blockNumber);
                 dayDiv.appendChild(row)
             })
@@ -274,12 +297,9 @@ const adminMainPageDOM = (function(){
             addButton.addEventListener("click", function addAdminTimeBlock(){
                 events.publish('addAdminTimeBlockClicked', {adminTimeBlockDiv, day})
             });
-
-            dayDiv.appendChild(label);
-            dayDiv.appendChild(addButton)
         }
 
-        const allTimeBlocks = adminTimeBlockDiv.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid");
+        const allTimeBlocks = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid");
         if(allTimeBlocks != null){
             allTimeBlocks.replaceWith(allTimeBlocksNew)
         }else{
@@ -287,6 +307,7 @@ const adminMainPageDOM = (function(){
         }
     }
 
+    //adminBlockRow display is (startTime selector, endTime selector, deleteButton)
     function buildAdminTimeBlockRow(adminTimeBlockDiv, day, timeBlock, blockNumber){
         const template = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersBlockTemplate");
         const content = document.importNode(template.content, true);

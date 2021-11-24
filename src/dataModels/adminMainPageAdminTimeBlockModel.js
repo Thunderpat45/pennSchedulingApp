@@ -6,7 +6,8 @@ const adminMainPageAdminTimeBlockModel = (function(){
     let adminAvailabilityModelCopy;
     let timeBlockDefault = { //issue with default vs null?
         start:"default",
-        end:"default"
+        end:"default",
+        admin:"yes"
     };
 
     events.subscribe("adminMainPageModelBuilt", setAdminAvailabilityModel);
@@ -18,9 +19,10 @@ const adminMainPageAdminTimeBlockModel = (function(){
 
     function setAdminAvailabilityModel(adminData){
         adminAvailabilityModel = adminData.adminTimeBlocks;
+        setAdminAvailabilityModelCopy()
     }
 
-    function setAdminAvailabilityModelCopy(){
+    function setAdminAvailabilityModelCopy(){ //make sure this is right structure
         adminAvailabilityModelCopy = Object.assign({}, adminAvailabilityModel);
         for(let day in adminAvailabilityModelCopy){
             adminAvailabilityModelCopy[day] = adminAvailabilityModel[day].concat();
@@ -37,7 +39,7 @@ const adminMainPageAdminTimeBlockModel = (function(){
     }
 
     function deleteAdminAvailabilityRow(rowObj){
-        const blockIndex = rowObj.blockNumber -1;
+        const blockIndex = rowObj.blockNumber;
         const timeBlock = adminAvailabilityModelCopy[rowObj.day][blockIndex];
         adminAvailabilityModelCopy[rowObj.day].splice(timeBlock, 1);
 
@@ -45,11 +47,11 @@ const adminMainPageAdminTimeBlockModel = (function(){
     }
 
     function modifyAdminAvailabilityValue(rowObj){
-        const blockIndex = rowObj.blockNumber - 1;
+        const blockIndex = rowObj.blockNumber;
         adminAvailabilityModelCopy[rowObj.day][blockIndex][rowObj.selector] = rowObj.value
     }
 
-    function updateAdminAvailability(){ //listener is not yet specified, should be module that updates the DB
+    function updateAdminAvailability(){ //listener is not yet specified, should be module that updates the DB, NEEDS to update this for allUsers, possibly publish to all users????
         events.publish("adminAvailabilityDataUpdated", adminAvailabilityModelCopy)
     }
 

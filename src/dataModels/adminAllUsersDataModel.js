@@ -4,9 +4,11 @@ const adminAllUsersDataModel = (function(){
 
 	let allUsers;
 
-	//events (edit, populate allUsers, validate(?));   decide on validate for the editUserForDatabaseUpdate function
+	
+	events.subscribe("adminMainPageModelBuilt", populateAllUsers)
 	events.subscribe("editUser", editUser);
 	events.subscribe("deleteUser", deleteUserForDatabaseUpdate);
+	events.subscribe("userDataValidated", addEditUserForDatabaseUpdate)
 
 	function populateAllUsers(adminAllUsers){
 		allUsers = adminAllUsers.concat(); //does this need any more recursive copying?
@@ -22,14 +24,38 @@ const adminAllUsersDataModel = (function(){
 
 	function deleteUserForDatabaseUpdate(user){
 		const allUsersSlice = allUsers.concat();
-		const existingUserIndex = allUsersSlice.findIndex(function(users){
-			return users.userName = user.userName
+		const existingUserIndex = allUsersSlice.findIndex(function(usersList){
+			return usersList.userName = user.userName
 		})
 
 		allUsersSlice.splice(existingUserIndex, 1);
 
 		events.publish("allUsersDataUpdated", allUsersSlice);
 	}
+
+	function addEditUserForDatabaseUpdate(obj){
+		const allUsersSlice = allUsers.concat();
+		const existingUserIndex = findExistingUser()
+
+		if(existingUserIndex != undefined){
+			allUsersSlice.splice(existingUserIndex, 1, obj.newData)
+		}else{
+			allUsersSlice.push(obj.newData)
+		}
+		
+		events.publish("allUsersDataUpdated", allUsersSlice) //send to DB for save
+
+		function findExistingUser(){
+			allUsersSlice.filter(function(user){
+				if(obj.existingData.name == user.name){
+					return allUsersSlice.findIndex(function(users){ 
+						return users.name = user.name
+					})
+				}
+			})
+		}
+	}
+
 
 })()
 

@@ -31,7 +31,9 @@ const adminUserGeneratorDOM = (function(){
         events.publish("pageRenderRequested", userGeneratorPage)
     }
 
-    function setAllUsersAndAllSOMETHING(){}
+    function setAllUsersAndAllSOMETHING(adminDataModel){
+        allUsersList = adminDataModel.allUsers
+    }
 
     function renderUserGeneratorDOM(userModel){
         const template = document.querySelector("#adminUserGeneratorTemplate");
@@ -67,11 +69,11 @@ const adminUserGeneratorDOM = (function(){
         }
     }
 
-    function renderUserName(userName, userModel){  
+    function renderUserName(userName, userModel){  //this is good, compare this against other validator in singleUser teams to make sure they are comprehensive
         userName.value = userModel.name;
 
         userName.addEventListener("blur", function modifyUserNameValue(){ 
-            if(userModel.name != userName.value && blockNameDuplication(userName.value) == true){ //make sure userNameNew.value refers to correct location
+            if(userModel.name != userName.value && blockNameDuplication(userName.value) == true){
                 alert(`Data already exists for ${userName.value}. Use another name or edit/delete the other user for the name you are trying to switch to.`);
                 userName.value = "";
                 userName.focus()
@@ -105,18 +107,18 @@ const adminUserGeneratorDOM = (function(){
     function renderUserPassword(userPassword, userModel){
 
         userPassword.addEventListener("blur", function confirmPasswordChange(){ 
-            if(userModel.hasOwnProperty("password") && userModel.password == "" && userPassword.value == ""){
+            if(userModel.hasOwnProperty("password") && userPassword.value == ""){
                 alert("A default password must be set.");
                 userPassword.focus();
             }else if(!userModel.hasOwnProperty("password") && userPassword.value != ""){
                 const confirmation = confirm("This will attempt to overwrite the user's previous password. Continue?")
                 if(confirmation){
-                    events.publish("modifyUserPasswordDefaultValue", userPassword.value)
+                    events.publish("adminModifyUserPasswordValue", userPassword.value)
                 }else{
                     userPassword.value = "";
                 }
             }else if(userPassword.value != ""){
-                events.publish("modifyUserPasswordDefaultValue", userPassword.value)
+                events.publish("adminModifyUserPasswordValue", userPassword.value)
             }
         })
 
@@ -127,8 +129,7 @@ const adminUserGeneratorDOM = (function(){
 
     function renderUserPrivilege(userPrivilege, userModel){ 
 
-        userPrivilege.value = userModel.privilegeLevel
-        if(userPrivilege.value == "true"){ //make sure this isn't circular with template loading value as true
+        if(userModel.privilegeLevel == true){
             userPrivilege.checked = true
         }
        
@@ -137,16 +138,16 @@ const adminUserGeneratorDOM = (function(){
         return userPrivilege;
 
         function updateUserPrivilege(){
-            if(userModel.privilegeLevel == "true" & !userPrivilege.checked && !checkForLastAdmin()){
-                alert("Cannot demote last admin.")
+            if(userModel.privilegeLevel == true & !userPrivilege.checked && !checkForLastAdmin()){
+                alert("Cannot demote last admin. Create new admin users before demoting this admin.")
                 userPrivilege.checked = true;
-            }else if(userPrivilege.value != userModel.privilegeLevel){
-                events.publish("modifyUserPrivilegeLevelValue", userPrivilege.value)
+            }else if(userPrivilege.checked != userModel.privilegeLevel){
+                events.publish("modifyUserPrivilegeLevelValue", userPrivilege.checked)
             } 
 
             function checkForLastAdmin(){
                 const adminUsers = allUsersList.filter(function(user){
-                    return user.privilegeLevel == "true"
+                    return user.privilegeLevel == true
                 })
 
                 return adminUsers.length >1
@@ -165,8 +166,8 @@ const adminUserGeneratorDOM = (function(){
                 alert(`Another user is already using this color. Considering all the possible colors available, the odds are pretty low. Unlucky pick, I guess!`)
                 userColor.value = userModel.color; 
                 userColor.focus();
-            }else if(userColor.value == "default"){
-                alert("Color must have a value.");
+            }else if(userColor.value == "#000000"){
+                alert("Color must have a value not equal to black. Black is default value, and must be changed.");
                 userColor.focus();
             }else if(userModel.color != userColor.value){
                 events.publish("modifyUserColorValue", userColor.value)

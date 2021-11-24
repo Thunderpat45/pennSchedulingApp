@@ -84,7 +84,7 @@ const availabilityPageDOM = (function(){
 
             label.innerText = `${day}`
             day.forEach(function(timeBlock){ //ensure that all days are present at start when profile is first created, as there is no function to add a day, only add a time to an existing day
-                const blockNumber = day.indexOf(timeBlock) + 1;
+                const blockNumber = day.indexOf(timeBlock);
                 const row = buildAvailabilityRow(day, timeBlock, blockNumber);
                 dayDiv.appendChild(row)
             })
@@ -121,6 +121,11 @@ const availabilityPageDOM = (function(){
             const selectionNew = buildSelector(day, timeBlock, blockNumber, selection)
             selection.replaceWith(selectionNew)   
         });
+
+        if(timeBlock.admin == "yes"){
+            deleteButton.remove()
+        }
+
         deleteButton.addEventListener("click", deleteTimeBlock);
 
         return content

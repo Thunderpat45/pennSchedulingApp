@@ -4,23 +4,23 @@ import { events } from "./events";
 
 const userValidator = (function(){
 
-    events.subscribe("validateUserEdit", validateAllInputs);
+    events.subscribe("userDataValidationRequested", validateAllInputs);
     
     function validateAllInputs(obj){
         const errorArray = [];
 
-        validateUserName(obj.workingModel, errorArray); //modify these parameters
-        validatePassword(obj.workingModel, errorArray);
+        validateUserName(obj.newData, errorArray); 
+        validatePassword(obj.newData, errorArray);
 
         if(errorArray.length > 0){
             const errorAlert = errorArray.join(" ");
             alert(errorAlert);
         }else{
-            events.publish("workingModelValidated", {workingModel : obj.workingModel, teamRequest : obj.teamRequest}); //change this line
+            events.publish("userDataValidated", obj);
         }
     }
 
-    function validateUserName(userModel, array){ //MOVE THIS TO requestFormDOM
+    function validateUserName(userModel, array){
         const userName = userModel.name;
         const userNameRegex = /[^A-Za-z0-9]/;
         try{
@@ -34,10 +34,13 @@ const userValidator = (function(){
         }
     }
 
-    function validatePassword(userModel,array){ //MOVE THIS TO requestFormDOM
+    function validatePassword(userModel,array){
         const password = userModel.password;
+        const userPasswordRegex = /[^A-Za-z0-9]/
         try{
-            if(password.length < 10){
+            if(userPasswordRegex.test(password)){
+                throw("User names can only include letters and numbers (no spaces or symbols).");
+            }else if(password.length < 10){
                 throw("Passwords must be 10 or more characters.");
             }
         }catch(err){

@@ -17,7 +17,7 @@ subscribes to:
 
 const mainPageModel = (function(){
 
-    //
+    //does this need to have facilityData for setting up selectors (availability and teamRequest ranges?)
     let allTeams
     let mainPageModel = {
         availability: null,
