@@ -7,7 +7,7 @@ const adminMainPageDOM = (function(){
     events.subscribe("adminMainPageModelBuilt", publishAdminMainPageRender);
     events.subscribe("adminAvailabilityModelModified", renderAdminAllTimeBlocks);
     events.subscribe("adminFacilityModelModified", renderFacilityDataGrid)
-    events.subscribe("selectorsBuilt", setSelectorNodes) //add selector builds to selectorBuildDOM module for the fac Open/Close/Min/Max
+    events.subscribe("adminSelectorsBuilt", setSelectorNodes);
     
     const selectorNodes = {
         facilityOpen: null,
@@ -23,7 +23,7 @@ const adminMainPageDOM = (function(){
                 case `facilityOpen`:
                 case `facilityClose`:
                 case `facilityMaxCapacity`:
-                case `startTime`: //does name overlap here (class overlap) cause conflict??
+                case `startTime`: //does name overlap here (class overlap) cause conflict?? it shouldn't....
                 case `endTime`:
                     selectorNodes[prop] = prop.value
                     break;
@@ -59,11 +59,6 @@ const adminMainPageDOM = (function(){
         adminAllUsers.replaceWith(adminAllUsersNew);
         adminFacilityData.replaceWith(adminFacilityDataNew);
         adminAddTimeBlock.replaceWith(adminAddTimeBlockNew);
-    
-        adminAllTeamsNew.id = "adminTeamsGridContainer"
-        adminAllUsersNew.id = "adminUsersGridContainer"
-        adminFacilityDataNew.id = "facilityDataGridContainer"
-        adminAddTimeBlockNew.id = "setAllUsersAvailabilityGridContainer"
     
         /* 
         fallButton.addEventListener
@@ -142,7 +137,6 @@ const adminMainPageDOM = (function(){
         const userGridNew = renderAdminAllUsers(adminMainPageData);
     
         userGrid.replaceWith(userGridNew);
-        userGridNew.id = "adminUsersGrid"
         
         addUserButton.addEventListener("click", addUser)
     
@@ -154,13 +148,14 @@ const adminMainPageDOM = (function(){
     }
     
     function renderAdminAllUsers(adminMainPageData){
-        const allUsers = document.createElement("div")
+        const allUsers = document.createElement("div");
+        allUsers.id = "adminUsersGrid";
     
         adminMainPageData.forEach(function(user){
             const userRow = buildAdminUserRow(user);
             allUsers.appendChild(userRow);
         })
-    
+
         return allUsers;
     }
     
@@ -256,10 +251,9 @@ const adminMainPageDOM = (function(){
         const adminTimeBlockGridNew = renderAdminAllTimeBlocks({adminTimeBlockDiv, adminMainPageData});
 
         adminTimeBlockGrid.replaceWith(adminTimeBlockGridNew);
-        adminTimeBlockGridNew.id = "adminMainPageAddAvailabilityBlockAllUsersGrid"
     
-       adminSaveTimeBlockButton.addEventListener("click", updateAdminAvailability);
-       adminCancelTimeBlockChangesButton.addEventListener("click", cancelAdminAvailabilityChanges);
+        adminSaveTimeBlockButton.addEventListener("click", updateAdminAvailability);
+        adminCancelTimeBlockChangesButton.addEventListener("click", cancelAdminAvailabilityChanges);
 
         return adminTimeBlockDiv
 
@@ -275,6 +269,7 @@ const adminMainPageDOM = (function(){
         const adminTimeBlockDiv = obj.adminTimeBlockDiv;
         const adminMainPageData = obj.adminMainPageData
         const allTimeBlocksNew = document.createElement("div")
+        allTimeBlocksNew.id = "adminMainPageAddAvailabilityBlockAllUsersGrid" //does this need to be in if statement?
     
         for(let day in adminMainPageData){
             const dayDiv = document.createElement("div");

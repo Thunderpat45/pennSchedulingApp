@@ -21,21 +21,22 @@ const mainPageModel = (function(){
     let allTeams
     let mainPageModel = {
         availability: null,
-        myTeams: null
+        myTeams: null,
+        facilitySelectors:null //make sure selectorBuilder knows to read this
     }
+
+    //need season property
 
     events.subscribe("dataLoadedFromDatabase", populateDataModels); //check for intermediate steps here; make sure DB load publishes to other models
     events.subscribe("mainPageDOMRequested", distributeMainPageModel)
 
     function populateDataModels(databaseObj){
         mainPageModel.availability = databaseObj.availability;
-        mainPageModel.myTeams = 
-            Object.values(databaseObj.myTeams)
-            .sort(function(a,b){
-                return a.rank.myTeams - b.rank.myTeams
-            })
+        mainPageModel.myTeams = databaseObj.myTeams; //check this for appropriate recursion
+        mainPageModel.facilitySelectors = databaseObj.facilitySelectors
         allTeams = Object.assign({}, databaseObj.allTeams); //check this
 
+        events.publish("mainPageSelectorsRequested", mainPageModel.facilitySelectors)// check parameters here
         distributeMainPageModel();
         distributeAllTeamsData();
      }

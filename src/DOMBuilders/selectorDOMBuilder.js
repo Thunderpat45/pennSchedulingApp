@@ -18,32 +18,66 @@ const selectorBuilder = (function(){
 
 
     const selectionOptions = { //source this into userSchedObj, need all selectors?
-        startTime: null,
-        endTime: null,
-        teamSize: null,
+        startTime: {
+            start: null,
+            end: null,
+            increment: 15
+        },
+        endTime: {
+            start: null,
+            end: null,
+            increment: 15
+        },
+        teamSize: {
+            start: 5,
+            end: null,
+            increment: 5
+        },
+        facilityOpen:{ //range 4am to 9pm, default value here 6am (360)?
+            start: 240,
+            end: 1260,
+            increment: 15
+        },
+        facilityClose:{ //range 4am to 9pm, default value here 8pm (1200)?
+            start: 240,
+            end: 1260,
+            increment: 15
+        },
+        facilityMaxCapacity:{//range 10-150, default value here 120?
+            start: 10,
+            end: 150,
+            increment: 5
+        },
         dayOfWeek: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], 
         inWeiss: ["yes", "no"],
     };
 
     const selectors = {}
     
+    events.subscribe("adminSelectorsRequested", setAdminSelectionOptions);
+    events.subscribe("mainPageSelectorsRequested", setUserSelectionOptions); 
 
-    events.subscribe("SOMETHINGABOUTSELECTIONOPTIONSLOADED", setSelectionOptions); //edit, from userSchedObj
-
-    function setSelectionOptions(MONGODBSTUFF){ //needs updating to source from userSchedObj
-        selectionOptions.startTime = MONGODBSTUFF.startTime;
-        selectionOptions.endTime = MONGODBSTUFF.endTime;
-        selectionOptions.teamSize = MONGODBSTUFF.teamSize;
+    function setSelectionOptions(model){
+        selectionOptions.startTime.start = model.facilityOpen;
+        selectionOptions.endTime.start = model.facilityOpen;
+        selectionOptions.startTime.end = model.facilityClose;
+        selectionOptions.endTime.end = model.facilityClose;
+        selectionOptions.teamSize.end = model.facilityMaxCapacity;
         
         for(let option in selectionOptions){
             selectors[option] = buildSelector(option);
         }
-        events.publish("selectorsBuilt", selectors);
     }
 
-//figure out how to load selection options/all teams from DB on page load; move this question to userSchedObj
-//subscribe?, window eventListener?;
-//local storage to maintain data on DOM after refresh?
+    function setAdminSelectionOptions(model){
+        setSelectionOptions(model);
+        events.publish("adminSelectorsBuilt", selectors) //change appropriate instances in other DOM generators
+    }
+
+    function setUserSelectionOptions(model){
+        setSelectionOptions(model);
+        events.publish("userSelectorsBuilt", selectors) //change appropriate instances in other DOM generators
+    }
    
     function disableDefaultOption(){
         const values = Array.from(this.children);
@@ -68,7 +102,7 @@ const selectorBuilder = (function(){
         })
     }
 
-    function buildSelector(primaryClass){ //include stuff from admin : userGenerator (privilegeLvl, color?)
+    function buildSelector(primaryClass){
         const selection = document.createElement("select");
         selection.classList.add(primaryClass);
         selection.classList.add("selector");
@@ -92,6 +126,9 @@ const selectorBuilder = (function(){
                 break;
             
             case "endTime":
+            case "facilityOpen":
+            case "facilityClose":
+            case "facilityMaxCapacity":
                 buildRangeSelectorOptions(primaryClass, selection);
                 break;
             
@@ -119,7 +156,7 @@ const selectorBuilder = (function(){
         for(let i = optionValues.start; i<optionValues.end; i += optionValues.increment){
             const option = document.createElement("option");
             option.value = i;
-            if(primaryClass == "teamSize"){
+            if(primaryClass == "teamSize" || primaryClass == "facilityMaxCapacity"){
                 option.innerHTML = i;
             }else{
                 option.innerHTML = timeValueConverter.runConvertTotalMinutesToTime(i).toString();

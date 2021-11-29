@@ -26,7 +26,7 @@ const requestFormDOM = (function(){
     
     events.subscribe("workingModelPopulated", publishRequestFormRender)
     events.subscribe("optionsModified", renderAllOpts)
-    events.subscribe("selectorsBuilt", setSelectorNodes)
+    events.subscribe("userSelectorsBuilt", setSelectorNodes)
     events.subscribe("allTeamsDataLoaded", loadAllTeamsNamesList); //this seems like bad separation of concerns/SR principle, but this is my current solution
 
     
@@ -177,7 +177,7 @@ const requestFormDOM = (function(){
     
     function renderAllOpts(workingModel){ 
         const allOptsNew = document.createElement("div");
-        allOptsNew.id = "formAllOpts";
+        allOptsNew.id = "formAllOpts"; //should this go in if statement?
         workingModel.allOpts.forEach(function(optionDetails){
             const optNum = workingModel.allOpts.indexOf(optionDetails);
             const option = buildOption(workingModel.allopts, optionDetails, optNum);

@@ -25,7 +25,7 @@ const availabilityPageDOM = (function(){
         endTime:null
     };
 
-    events.subscribe("selectorsBuilt", setSelectorNodes);
+    events.subscribe("userSelectorsBuilt", setSelectorNodes);
     events.subscribe("availabilityModelModified", buildAvailabilityGrid);
     events.subscribe("availabilityDOMPageRequested", publishAvailabilityPageRender);
 
@@ -56,7 +56,6 @@ const availabilityPageDOM = (function(){
         const cancelButton = content.querySelector("#availabilityCancelButton");
 
         grid.replaceWith(gridNew);
-        gridNew.id = "availabilityGrid";
 
         updateButton.addEventListener("click", updateAvailability)
         cancelButton.addEventListener("click", cancelAvailabilityChanges);
@@ -74,6 +73,7 @@ const availabilityPageDOM = (function(){
 
     function buildAvailabilityGrid(availability){
         const gridNew = document.createElement("div");
+        gridNew.id = "availabilityGrid"; //should this go after if statement?
 
         for(let day in availability){
             const dayDiv = document.createElement("div");
@@ -83,7 +83,7 @@ const availabilityPageDOM = (function(){
             const addButton = document.createElement("button");
 
             label.innerText = `${day}`
-            day.forEach(function(timeBlock){ //ensure that all days are present at start when profile is first created, as there is no function to add a day, only add a time to an existing day
+            day.forEach(function(timeBlock){
                 const blockNumber = day.indexOf(timeBlock);
                 const row = buildAvailabilityRow(day, timeBlock, blockNumber);
                 dayDiv.appendChild(row)

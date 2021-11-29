@@ -32,18 +32,18 @@ const adminMainPageModel = (function(){
     }
 
 
+    //need season property
+
     events.subscribe("dataLoadedFromDatabase", populateDataModel); //check for intermediate steps here; make sure DB load publishes to other models
     events.subscribe("adminMainPageDOMRequested", distributeAdminMainPageModel)
 
     function populateDataModel(databaseObj){ //check these for recursive immutable copying properly/necessary
         adminMainPageModel.allUsers = databaseObj.allUsers;
-        adminMainPageModel.allTeams = 
-            Object.values(databaseObj.allTeams)
-            .sort(function(a,b){
-                return a.rank.allTeams - b.rank.allTeams
-            })
+        adminMainPageModel.allTeams = databaseObj.allTeams;
         adminMainPageModel.facilitySelectors = databaseObj.facilitySelectors;
         adminMainPageModel.adminTimeBlocks = databaseObj.adminTimeBlocks;
+
+        events.publish("adminSelectorsRequested", databaseObj.facilitySelectors) //check these parameters
 
         distributeAdminMainPageModel();
      }
