@@ -1,10 +1,38 @@
 import {events} from "../events"
 
-const adminAllUsersDataModel = (function(){
+/*purpose: dataModel for selecting individual user from allUsers to add/edit/delete
+
+adminAllUsers array is modeled as such:
+
+allUsers = 
+	[
+		{
+            name,
+            color,
+            password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END
+            privilegeLevel,
+            teams:{},
+            availability:{},
+            lastVerified
+        }, 
+		{etc}, {etc}
+	]
+
+	teamOrderObj obj is modeled as follows: {index, modifier}
+
+publishes:
+    allTeams order changes FOR database update
+   
+subscribes to: 
+    adminMainPageModel builds FROM adminMainPageModel
+    userData change validations FROM userValidator
+	requests to edit/delete a user FROM adminMainPageDOM
+*/
+
+const adminAllUsersDataModel = (function(){ //continue REVIEW HERE
 
 	let allUsers;
 
-	
 	events.subscribe("adminMainPageModelBuilt", populateAllUsers)
 	events.subscribe("editUser", editUser);
 	events.subscribe("deleteUser", deleteUserForDatabaseUpdate);

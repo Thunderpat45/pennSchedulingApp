@@ -223,7 +223,7 @@
 
 <template id = "adminMainPageTemplate">
 	<div id = "adminMainPage">
-		<div id = "seasonsButtons">   <!--can these have same id as mainPage seasonsButtons?-->
+		<div id = "adminSeasonButtons">
 			<button id = "fallButton">Fall</button>
 			<button id = "springButton">Spring<button>
 		</div>
@@ -291,10 +291,7 @@
 		<div class = "adminMainPageTeamGridTeamCoach"></div>
 		<div class = "adminMainPageTeamGridTeamSize"></div>
 		<div class = "adminMainPageTeamGridTeamRank"></div>
-		<div class = "adminMainPageTeamGridTeamButtons">
-			<button class = "adminMainPageTeamGridTeamUprankButton"></button>
-			<button class = "adminMainPageTeamGridTeamDownrankButton"></button>
-		</div>
+		<div class = "adminMainPageTeamGridTeamButtons"></div>
 	</div>
 </template>
 
@@ -307,9 +304,10 @@
 		</div>
 		<div class = "adminUserGridUserPrivilege"></div>
 		<div class = "adminUserGridUserLastVerified"></div>
-
-		<button class = "adminUserGridUserEditButton">Edit User</button>
-		<button class = "adminUserGridUserDeleteButton">Delete User</button>  
+		<div class = "adminUserGridUserButtonDiv">
+			<button class = "adminUserGridUserEditButton">Edit User</button>
+			<button class = "adminUserGridUserDeleteButton">Delete User</button>
+		</div>
 	</div>
 </template>
 

@@ -29,12 +29,12 @@ const availabilityPageDOM = (function(){
     events.subscribe("availabilityModelModified", buildAvailabilityGrid);
     events.subscribe("availabilityDOMPageRequested", publishAvailabilityPageRender);
 
-    function setSelectorNodes(obj){
-        for(let prop in obj){
-            switch(prop){
+    function setSelectorNodes(selectorElementObj){
+        for(let selectorElement in selectorElementObj){
+            switch(selectorElement){
                 case `startTime`:
                 case `endTime`:
-                    selectorNodes[prop] = prop.value;
+                    selectorNodes[selectorElement] = selectorElementObj[selectorElement];
                     break;
                 default:
                     return;

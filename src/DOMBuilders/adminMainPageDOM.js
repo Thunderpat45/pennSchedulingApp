@@ -1,13 +1,80 @@
 import { events } from "../events";
 
+/*action: admin interface for observing allTeams/allUsers, setting facility parameters, blocking off time for all users, and running the scheduling function
+
+adminMainPageData object is modeled as such:
+
+obj = {
+    allTeams: 
+        [{ 
+            teamName,
+            teamSize, 
+            rank:
+                {
+                    myTeams,
+                    allTeams
+                },
+            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+            coach, //needs a source of data, work on that
+        }, {etc}, {etc}]
+
+    allUsers:
+        [{
+            name,
+            color,
+            password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END
+            privilegeLevel,
+            teams:{},
+            availability:{},
+            lastVerified
+        }, {etc}, {etc}]
+
+    facilitySelectors:
+        {facilityOpen, facilityClose, facilityMaxCapacity}
+
+    adminTimeBlocks:
+        {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, all days already input, make sure empties don't screw anything up
+
+    season,
+}
+
+adminSelectorsObj is modeled as such:
+
+obj = {
+
+    startTime: (pre-built select HTML element),
+    endTime: etc,
+    teamSize: etc,
+    facilityOpen: etc,
+    facilityClose: etc,
+    facilityMaxCapacity: etc,
+    dayOfWeek: etc,
+    inWeiss: etc
+}
+
+publishes:
+    page render requests FOR pageRenderer
+    season change requests FOR (?)
+    scheduler run requests FOR (?)
+    admin allTeam rank changes FOR adminAllTeamsDataModel
+    
+
+subscribes to: 
+    adminMainPageModel builds FROM adminMainPageModel
+    adminSelectorsBuilt FROM selectorDOMBuilder
+    adminAvailability and adminFacility model updates FROM adminAvailabity and adminFacility data models
+*/
+
 const adminMainPageDOM = (function(){
 
-    let season //figure this out
+    let season
     
+    events.subscribe("adminSelectorsBuilt", setSelectorNodes);
+    events.subscribe("adminMainPageModelBuilt", setSeason)
     events.subscribe("adminMainPageModelBuilt", publishAdminMainPageRender);
     events.subscribe("adminAvailabilityModelModified", renderAdminAllTimeBlocks);
     events.subscribe("adminFacilityModelModified", renderFacilityDataGrid)
-    events.subscribe("adminSelectorsBuilt", setSelectorNodes);
+    
     
     const selectorNodes = {
         facilityOpen: null,
@@ -17,15 +84,15 @@ const adminMainPageDOM = (function(){
         endTime: null
     }
     
-    function setSelectorNodes(obj){
-        for(let prop in obj){
-            switch(prop){
+    function setSelectorNodes(selectorElementObj){
+        for(let selectorElement in selectorElementObj){
+            switch(selectorElement){
                 case `facilityOpen`:
                 case `facilityClose`:
                 case `facilityMaxCapacity`:
-                case `startTime`: //does name overlap here (class overlap) cause conflict?? it shouldn't....
+                case `startTime`: //watch CSS between this and requestFormDOM
                 case `endTime`:
-                    selectorNodes[prop] = prop.value
+                    selectorNodes[selectorElement] = selectorElementObj[selectorElement]
                     break;
                 default:
                     return;
@@ -33,17 +100,20 @@ const adminMainPageDOM = (function(){
         }
     }
     
+    function setSeason(adminMainPageData){ //make sure this happens before publishAdminMainPageRender, it should
+        season = adminMainPageData.season
+    }
+
     function publishAdminMainPageRender(adminMainPageData){
         const adminMainPageDOM = buildAdminMainPageDOM(adminMainPageData);
-        events.publish("pageRenderRequested", adminMainPageDOM);
+        events.publish("pageRenderRequested", adminMainPageDOM); //come back to this after checking
     }
     
     function buildAdminMainPageDOM(adminMainPageData){
         const template = document.querySelector("#adminMainPageTemplate");
         const content = document.importNode(template.content, true);
         
-        const fallButton = content.querySelector("#fallButton");
-        const springButton = content.querySelector("#springButton");
+        const seasonButtons = content.querySelector("#adminSeasonButtons");
         const adminAllTeams = content.querySelector("#adminMainPageTeamGrid");
         const adminAllUsers = content.querySelector("#adminUsersGridContainer");
         const adminFacilityData = content.querySelector("#facilityDataGridContainer");
@@ -56,39 +126,53 @@ const adminMainPageDOM = (function(){
         const adminAddTimeBlockNew = renderAdminTimeBlocker(adminAddTimeBlock, adminMainPageData.adminTimeBlocks);
     
         adminAllTeams.replaceWith(adminAllTeamsNew);
-        adminAllUsers.replaceWith(adminAllUsersNew);
+        adminAllUsers.replaceWith(adminAllUsersNew); 
         adminFacilityData.replaceWith(adminFacilityDataNew);
         adminAddTimeBlock.replaceWith(adminAddTimeBlockNew);
     
-        /* 
-        fallButton.addEventListener
-        springButton.addEventListener
-        schedulerButton.addEventListener
-        */
+        seasonButtons.children.forEach(function(child){
+            if(child.id == `${season}Button`){
+                child.disabled = true;
+            }else{
+                child.addEventListener("click", changeSeason)
+               
+            }
+        })
+
+        schedulerButton.addEventListener("click", runScheduler)
     
         return content
     
-        /*
-        event functions
-        */	
+        function changeSeason(){
+            let string = "Button";
+            const seasonButtonId = this.id;
+            const truncateIndex = seasonButtonId.indexOf(string);
+            const seasonName = seasonButtonId.slice(0, truncateIndex);
+            
+            events.publish("adminSeasonChangeRequested", seasonName) //find subscriber to this, otherwise looks good
+        }
+
+        function runScheduler(){
+            events.publish("runSchedulerRequested") //is this it?? find subscriber to this
+        }
     }
     
-    function renderAdminAllTeamsGrid(teamGrid, allTeamsData){
-       
+    function renderAdminAllTeamsGrid(teamGrid, allTeamsData){ //this and dataModel essentiall all clear
         const teamGridNew = document.createElement("div")
 
         allTeamsData.forEach(function(team){
             const teamRow = buildAdminTeamRow(team, allTeamsData);
             teamGridNew.appendChild(teamRow);
         })
-    
+
         teamGrid.replaceWith(teamGridNew);
         teamGridNew.id = "adminMainPageTeamGrid"
     
         return teamGridNew
     }
-    
-    function buildAdminTeamRow(teamData, allTeamsData){
+
+    //adminTeamRow display is: teamName, coach, lastVerified, teamRank, up and downrank buttons
+    function buildAdminTeamRow(teamData, allTeamsData){ //after viewing full page, determine whether to add allOpts for admin viewing
         const template = document.querySelector("#adminMainPageTeamTemplate");
         const content = document.importNode(template.content, true);
     
@@ -100,29 +184,30 @@ const adminMainPageDOM = (function(){
         
         const uprankButton = document.createElement("button");
         const downrankButton = document.createElement("button");
-    
-        uprankButton.addEventListener("click", moveAdminRankUp);
-        downrankButton.addEventListener("click", moveAdminRankDown);
-        
-    
-        if(allTeamsData.length > 1 && teamData.rank.allTeams != 0 && teamData.rank.allTeams != allTeamsData.length - 1){ //make sure allTeams is right property
-            teamButtons.appendChild(uprankButton);
-            teamButtons.appendChild(downrankButton);
-        }else if(allTeamsData.length > 1 && teamData.rank.allTeams != 0){
-            teamButtons.appendChild(uprankButton)
-        }else if(allTeamsData.length > 1 && teamData.rank.allTeams != allTeamsData.length - 1){
-            teamButtons.appendChild(downrankButton)
-        }
-    
-        
+
         teamName.innerText = teamData.teamName;
         teamCoach.innerText = teamData.coach;
         teamSize.innerText = teamData.teamSize;
         teamRank.innerText = teamData.rank.allTeams;
+
+        uprankButton.id = "adminMainPageTeamGridTeamUprankButton"
+        downrankButton.id = "adminMainPageTeamGridTeamDownrankButton"
+    
+        uprankButton.addEventListener("click", moveAdminRankUp);
+        downrankButton.addEventListener("click", moveAdminRankDown);
+    
+        if(allTeamsData.length > 1 && teamData.rank.allTeams != 0 && teamData.rank.allTeams != allTeamsData.length - 1){
+            teamButtons.appendChild(uprankButton);
+            teamButtons.appendChild(downrankButton);
+        }else if(allTeamsData.length > 1 && teamData.rank.allTeams == allTeamsData.length - 1){
+            teamButtons.appendChild(uprankButton)
+        }else if(allTeamsData.length > 1 && teamData.rank.allTeams == 0){
+            teamButtons.appendChild(downrankButton)
+        }   
     
         return content
     
-        function moveAdminRankUp(){ //MAKE EVENTS ACTUALLY OCCUR FOR THIS, ALL TEAMS OR INDIVIDUAL TEAM LEVEL
+        function moveAdminRankUp(){ 
             events.publish("modifyAdminTeamOrder", {index: teamData.rank.allTeams, modifier: -1})
         }
         function moveAdminRankDown(){
@@ -143,7 +228,7 @@ const adminMainPageDOM = (function(){
         return adminAllUsersContainer
 
         function addUser(){
-            events.publish("addUser")
+            events.publish("addUser") //follow this and other to dataModel
         }
     }
     
@@ -182,7 +267,7 @@ const adminMainPageDOM = (function(){
         return content
     
         function editUser(){
-            events.publish("editUser", userData)
+            events.publish("editUser", userData) //folow these to dataModel
         }
         function deleteUser(){
             events.publish("deleteUser", userData)	
@@ -288,6 +373,8 @@ const adminMainPageDOM = (function(){
                 const row = buildAdminTimeBlockRow(adminTimeBlockDiv, day, timeBlock, blockNumber);
                 dayDiv.appendChild(row)
             })
+
+            allTimeBlocksNew.appendChild(day);
 
             addButton.addEventListener("click", function addAdminTimeBlock(){
                 events.publish('addAdminTimeBlockClicked', {adminTimeBlockDiv, day})

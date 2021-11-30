@@ -1,61 +1,24 @@
 import { events } from "../events";
 
-/*action: receives dataModel from database for loading content for all adminPages
-object is modeled as such:
+/*purpose: dataModel from database for loading content for all adminPages
+
+database object is modeled as such:
 
 obj = {
+    allTeams: 
+        [{ 
+            teamName,
+            teamSize, 
+            rank:
+                {
+                    myTeams,
+                    allTeams
+                },
+            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+            //coach needs a source of data, work on that
+        }, {etc}, {etc}]
 
-
-
-}
-
-publishes:
-    adminMainPageData model builds
-
-subscribes to: 
-    data load
-        FROM database
-
-   adminMainPageDOM requests
-        FROM adminMainPage (?)dataModel(?)
-*/
-
-const adminMainPageModel = (function(){
-
-
-
-    let adminMainPageModel = {
-        allTeams: null,
-        allUsers: null,
-        facilitySelectors:null,
-        adminTimeBlocks: null
-    }
-
-
-    //need season property
-
-    events.subscribe("dataLoadedFromDatabase", populateDataModel); //check for intermediate steps here; make sure DB load publishes to other models
-    events.subscribe("adminMainPageDOMRequested", distributeAdminMainPageModel)
-
-    function populateDataModel(databaseObj){ //check these for recursive immutable copying properly/necessary
-        adminMainPageModel.allUsers = databaseObj.allUsers;
-        adminMainPageModel.allTeams = databaseObj.allTeams;
-        adminMainPageModel.facilitySelectors = databaseObj.facilitySelectors;
-        adminMainPageModel.adminTimeBlocks = databaseObj.adminTimeBlocks;
-
-        events.publish("adminSelectorsRequested", databaseObj.facilitySelectors) //check these parameters
-
-        distributeAdminMainPageModel();
-     }
-
-     function distributeAdminMainPageModel(){
-        events.publish("adminMainPageModelBuilt", adminMainPageModel)
-     }
-
-     /*
-     allTeams:
-
-     allUsers:
+    allUsers:
         [{
             name,
             color,
@@ -66,20 +29,56 @@ const adminMainPageModel = (function(){
             lastVerified
         }, {etc}, {etc}]
 
-     facilitySelectors:
+    facilitySelectors:
+        {facilityOpen, facilityClose, facilityMaxCapacity}
 
-     {facilityOpen, facilityClose, facilityMaxCapacity}
+    adminTimeBlocks:
+        {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, all days already input, make sure empties don't screw anything up
 
-     adminTimeBlocks:
+    season,
+}
 
-     {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, all days already input, make sure empties don't screw anything up
+publishes:
+    adminSelector builds requests FOR selectorDOMBuilder
+    adminMainPageData model builds FOR adminMainPage DOM and all necessary adminDataModels
+
+subscribes to: 
+    data load FROM database
+    adminMainPageDOM requests FROM adminUserGenerator cancellation AND
+*/
+
+const adminMainPageModel = (function(){
 
 
+    //ensure proper database connection
+    //determine if recursive copying for immutability is necessary directly off database
+    //not on this page, but ensure backEnd selects default season or uses passed season variable to pull appropriate data, sort allTeams by rank and send to here/mainPageDataModel
+    let adminMainPageModel = {
+        allTeams: null,
+        allUsers: null,
+        facilitySelectors:null,
+        adminTimeBlocks: null,
+        season: null
+    }
 
+    events.subscribe("dataLoadedFromDatabase", populateDataModel);
+    events.subscribe("adminMainPageDOMRequested", distributeAdminMainPageModel)
 
-     
-     */
-     
+    function populateDataModel(databaseObj){ //check these for recursive immutable copying properly/necessary
+        adminMainPageModel.allUsers = databaseObj.allUsers;
+        adminMainPageModel.allTeams = databaseObj.allTeams;
+        adminMainPageModel.facilitySelectors = databaseObj.facilitySelectors;
+        adminMainPageModel.adminTimeBlocks = databaseObj.adminTimeBlocks;
+        adminMainPageModel.season = databaseObj.season
+
+        events.publish("adminSelectorsRequested", adminMainPageModel.facilitySelectors)
+
+        distributeAdminMainPageModel();
+    }
+
+    function distributeAdminMainPageModel(){ //come back to this after checking selectorDOM progression
+        events.publish("adminMainPageModelBuilt", adminMainPageModel)
+    }
 
 })()
 

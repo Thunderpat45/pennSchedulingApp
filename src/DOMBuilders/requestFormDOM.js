@@ -46,15 +46,15 @@ const requestFormDOM = (function(){
         
     }
 
-    function setSelectorNodes(obj){
-        for(let prop in obj){
-            switch(prop){
+    function setSelectorNodes(selectorElementObj){
+        for(let selectorElement in selectorElementObj){
+            switch(selectorElement){
                 case `dayOfWeek`:
                 case `startTime`:
                 case `endTime`:
                 case `teamSize`:
                 case `inWeiss`:
-                    selectorNodes[prop] = prop.value;
+                    selectorNodes[selectorElement] = selectorElementObj[selectorElement];
                     break;
                 default:
                     return;

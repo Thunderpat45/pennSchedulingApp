@@ -2,22 +2,30 @@ import {events} from "../events"
 import {timeValueConverter} from "../timeConverter"
 /*
 
-actions: creates and populates reusable select DOM elements for various pages
+purpose: creates and populates reusable select DOM elements for various pages
+
+facilitySelector object format is as such:
+
+obj = {
+    facilityOpen,
+    facilityClose,
+    facilityMaxCapacity
+}
 
 publishes:
-    select DOM elements
+    selection DOM elements FOR multiple DOM modules
 
 subscribes:
-    initial selector option ranges/arrays
+    admin facilitySelector data FROM adminMainPageModel
+    user facilitySelector data FROM mainPageModel
 
 */
 
-
-
 const selectorBuilder = (function(){ 
 
-
-    const selectionOptions = { //source this into userSchedObj, need all selectors?
+    //default values must be input (into database?) for facilityOpen/Close/MaxCapacity BEFORE first time running, or startTime/endTime/teamSize will have errors!
+    //ensure timeCoverter function is accurate
+    const selectionOptions = { 
         startTime: {
             start: null,
             end: null,
@@ -33,17 +41,17 @@ const selectorBuilder = (function(){
             end: null,
             increment: 5
         },
-        facilityOpen:{ //range 4am to 9pm, default value here 6am (360)?
+        facilityOpen:{ //4am to 9pm, default value 6am (360)?
             start: 240,
             end: 1260,
             increment: 15
         },
-        facilityClose:{ //range 4am to 9pm, default value here 8pm (1200)?
+        facilityClose:{ //default value 8pm (1200)?
             start: 240,
             end: 1260,
             increment: 15
         },
-        facilityMaxCapacity:{//range 10-150, default value here 120?
+        facilityMaxCapacity:{//range 10-150, default value 120?
             start: 10,
             end: 150,
             increment: 5
@@ -57,28 +65,90 @@ const selectorBuilder = (function(){
     events.subscribe("adminSelectorsRequested", setAdminSelectionOptions);
     events.subscribe("mainPageSelectorsRequested", setUserSelectionOptions); 
 
-    function setSelectionOptions(model){
-        selectionOptions.startTime.start = model.facilityOpen;
-        selectionOptions.endTime.start = model.facilityOpen;
-        selectionOptions.startTime.end = model.facilityClose;
-        selectionOptions.endTime.end = model.facilityClose;
-        selectionOptions.teamSize.end = model.facilityMaxCapacity;
+    function setAdminSelectionOptions(selectorsModel){
+        setSelectionOptions(selectorsModel);
+        events.publish("adminSelectorsBuilt", selectors) 
+    }
+
+    function setUserSelectionOptions(selectorsModel){
+        setSelectionOptions(selectorsModel);
+        events.publish("userSelectorsBuilt", selectors) 
+    }
+
+    function setSelectionOptions(selectorsModel){
+        selectionOptions.startTime.start = selectorsModel.facilityOpen;
+        selectionOptions.endTime.start = selectorsModel.facilityOpen;
+        selectionOptions.startTime.end = selectorsModel.facilityClose;
+        selectionOptions.endTime.end = selectorsModel.facilityClose;
+        selectionOptions.teamSize.end = selectorsModel.facilityMaxCapacity;
         
         for(let option in selectionOptions){
             selectors[option] = buildSelector(option);
         }
     }
 
-    function setAdminSelectionOptions(model){
-        setSelectionOptions(model);
-        events.publish("adminSelectorsBuilt", selectors) //change appropriate instances in other DOM generators
+    function buildSelector(primaryClass){
+        const selection = document.createElement("select");
+        selection.classList.add(primaryClass);
+        selection.classList.add("selector");
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "default";
+            defaultOption.innerHTML = "--";
+        selection.appendChild(defaultOption);
+
+        switch(primaryClass){
+            case "dayOfWeek":
+            case "inWeiss": 
+                buildArraySelectorOptions(primaryClass, selection);
+                break;
+            
+            case "teamSize":
+                buildRangeSelectorOptions(primaryClass, selection);
+                selection.addEventListener("change", function modifyTeamSizeValue(){
+                    const value = selection.value 
+                    events.publish("modifyTeamSizeValue", value)
+                });
+                break;   
+            case "endTime":
+            case "facilityClose":
+            case "facilityMaxCapacity":
+                buildRangeSelectorOptions(primaryClass, selection);
+                break;
+            
+            case "startTime":
+            case "facilityOpen":
+                buildRangeSelectorOptions(primaryClass, selection);
+                selection.addEventListener("change", modifyEndTimeDefaultValue);
+                break;
+        }
+
+        selection.addEventListener("change", disableDefaultOption) 
+        selection.addEventListener("blur", preventEmptySelectors)
     }
 
-    function setUserSelectionOptions(model){
-        setSelectionOptions(model);
-        events.publish("userSelectorsBuilt", selectors) //change appropriate instances in other DOM generators
+    function buildArraySelectorOptions(primaryClass, selector){
+        const optionValues = selectionOptions[primaryClass];
+        optionValues.forEach(function(optionValue){
+            const option = document.createElement("option");
+            option.value = optionValue;
+            option.innerHTML = optionValue;
+            selector.appendChild(option); 
+        })
     }
-   
+
+    function buildRangeSelectorOptions(primaryClass, selector){
+        const optionValues = selectionOptions[primaryClass];
+        for(let i = optionValues.start; i<optionValues.end; i += optionValues.increment){
+            const option = document.createElement("option");
+            option.value = i;
+            if(primaryClass == "teamSize" || primaryClass == "facilityMaxCapacity"){
+                option.innerHTML = i;
+            }else{
+                option.innerHTML = timeValueConverter.runConvertTotalMinutesToTime(i).toString(); //make sure this is accurate
+            }selector.appendChild(option);
+        }
+    }
+
     function disableDefaultOption(){
         const values = Array.from(this.children);
         values[0].disabled = true;
@@ -102,69 +172,14 @@ const selectorBuilder = (function(){
         })
     }
 
-    function buildSelector(primaryClass){
-        const selection = document.createElement("select");
-        selection.classList.add(primaryClass);
-        selection.classList.add("selector");
-            const defaultOption = document.createElement("option");
-            defaultOption.value = "default";
-            defaultOption.innerHTML = "--";
-        selection.appendChild(defaultOption);
-
-        switch(primaryClass){
-            case "dayOfWeek":
-            case "inWeiss": 
-                buildArraySelectorOptions(primaryClass, selection);
-                break;
-            
-            case "teamSize":
-                buildRangeSelectorOptions(primaryClass, selection);
-                addEventListener("change", function modifyTeamSizeValue(){
-                    const value = selection.value 
-                    events.publish("modifyTeamSizeValue", value)
-                });
-                break;
-            
-            case "endTime":
-            case "facilityOpen":
-            case "facilityClose":
-            case "facilityMaxCapacity":
-                buildRangeSelectorOptions(primaryClass, selection);
-                break;
-            
-            case "startTime":
-                buildRangeSelectorOptions(primaryClass, selection);
-                selection.addEventListener("change", modifyEndTimeDefaultValue);
-                break;
-        }
-
-        selection.addEventListener("change", disableDefaultOption) 
-    }
-
-    function buildArraySelectorOptions(primaryClass, selector){
-        const optionValues = selectionOptions[primaryClass];
-        optionValues.forEach(function(optionValue){
-            const option = document.createElement("option");
-            option.value = optionValue;
-            option.innerHTML = optionValue;
-            selector.appendChild(option); 
-        })
-    }
-
-    function buildRangeSelectorOptions(primaryClass, selector){
-        const optionValues = selectionOptions[primaryClass];
-        for(let i = optionValues.start; i<optionValues.end; i += optionValues.increment){
-            const option = document.createElement("option");
-            option.value = i;
-            if(primaryClass == "teamSize" || primaryClass == "facilityMaxCapacity"){
-                option.innerHTML = i;
-            }else{
-                option.innerHTML = timeValueConverter.runConvertTotalMinutesToTime(i).toString();
-            }selector.appendChild(option);
+    function preventEmptySelectors(){
+        if(this.value == "default"){
+            const className = Array.from(this.classList)[0];
+            alert(`A non-default value must be selected for ${className}`);
+            this.focus();
         }
     }
 
-    
 })();
 
 export{selectorBuilder}
