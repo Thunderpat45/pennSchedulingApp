@@ -72,7 +72,7 @@ const adminUserGeneratorDOM = (function(){
         return content
         
         function saveUserData(){
-            events.publish("saveUserDataClicked", userModel)
+            events.publish("saveUserDataClicked")
         }
 
         function cancelUserChanges(){

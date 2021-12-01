@@ -33,7 +33,7 @@ obj = {
         {facilityOpen, facilityClose, facilityMaxCapacity}
 
     adminTimeBlocks:
-        {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, all days already input, make sure empties don't screw anything up
+        {day: [{start, stop, admin}, {start, stop, admin}], day: [{start, stop, admin}, {start, stop, admin}]} 
 
     season,
 }
@@ -44,7 +44,7 @@ publishes:
 
 subscribes to: 
     data load FROM database
-    adminMainPageDOM requests FROM adminUserGenerator cancellation AND
+    adminMainPageDOM requests FROM adminUserGenerator cancellation AND ...
 */
 
 const adminMainPageModel = (function(){

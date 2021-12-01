@@ -31,7 +31,7 @@ subscribes to:
 */
 
 const adminMainPageAllTeamsData = (function(){
-	//no obvious work to be done here except connect teamOrder change to database and ensure recursion is necessary
+	//no obvious work to be done here except connect teamOrder change to database, have changes written to EVERY TEAM and ensure recursion is necessary
 	let allTeams;
 
 	events.subscribe("adminMainPageModelBuilt", populateAllTeams)

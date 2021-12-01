@@ -57,6 +57,7 @@ publishes:
     season change requests FOR (?)
     scheduler run requests FOR (?)
     admin allTeam rank changes FOR adminAllTeamsDataModel
+    facilityData changes, save requests, and change cancellations FOR adminMainPageFacilityDataModel
     
 
 subscribes to: 
@@ -83,7 +84,7 @@ const adminMainPageDOM = (function(){
         startTime: null,
         endTime: null
     }
-    
+    //watch for CSS conflicts on start/endTime between this, userAvailability and requestFormDOMs
     function setSelectorNodes(selectorElementObj){
         for(let selectorElement in selectorElementObj){
             switch(selectorElement){
@@ -108,7 +109,7 @@ const adminMainPageDOM = (function(){
         const adminMainPageDOM = buildAdminMainPageDOM(adminMainPageData);
         events.publish("pageRenderRequested", adminMainPageDOM); //come back to this after checking
     }
-    
+    //find subscribers to changeSeasons and runScheduler, issue NOT TO BE ADDRESSED:  scheduler could be run with unsaved modifications to adminAvail and facilityData
     function buildAdminMainPageDOM(adminMainPageData){
         const template = document.querySelector("#adminMainPageTemplate");
         const content = document.importNode(template.content, true);
@@ -149,11 +150,11 @@ const adminMainPageDOM = (function(){
             const truncateIndex = seasonButtonId.indexOf(string);
             const seasonName = seasonButtonId.slice(0, truncateIndex);
             
-            events.publish("adminSeasonChangeRequested", seasonName) //find subscriber to this, otherwise looks good
+            events.publish("adminSeasonChangeRequested", seasonName)
         }
 
         function runScheduler(){
-            events.publish("runSchedulerRequested") //is this it?? find subscriber to this
+            events.publish("runSchedulerRequested") 
         }
     }
     //no obvious issues with this or allTeamsData
@@ -214,7 +215,7 @@ const adminMainPageDOM = (function(){
             events.publish("modifyAdminTeamOrder", {index: teamData.rank.allTeams, modifier: 1})
         }
     }
-    //no obvious issues with this or dataModel
+    //no obvious issues with this or dataModel, display is usersGrid and addUserButton
     function renderAdminAllUsersGrid(adminAllUsersContainer, adminMainPageData){
     
         const userGrid = adminAllUsersContainer.querySelector("#adminUsersGrid");
@@ -243,7 +244,7 @@ const adminMainPageDOM = (function(){
 
         return allUsers;
     }
-    
+    //userRow display is: name, privilegeLevel, color, lastVerified date, edit and deleteButtons
     function buildAdminUserRow(userData){
         const template = document.querySelector("#adminMainPageUserGridUserTemplate");
         const content = document.importNode(template.content, true);
@@ -273,12 +274,12 @@ const adminMainPageDOM = (function(){
             events.publish("deleteUser", userData)	
         }
     }
-    //CONTINUE REVIEW HERE with this DOM and its dataModels
+
     //renderFacilityDataGrid display is: facilityOpen selector, facilityClose selector, facility maxCapacity, saveButton, cancelButton
-    function renderFacilityDataGrid(obj){
+    function renderFacilityDataGrid(dataDomObj){
         
-        const adminFacilityDataContainer = obj.adminFacilityDataContainer;
-        const adminMainPageData = obj.adminMainPageData;
+        const adminFacilityDataContainer = dataDomObj.adminFacilityDataContainer;
+        const adminMainPageData = dataDomObj.adminMainPageData;
 
         const template = document.querySelector("#adminMainPageFacilityDataGridTemplate");
         const content = document.importNode(template.content, true);
@@ -294,9 +295,11 @@ const adminMainPageDOM = (function(){
             const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
             selectionNew.addEventListener("change", publishSelectionValueChange)
     
-            selectionNew.value = adminMainPageData[primaryClass];
-            const selectedOption = selectionNew.querySelector(`option[value = ${selectionNew.value}]`);
+            const selectedOption = selectionNew.querySelector(`option[value = ${adminMainPageData[primaryClass]}]`);
             selectedOption.selected = true;
+            if(selectedOption.value != "default"){
+                selectionNew.firstChild.disabled = true;
+            }
             
             selector.replaceWith(selectionNew);
     
@@ -311,7 +314,7 @@ const adminMainPageDOM = (function(){
         cancelButton.addEventListener("click", cancelFacilityDataChanges);
     
         function updateFacilityData(){
-            events.publish("updateFacilityDataClicked", adminMainPageData)
+            events.publish("updateFacilityDataClicked");
         }
         function cancelFacilityDataChanges(){
             events.publish("cancelFacilityDataChangesClicked", adminFacilityDataContainer)
@@ -324,10 +327,9 @@ const adminMainPageDOM = (function(){
             adminFacilityDataContainer.appendChild(facilityGridNew)
             return adminFacilityDataContainer
         }
-    
     } 
     
-    //adminTimeBlocker display is blockGrid (allTimeBlocks), saveChanges, cancelChanges buttons
+    //adminTimeBlocker display is blockGrid (allTimeBlocks), saveChanges, cancelChanges buttons; dataModel issue to determine when to write changes to allUsers (FE or BE)
     function renderAdminTimeBlocker(adminTimeBlockDiv, adminMainPageData){
      
         const adminTimeBlockGrid = adminTimeBlockDiv.querySelect("#adminMainPageAddAvailabilityBlockAllUsersGrid");
@@ -344,18 +346,18 @@ const adminMainPageDOM = (function(){
         return adminTimeBlockDiv
 
         function updateAdminAvailability(){
-            events.publish("updateAdminAvailabilityClicked", adminMainPageData)
+            events.publish("updateAdminAvailabilityClicked")
         }
         function cancelAdminAvailabilityChanges(){
             events.publish("cancelAdminAvailabilityChangesClicked", adminTimeBlockDiv)
         }
     }
     //allTimeBlocks display is forEach day (Day Label, addButton, [row for each timeBlock])
-    function renderAdminAllTimeBlocks(obj){
-        const adminTimeBlockDiv = obj.adminTimeBlockDiv;
-        const adminMainPageData = obj.adminMainPageData
+    function renderAdminAllTimeBlocks(dataDomObj){
+        const adminTimeBlockDiv = dataDomObj.adminTimeBlockDiv;
+        const adminMainPageData = dataDomObj.adminMainPageData
         const allTimeBlocksNew = document.createElement("div")
-        allTimeBlocksNew.id = "adminMainPageAddAvailabilityBlockAllUsersGrid" //does this need to be in if statement?
+        allTimeBlocksNew.id = "adminMainPageAddAvailabilityBlockAllUsersGrid";
     
         for(let day in adminMainPageData){
             const dayDiv = document.createElement("div");
@@ -404,8 +406,7 @@ const adminMainPageDOM = (function(){
             const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
             selectionNew.addEventListener("change", publishSelectionValueChange)
     
-            selectionNew.value = timeBlock[primaryClass]; 
-            const selectedOption = selectionNew.querySelector(`option[value = ${selectionNew.value}]`);
+            const selectedOption = selectionNew.querySelector(`option[value = ${timeBlock[primaryClass]}]`);
             selectedOption.selected = true;
             if(selectedOption.value != "default"){
                 selectionNew.firstChild.disabled = true;
@@ -427,10 +428,7 @@ const adminMainPageDOM = (function(){
         function deleteAdminTimeBlock(){
             events.publish("deleteAdminTimeBlockClicked", {adminTimeBlockDiv, day, blockNumber})
         }
-
-
     } 
-
 })()
 
 export {adminMainPageDOM}

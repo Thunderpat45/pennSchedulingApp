@@ -12,7 +12,7 @@ subscribes to:
         from masterScheduleData
 */
 
-const validator = (function(){
+const requestValidator = (function(){
 
     events.subscribe("validateTeamRequest", validateAllInputs);
     events.subscribe("SOMETHINGABOUTADJUSTEDADMINOPTIONSLOADED", setValueRanges) //get these from DB
@@ -114,4 +114,4 @@ const validator = (function(){
 
 })();
 
-export{validator}
+export{requestValidator}

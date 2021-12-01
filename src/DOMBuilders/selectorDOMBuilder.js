@@ -41,13 +41,13 @@ const selectorBuilder = (function(){
             end: null,
             increment: 5
         },
-        facilityOpen:{ //4am to 9pm, default value 6am (360)?
+        facilityOpen:{ //4am to 8pm, default value 6am (360)?
             start: 240,
-            end: 1260,
+            end: 1200,
             increment: 15
         },
-        facilityClose:{ //default value 8pm (1200)?
-            start: 240,
+        facilityClose:{ //5am to 9pm, default value 8pm (1200)?
+            start: 300,
             end: 1260,
             increment: 15
         },

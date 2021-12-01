@@ -1,10 +1,34 @@
 import {events} from "../events"
-/* */
-const adminMainPageAdminTimeBlockModel = (function(){
 
+/*purpose: dataModel for modifying/saving adminTimeBlock content for adminMainPage
+
+database object is modeled as such:
+
+obj = {
+    day: [
+        {start, stop, admin}, {start, stop, admin}
+    ],
+    day: [
+        {start, stop, admin}, {start, stop, admin}
+    ]
+}
+
+publishes:
+    adminTimeBlockDOM renders FOR adminMainPageDOM
+    save requests FOR database
+   
+subscribes to: 
+    adminMainPageModel builds FROM adminMainPageModel
+    add timeBlock, deleteTimeBlock, and time modification changes FROM adminMainPageDOM
+    save change and cancel change requests FROM adminMainPageDOM
+*/
+
+const adminMainPageAdminTimeBlockModel = (function(){
+    //find subscriber to databse update
+    //updates here would need to pushed to all users, should this publish to allUsers here, or do this on backEnd before DB save? Look at Node/Mongo scripts to determine how viable this is one way or another
     let adminAvailabilityModel;
     let adminAvailabilityModelCopy;
-    let timeBlockDefault = { //issue with default vs null?
+    let timeBlockDefault = {
         start:"default",
         end:"default",
         admin:"yes"
@@ -14,7 +38,8 @@ const adminMainPageAdminTimeBlockModel = (function(){
     events.subscribe("deleteAdminTimeBlockClicked", deleteAdminAvailabilityRow);
     events.subscribe("addAdminTimeBlockClicked", addAdminAvailabilityRow);
     events.subscribe("modifyAdminTimeBlockSelectorValue", modifyAdminAvailabilityValue);
-    events.subscribe("updateAdminAvailabilityClicked", updateAdminAvailability);
+    events.subscribe("updateAdminAvailabilityClicked", validateAdminAvailability);
+    events.subscribe("adminAvailabilityDataValidated", updateAdminAvailability)
     events.subscribe("cancelAdminAvailabilityChangesClicked", cancelAdminAvailabilityChanges)
 
     function setAdminAvailabilityModel(adminData){
@@ -22,7 +47,7 @@ const adminMainPageAdminTimeBlockModel = (function(){
         setAdminAvailabilityModelCopy()
     }
 
-    function setAdminAvailabilityModelCopy(){ //make sure this is right structure
+    function setAdminAvailabilityModelCopy(){
         adminAvailabilityModelCopy = Object.assign({}, adminAvailabilityModel);
         for(let day in adminAvailabilityModelCopy){
             adminAvailabilityModelCopy[day] = adminAvailabilityModel[day].concat();
@@ -51,13 +76,17 @@ const adminMainPageAdminTimeBlockModel = (function(){
         adminAvailabilityModelCopy[rowObj.day][blockIndex][rowObj.selector] = rowObj.value
     }
 
-    function updateAdminAvailability(){ //listener is not yet specified, should be module that updates the DB, NEEDS to update this for allUsers, possibly publish to all users????
-        events.publish("adminAvailabilityDataUpdated", adminAvailabilityModelCopy)
+    function validateAdminAvailability(){
+        events.publish("adminAvailabilityValidationRequested", adminAvailabilityModelCopy)
+    }
+
+    function updateAdminAvailability(){
+        events.publish("adminAvailabilityDataUpdated", adminAvailabilityModelCopy) //find subscriber 
     }
 
     function cancelAdminAvailabilityChanges(adminTimeBlockDiv){
         setAdminAvailabilityModelCopy();
-        events.publish("adminAvailabilityModelModified", {adminTimeBlockDiv, adminMainPageData: adminAvailabilityModelCopy})
+        events.publish("adminAvailabilityModelModified", {adminTimeBlockDiv, adminMainPageData: adminAvailabilityModel})
     }
 })()
 
