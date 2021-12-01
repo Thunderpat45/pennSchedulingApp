@@ -21,7 +21,7 @@ subscribes to:
 */
 
 const availabilityValidator = (function(){
-    // fix tags for user vRequest and validation success in the userAvailabilityModel
+    // no obvious issues, check userAvailability to confirm
     events.subscribe("adminAvailabilityValidationRequested", validateAllAdminAvailability);
     events.subscribe("userAvailabilityValidationRequested", validateAllUserAvailability);
     

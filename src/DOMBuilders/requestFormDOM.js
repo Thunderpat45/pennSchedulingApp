@@ -27,7 +27,7 @@ const requestFormDOM = (function(){
     events.subscribe("workingModelPopulated", publishRequestFormRender)
     events.subscribe("optionsModified", renderAllOpts)
     events.subscribe("userSelectorsBuilt", setSelectorNodes)
-    events.subscribe("allTeamsDataLoaded", loadAllTeamsNamesList); //this seems like bad separation of concerns/SR principle, but this is my current solution
+    events.subscribe("mainPageModelBuilt", loadAllTeamsNamesList);
 
     
     let allTeamsNamesList;
@@ -43,6 +43,8 @@ const requestFormDOM = (function(){
     function loadAllTeamsNamesList(allTeams){ //make sure data types align here
         allTeamsNamesList = [];
         allTeamsNamesList = [...allTeams]
+
+        //shoudl change parameter to mainPageModel, set list = to mainPageModel.allTeams(?), check why I used spread operator
         
     }
 

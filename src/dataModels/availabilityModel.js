@@ -31,7 +31,8 @@ const availabilityModel = (function(){
     events.subscribe("deleteTimeBlockClicked", deleteAvailabilityRow);
     events.subscribe("addTimeBlockClicked", addAvailabilityRow);
     events.subscribe("modifyAvailabilitySelectorValues", modifyAvailabilityValue);
-    events.subscribe("updateAvailabilityClicked", updateAvailability);
+    events.subscribe("updateAvailabilityClicked", validateAvailability);
+    events.subscribe("userAvailabilityDataValidated", updateAvailability)
 
     
     function setAvailabilityModel(userAvailability){
@@ -71,6 +72,10 @@ const availabilityModel = (function(){
     function modifyAvailabilityValue(rowObj){
         const blockIndex = rowObj.blockNumber;
         availabilityModelCopy[rowObj.day][blockIndex][rowObj.selector] = rowObj.value
+    }
+
+    function validateAvailability(){
+        events.publish("userAvailabilityValidationRequested", availabilityModelCopy)
     }
 
     function updateAvailability(){ //listener is not yet specified, should be module that updates the DB

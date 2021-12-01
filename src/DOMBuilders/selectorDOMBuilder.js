@@ -77,8 +77,8 @@ const selectorBuilder = (function(){
 
     function setSelectionOptions(selectorsModel){
         selectionOptions.startTime.start = selectorsModel.facilityOpen;
-        selectionOptions.endTime.start = selectorsModel.facilityOpen;
-        selectionOptions.startTime.end = selectorsModel.facilityClose;
+        selectionOptions.endTime.start = selectorsModel.facilityOpen + 30;
+        selectionOptions.startTime.end = selectorsModel.facilityClose - 30;
         selectionOptions.endTime.end = selectorsModel.facilityClose;
         selectionOptions.teamSize.end = selectorsModel.facilityMaxCapacity;
         

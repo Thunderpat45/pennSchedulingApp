@@ -49,7 +49,7 @@ subscribes to:
 
 const adminMainPageModel = (function(){
 
-
+    //figure out how this will work when admin clicks button to swtich between admin and user responsiblities
     //ensure proper database connection
     //determine if recursive copying for immutability is necessary directly off database
     //not on this page, but ensure backEnd selects default season or uses passed season variable to pull appropriate data, sort allTeams by rank and send to here/mainPageDataModel
@@ -64,7 +64,8 @@ const adminMainPageModel = (function(){
     events.subscribe("dataLoadedFromDatabase", populateDataModel);
     events.subscribe("adminMainPageDOMRequested", distributeAdminMainPageModel)
 
-    function populateDataModel(databaseObj){ //check these for recursive immutable copying properly/necessary
+    function populateDataModel(databaseObj){ //check these for recursive immutable copying properly/necessary, if not jsut do destructuring assingment
+        
         adminMainPageModel.allUsers = databaseObj.allUsers;
         adminMainPageModel.allTeams = databaseObj.allTeams;
         adminMainPageModel.facilitySelectors = databaseObj.facilitySelectors;
@@ -76,7 +77,7 @@ const adminMainPageModel = (function(){
         distributeAdminMainPageModel();
     }
 
-    function distributeAdminMainPageModel(){ //come back to this after checking selectorDOM progression
+    function distributeAdminMainPageModel(){
         events.publish("adminMainPageModelBuilt", adminMainPageModel)
     }
 

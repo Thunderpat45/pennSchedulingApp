@@ -2,51 +2,83 @@ import { events } from "../events";
 
 /*
 
-actions: receives data from database, and publishes to sub-dataModels and mainPageDOM for use
+/*purpose: dataModel from database for loading content for all userPages
+
+database object is modeled as such:
+
+obj = {
+    allTeams: 
+        [{ 
+            teamName,
+            teamSize, 
+            rank:
+                {
+                    myTeams,
+                    allTeams
+                },
+            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+            //coach needs a source of data, work on that
+        }, {etc}, {etc}]
+
+    allUsers:
+        [{
+            name,
+            color,
+            password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END
+            privilegeLevel,
+            teams:{},
+            availability:{},
+            lastVerified
+        }, {etc}, {etc}]
+
+    facilitySelectors:
+        {facilityOpen, facilityClose, facilityMaxCapacity}
+
+    adminTimeBlocks:
+        {day: [{start, stop, admin}, {start, stop, admin}], day: [{start, stop, admin}, {start, stop, admin}]} 
+
+    season,
+}
 
 publishes:
-    allTeamsData
-    myTeamsData
-    availabilityData
+    userSelector builds requests FOR selectorDOMBuilder
+    userMainPageData model builds FOR userMainPage DOM and all necessary userDataModels
 
 subscribes to: 
-    database fetches
-    mainPageDOM data requests
-
+    data load FROM database
+    userMainPageDOM requests FROM 
 */
 
 const mainPageModel = (function(){
+    //figure out how this will work when admin clicks button to swtich between admin and user responsiblities
+    //ensure proper database connection
+    //determine if recursive copying for immutability is necessary directly off database
 
-    //does this need to have facilityData for setting up selectors (availability and teamRequest ranges?)
-    let allTeams
     let mainPageModel = {
+        allTeams: null,
         availability: null,
         myTeams: null,
-        facilitySelectors:null //make sure selectorBuilder knows to read this
+        facilitySelectors:null,
+        season: null //make sure this is properly done
     }
 
-    //need season property
-
-    events.subscribe("dataLoadedFromDatabase", populateDataModels); //check for intermediate steps here; make sure DB load publishes to other models
+    events.subscribe("dataLoadedFromDatabase", populateDataModels);
     events.subscribe("mainPageDOMRequested", distributeMainPageModel)
 
-    function populateDataModels(databaseObj){
+    function populateDataModels(databaseObj){//check these for recursive immutable copying properly/necessary, if not jsut do destructuring assingment
         mainPageModel.availability = databaseObj.availability;
-        mainPageModel.myTeams = databaseObj.myTeams; //check this for appropriate recursion
+        mainPageModel.myTeams = databaseObj.myTeams; 
         mainPageModel.facilitySelectors = databaseObj.facilitySelectors
-        allTeams = Object.assign({}, databaseObj.allTeams); //check this
+        mainPageModel.allTeams = databaseObj.allTeams;
+        mainPageModel.season = databaseObj.season;
 
-        events.publish("mainPageSelectorsRequested", mainPageModel.facilitySelectors)// check parameters here
+        events.publish("mainPageSelectorsRequested", mainPageModel.facilitySelectors)
+        
         distributeMainPageModel();
-        distributeAllTeamsData();
      }
 
      function distributeMainPageModel(){
         events.publish("mainPageModelBuilt", mainPageModel)
-     }
-
-     function distributeAllTeamsData(){
-         events.publish("allTeamsDataLoaded", allTeams)
      }
 
 })();

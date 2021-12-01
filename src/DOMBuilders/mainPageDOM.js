@@ -1,6 +1,73 @@
 import { events } from "../events"
 import { timeValueConverter } from "../timeConverter";
 
+/*action: admin interface for observing allTeams/allUsers, setting facility parameters, blocking off time for all users, and running the scheduling function
+
+adminMainPageData object is modeled as such:
+
+obj = {
+    allTeams: 
+        [{ 
+            teamName,
+            teamSize, 
+            rank:
+                {
+                    myTeams,
+                    allTeams
+                },
+            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+            coach, //needs a source of data, work on that
+        }, {etc}, {etc}]
+
+    allUsers:
+        [{
+            name,
+            color,
+            password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END
+            privilegeLevel,
+            teams:{},
+            availability:{},
+            lastVerified
+        }, {etc}, {etc}]
+
+    facilitySelectors:
+        {facilityOpen, facilityClose, facilityMaxCapacity}
+
+    adminTimeBlocks:
+        {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, all days already input, make sure empties don't screw anything up
+
+    season,
+}
+
+adminSelectorsObj is modeled as such:
+
+obj = {
+
+    startTime: (pre-built select HTML element),
+    endTime: etc,
+    teamSize: etc,
+    facilityOpen: etc,
+    facilityClose: etc,
+    facilityMaxCapacity: etc,
+    dayOfWeek: etc,
+    inWeiss: etc
+}
+
+publishes:
+    page render requests FOR pageRenderer
+    season change requests FOR (?)
+    scheduler run requests FOR (?)
+    admin allTeam rank changes FOR adminAllTeamsDataModel
+    facilityData changes, save requests, and change cancellations FOR adminMainPageFacilityDataModel
+    
+
+subscribes to: 
+    adminMainPageModel builds FROM adminMainPageModel
+    adminSelectorsBuilt FROM selectorDOMBuilder
+    adminAvailability and adminFacility model updates FROM adminAvailabity and adminFacility data models
+*/
+
+EDIT NOTES ABOVE THEN BEGIN REVIEW OF THIS AND ALL DATA MODELS
 /*
 
 actions: mainPage interface for reviewing and requesting modifications to availability and myTeams data
