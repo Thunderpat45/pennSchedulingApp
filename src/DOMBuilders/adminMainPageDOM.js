@@ -156,8 +156,8 @@ const adminMainPageDOM = (function(){
             events.publish("runSchedulerRequested") //is this it?? find subscriber to this
         }
     }
-    
-    function renderAdminAllTeamsGrid(teamGrid, allTeamsData){ //this and dataModel essentiall all clear
+    //no obvious issues with this or allTeamsData
+    function renderAdminAllTeamsGrid(teamGrid, allTeamsData){ 
         const teamGridNew = document.createElement("div")
 
         allTeamsData.forEach(function(team){
@@ -214,7 +214,7 @@ const adminMainPageDOM = (function(){
             events.publish("modifyAdminTeamOrder", {index: teamData.rank.allTeams, modifier: 1})
         }
     }
-    
+    //no obvious issues with this or dataModel
     function renderAdminAllUsersGrid(adminAllUsersContainer, adminMainPageData){
     
         const userGrid = adminAllUsersContainer.querySelector("#adminUsersGrid");
@@ -228,7 +228,7 @@ const adminMainPageDOM = (function(){
         return adminAllUsersContainer
 
         function addUser(){
-            events.publish("addUser") //follow this and other to dataModel
+            events.publish("addUser")
         }
     }
     
@@ -267,12 +267,13 @@ const adminMainPageDOM = (function(){
         return content
     
         function editUser(){
-            events.publish("editUser", userData) //folow these to dataModel
+            events.publish("editUser", userData)
         }
         function deleteUser(){
             events.publish("deleteUser", userData)	
         }
     }
+    //CONTINUE REVIEW HERE with this DOM and its dataModels
     //renderFacilityDataGrid display is: facilityOpen selector, facilityClose selector, facility maxCapacity, saveButton, cancelButton
     function renderFacilityDataGrid(obj){
         

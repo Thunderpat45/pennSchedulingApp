@@ -3,41 +3,52 @@ import { events } from "../events";
 
 /*
 
-actions:  admin interface for creating/editing/deleting users
+purpose:  admin interface for creating/editing/deleting users
+
+userObject is modeled as such:
+
+    {
+        name,
+        color,
+        password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END
+        privilegeLevel,
+        teams:{},
+        availability:{},
+        lastVerified
+    }, 
 
 publishes:
-    request to render adminUserGeneratorPage
-    data update requests for database
-    cancellation of data changes
-    requests to add/delete/modify name/password/privilege/color data
+    page render requests FOR pageRenderer
+    data save requests FOR adminUserDataModel
+    data change cancellation FOR adminMainPageModel
+    requests to add/delete/modify name/password/privilege/color data FOR adminUserDataModel
 
 subscribes to:
-    userModel builds/loads
-        FROM: adminUserModel
-    ANOTHER
-
+    userModel builds/loads FROM adminUserDataModel
+    adminMainPageModel data FROM adminMainPageModel
 */
 
 
 const adminUserGeneratorDOM = (function(){
-
-    let allUsersList //bad separation of concerns?
+    //no obvious issues, make sure hasOwnProperty(password) works as only new users should have password property, existing users passwords should not be brought to front end
+    let allUsersList 
 
     events.subscribe("userModelPopulated", publishUserGeneratorPageRender);
-    events.subscribe("adminMainPageModelBuilt", setAllUsersAndAllSOMETHING);
+    events.subscribe("adminMainPageModelBuilt", setAllUsers);
 
     function publishUserGeneratorPageRender(userModel){
         const userGeneratorPage = renderUserGeneratorDOM(userModel);
         events.publish("pageRenderRequested", userGeneratorPage)
     }
 
-    function setAllUsersAndAllSOMETHING(adminDataModel){
+    function setAllUsers(adminDataModel){
         allUsersList = adminDataModel.allUsers
     }
 
     function renderUserGeneratorDOM(userModel){
         const template = document.querySelector("#adminUserGeneratorTemplate");
         const content = document.importNode(template.content, true);
+
         const userName = content.querySelector("#userGeneratorName");
         const userPasswordSet = content.querySelector("#userGeneratorPassword");
         const userPrivilege = content.querySelector("#userGeneratorPrivilege");
@@ -46,7 +57,7 @@ const adminUserGeneratorDOM = (function(){
         const cancelButton = content.querySelector("#userGeneratorCancelButton");
 
         saveButton.addEventListener("click", saveUserData) 
-        cancelButton.addEventListener("click", cancelUserChanges) //other eventListeners for dataValidation
+        cancelButton.addEventListener("click", cancelUserChanges)
         
         const userNameNew = renderUserName(userName, userModel) 
         const userPasswordSetNew = renderUserPassword(userPasswordSet, userModel)
@@ -69,80 +80,82 @@ const adminUserGeneratorDOM = (function(){
         }
     }
 
-    function renderUserName(userName, userModel){  //this is good, compare this against other validator in singleUser teams to make sure they are comprehensive
-        userName.value = userModel.name;
+    function renderUserName(userNameDOM, userModel){
+        
+        //this is good, compare this against other validator in singleUser teams to make sure they are comprehensive;
+        userNameDOM.value = userModel.name;
 
-        userName.addEventListener("blur", function modifyUserNameValue(){ 
-            if(userModel.name != userName.value && blockNameDuplication(userName.value) == true){
-                alert(`Data already exists for ${userName.value}. Use another name or edit/delete the other user for the name you are trying to switch to.`);
-                userName.value = "";
-                userName.focus()
-            }else if(userName.value == ""){
+        userNameDOM.addEventListener("blur", function modifyUserNameValue(){ 
+            if(userModel.name != userNameDOM.value && blockNameDuplication(userNameDOM.value)){
+                alert(`Data already exists for ${userNameDOM.value}. Use another name or edit/delete the other user for the name you are trying to switch to.`);
+                userNameDOM.value = "";
+                userNameDOM.focus()
+            }else if(userNameDOM.value == ""){
                 alert("User name must have a value");
-                userName.focus();
+                userNameDOM.focus();
             }   
-            else if(userModel.name != "" && userName.value != userModel.name){
-                const confirmation = confirm(`If you submit changes, this will change the user name from ${userModel.name} to ${userName.value}. Proceed? `);
+            else if(userModel.name != "" && userNameDOM.value != userModel.name){
+                const confirmation = confirm(`If you submit changes, this will change the user name from ${userModel.name} to ${userNameDOM.value}. Proceed? `);
                 if(confirmation){
-                    events.publish("modifyUserNameValue", userName.value)
+                    events.publish("modifyUserNameValue", userNameDOM.value)
                 }else{
-                    userName.value = userModel.name;
+                    userNameDOM.value = userModel.name;
                 }
-            }else if(userModel.name != userName.value){
-                events.publish("modifyUserNameValue", userName.value)
+            }else if(userModel.name != userNameDOM.value){
+                events.publish("modifyUserNameValue", userNameDOM.value)
             } 
         })
 
-        return userName;
+        return userNameDOM;
 
-        function blockNameDuplication(thisName){//make sure proper object comparision occurs here
-            const nameCheck = allUsersList.filter(function(user){
-                return user.name == thisName
+        function blockNameDuplication(thisName){
+            const nameCheck = allUsersList.some(function(user){
+                return user.name.toLowerCase() == thisName.toLowerCase();
             })
-            return nameCheck.length>0;
+            return nameCheck;
         }
     }
 
 
-    function renderUserPassword(userPassword, userModel){
+    function renderUserPassword(userPasswordDOM, userModel){
 
-        userPassword.addEventListener("blur", function confirmPasswordChange(){ 
-            if(userModel.hasOwnProperty("password") && userPassword.value == ""){
+        userPasswordDOM.addEventListener("blur", function confirmPasswordChange(){ 
+            if(userModel.hasOwnProperty("password") && userPasswordDOM.value == ""){
                 alert("A default password must be set.");
-                userPassword.focus();
-            }else if(!userModel.hasOwnProperty("password") && userPassword.value != ""){
+                userPasswordDOM.focus();
+            }else if(!userModel.hasOwnProperty("password") && userPasswordDOM.value != ""){
                 const confirmation = confirm("This will attempt to overwrite the user's previous password. Continue?")
                 if(confirmation){
-                    events.publish("adminModifyUserPasswordValue", userPassword.value)
+                    events.publish("adminModifyUserPasswordValue", userPasswordDOM.value)
                 }else{
-                    userPassword.value = "";
+                    userPasswordDOM.value = "";
                 }
-            }else if(userPassword.value != ""){
-                events.publish("adminModifyUserPasswordValue", userPassword.value)
+            }else if(userPasswordDOM.value != ""){
+                events.publish("adminModifyUserPasswordValue", userPasswordDOM.value)
             }
         })
 
-        return userPassword;
+        return userPasswordDOM;
 
     }
 
 
-    function renderUserPrivilege(userPrivilege, userModel){ 
+    function renderUserPrivilege(userPrivilegeDOM, userModel){ 
 
         if(userModel.privilegeLevel == true){
-            userPrivilege.checked = true
+            userPrivilegeDOM.checked = true
         }
        
-        userPrivilege.addEventListener("blur", updateUserPrivilege)
+        userPrivilegeDOM.addEventListener("blur", updateUserPrivilege)
 
-        return userPrivilege;
+        return userPrivilegeDOM;
 
         function updateUserPrivilege(){
-            if(userModel.privilegeLevel == true & !userPrivilege.checked && !checkForLastAdmin()){
+            if(userModel.privilegeLevel == true & !userPrivilegeDOM.checked && !checkForLastAdmin()){
                 alert("Cannot demote last admin. Create new admin users before demoting this admin.")
-                userPrivilege.checked = true;
-            }else if(userPrivilege.checked != userModel.privilegeLevel){
-                events.publish("modifyUserPrivilegeLevelValue", userPrivilege.checked)
+                userPrivilegeDOM.checked = true;
+            }else if(userPrivilegeDOM.checked != userModel.privilegeLevel){
+                events.publish("modifyUserPrivilegeLevelValue", userPrivilegeDOM.checked)
             } 
 
             function checkForLastAdmin(){
@@ -151,37 +164,35 @@ const adminUserGeneratorDOM = (function(){
                 })
 
                 return adminUsers.length >1
-
-
             }
         }
     }
 
-    function renderUserColor(userColor, userModel){
+    function renderUserColor(userColorDOM, userModel){
 
-        userColor.value = userModel.color
+        userColorDOM.value = userModel.color
 
-        userColor.addEventListener("blur", function verifyColorChange(){
-            if(userModel.color != userColor.value && blockColorDuplication() == true){
+        userColorDOM.addEventListener("blur", function verifyColorChange(){
+            if(userModel.color != userColorDOM.value && blockColorDuplication()){
                 alert(`Another user is already using this color. Considering all the possible colors available, the odds are pretty low. Unlucky pick, I guess!`)
-                userColor.value = userModel.color; 
-                userColor.focus();
-            }else if(userColor.value == "#000000"){
+                userColorDOM.value = userModel.color; 
+                userColorDOM.focus();
+            }else if(userColorDOM.value == "#000000"){
                 alert("Color must have a value not equal to black. Black is default value, and must be changed.");
-                userColor.focus();
-            }else if(userModel.color != userColor.value){
-                events.publish("modifyUserColorValue", userColor.value)
+                userColorDOM.focus();
+            }else if(userModel.color != userColorDOM.value){
+                events.publish("modifyUserColorValue", userColorDOM.value)
             }
             
-            function blockColorDuplication(){//make sure proper object comparision occurs here
-                const nameCheck = allUsersList.filter(function(user){
-                    return (user.name != userModel.name && user.color == userColor.value)
+            function blockColorDuplication(){
+                const nameCheck = allUsersList.some(function(user){
+                    return (user.name != userModel.name && user.color == userColorDOM.value)
                 })
-                return nameCheck.length>0;
+                return nameCheck;
             }
         })
 
-        return userColor
+        return userColorDOM
     }
 
 })()

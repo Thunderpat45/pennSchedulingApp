@@ -1,22 +1,42 @@
 import { events } from "./events";
 
-/* */
+/*purpose: validator for user dataModel updates
+
+userObject is modeled as such:
+
+    {
+        name,
+        color,
+        password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END
+        privilegeLevel,
+        teams:{},
+        availability:{},
+        lastVerified
+    }, 
+
+publishes:
+    successful validations FOR adminAllUsersDataModel
+   
+subscribes to: 
+    validation requests FROM adminUserDataModel
+*/
 
 const userValidator = (function(){
-
+    //no obvious issues, maybe add more depth to regex, especially for passwords, as I learn more
     events.subscribe("userDataValidationRequested", validateAllInputs);
     
-    function validateAllInputs(obj){
+    function validateAllInputs(adminUserData){
         const errorArray = [];
 
-        validateUserName(obj.newData, errorArray); 
-        validatePassword(obj.newData, errorArray);
+        validateUserName(adminUserData.newData, errorArray); 
+        validatePassword(adminUserData.newData, errorArray);
+        validateColor(adminUserData.newData, errorArray)
 
         if(errorArray.length > 0){
             const errorAlert = errorArray.join(" ");
             alert(errorAlert);
         }else{
-            events.publish("userDataValidated", obj);
+            events.publish("userDataValidated", adminUserData);
         }
     }
 
@@ -46,6 +66,18 @@ const userValidator = (function(){
         }catch(err){
             array.push(err)
         }
+    }
+
+    function validateColor(userModel, array){
+        const color = userModel.color;
+        try{
+            if(color == "#000000"){
+                throw("Color must have a value not equal to black. Black is default value, and must be changed.")
+            }
+        }catch(err){
+            array.push(err)
+        }
+
     }
 
 

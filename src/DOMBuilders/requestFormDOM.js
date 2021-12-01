@@ -137,7 +137,7 @@ const requestFormDOM = (function(){
 
         function blockTeamDuplication(){//make sure proper object comparision occurs here
             const teamCheck = allTeamsNamesList.filter(function(team){
-                return team.teamName == teamName.value
+                return team.teamName.toLowerCase() == teamName.value.toLowerCase();
             })
             return teamCheck.length>0;
         }

@@ -53,7 +53,7 @@ const myTeamsModel = (function(){
         const myTeamsSlice = myTeams.concat();
         const existingTeamIndex = findExistingTeam()
         
-       if(existingTeamIndex != undefined){
+       if(existingTeamIndex != -1){
             myTeamsSlice.splice(existingTeamIndex, 1, obj.workingModel)
        }else{
             myTeamsSlice.push(obj.workingModel)
@@ -66,13 +66,11 @@ const myTeamsModel = (function(){
         events.publish("myTeamsDataUpdated", myTeamsSlice) //send to DB for save
 
         function findExistingTeam(){
-            myTeamsSlice.filter(function(team){
-                if(obj.teamRequest.teamName == team.teamName){
-                    return myTeamsSlice.findIndex(function(teams){ 
-                        return teams.teamName = team.teamName
-                    })
-                }
+            const existingTeam = myTeamsSlice.findIndex(function(teams){
+                return obj.teamRequest.teamName == teams.teamName
             })
+            return existingTeam
+            
         }
     }
 
