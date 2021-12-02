@@ -1,5 +1,7 @@
-const timeValueConverter = (function(){
+//purpose: convert totalMinutes into clockTime, and clockTime into totalMinutes
 
+const timeValueConverter = (function(){
+    //no obvious issues here
     function convertTotalMinutesToTime(totalMins){
         let standardTime;
         let hour = Math.floor(totalMins/60)
@@ -47,6 +49,7 @@ const timeValueConverter = (function(){
         const colonIndex = time.indexOf(":");
         const meridian = time[time.length-1]
         const meridianIndex = time.indexOf(meridian);
+        
         let hour = Number(time.slice(0, colonIndex));
             if(meridian == "p" && hour != 12){
                 hour +=12;

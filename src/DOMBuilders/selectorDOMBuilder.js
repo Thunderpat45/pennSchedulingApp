@@ -144,7 +144,7 @@ const selectorBuilder = (function(){
             if(primaryClass == "teamSize" || primaryClass == "facilityMaxCapacity"){
                 option.innerHTML = i;
             }else{
-                option.innerHTML = timeValueConverter.runConvertTotalMinutesToTime(i).toString(); //make sure this is accurate
+                option.innerHTML = timeValueConverter.runConvertTotalMinutesToTime(i); //toString() should not be necessary
             }selector.appendChild(option);
         }
     }

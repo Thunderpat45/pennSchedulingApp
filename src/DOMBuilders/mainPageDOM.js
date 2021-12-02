@@ -1,12 +1,13 @@
 import { events } from "../events"
 import { timeValueConverter } from "../timeConverter";
 
-/*action: admin interface for observing allTeams/allUsers, setting facility parameters, blocking off time for all users, and running the scheduling function
+/*action: user interface for observing teams and availability
 
-adminMainPageData object is modeled as such:
+userMainPageData object is modeled as such:
 
 obj = {
-    allTeams: 
+    name,
+    myTeams: 
         [{ 
             teamName,
             teamSize, 
@@ -19,117 +20,95 @@ obj = {
             coach, //needs a source of data, work on that
         }, {etc}, {etc}]
 
-    allUsers:
-        [{
-            name,
-            color,
-            password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END
-            privilegeLevel,
-            teams:{},
-            availability:{},
-            lastVerified
-        }, {etc}, {etc}]
-
     facilitySelectors:
         {facilityOpen, facilityClose, facilityMaxCapacity}
 
-    adminTimeBlocks:
+    availability:
         {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, all days already input, make sure empties don't screw anything up
 
     season,
-}
-
-adminSelectorsObj is modeled as such:
-
-obj = {
-
-    startTime: (pre-built select HTML element),
-    endTime: etc,
-    teamSize: etc,
-    facilityOpen: etc,
-    facilityClose: etc,
-    facilityMaxCapacity: etc,
-    dayOfWeek: etc,
-    inWeiss: etc
+    lastVerified,
 }
 
 publishes:
     page render requests FOR pageRenderer
     season change requests FOR (?)
-    scheduler run requests FOR (?)
-    admin allTeam rank changes FOR adminAllTeamsDataModel
-    facilityData changes, save requests, and change cancellations FOR adminMainPageFacilityDataModel
     
 
 subscribes to: 
-    adminMainPageModel builds FROM adminMainPageModel
-    adminSelectorsBuilt FROM selectorDOMBuilder
-    adminAvailability and adminFacility model updates FROM adminAvailabity and adminFacility data models
-*/
-
-EDIT NOTES ABOVE THEN BEGIN REVIEW OF THIS AND ALL DATA MODELS
-/*
-
-actions: mainPage interface for reviewing and requesting modifications to availability and myTeams data
-
-publishes:
-    request to render mainPage
-    set season requests
-    request to fetch availabilityData
-    request to fetch myTeamsData for edits/deletes/order modification
-    request to generate workingModel for new team
-
-subscribes to: 
-    requests to generate mainPageDOM
-
-
+    userMainPageModel builds FROM mainPageModel
+    userSelectorsBuilt FROM selectorDOMBuilder
+    
 */
 
 const mainPageDOM = (function(){
 
-    let season; //figure this out
+    let season; 
     
+    events.subscribe("mainPageModelBuilt", setSeason)
     events.subscribe("mainPageModelBuilt", publishMainPageRender);
+
+    function setSeason(mainPageData){ //make sure this happens before publishMainPageRender, it should
+        season = mainPageData.season
+    }
 
     function publishMainPageRender(mainPageData){
         const mainPageDOM = buildMainPageDOM(mainPageData)
         events.publish("pageRenderRequested", mainPageDOM)
     }
-
-    
+    //find database subscribers for changeSeason/verifyUpToDate
     function buildMainPageDOM(mainPageData){ 
         const template = document.querySelector("#mainPageTemplate");
         const content = document.importNode(template.content, true);
-        const mainPageAvailability = content.querySelector("userAvailability");
-        const mainPageMyTeams = content.querySelector("teamGridContainer");
-        const fallButton = content.querySelector("#fallButton");
-        const springButton = content.querySelector("#springButton");
+
+        const seasonButtons = content.querySelector("#seasonButtons");
+        const mainPageAvailability = content.querySelector("#userAvailability");
+        const mainPageMyTeams = content.querySelector("#teamGridContainer");
+        const verifyInfo = content.querySelector("#verifyInfo");
+        const verifyButton = content.querySelector("#verifyButton");
 
         const mainPageAvailabilityNew = renderMainPageAvailability(mainPageAvailability, mainPageData.availability);
         const mainPageMyTeamsNew = renderMainPageMyTeams(mainPageMyTeams, mainPageData.myTeams); 
         
         mainPageAvailability.replaceWith(mainPageAvailabilityNew);
         mainPageMyTeams.replaceWith(mainPageMyTeamsNew);
+        
+        verifyInfo.innerText = `The last time you verified all teams were up-to-date was ${mainPageData.lastVerified}`
 
-        fallButton.addEventListener("click", setSeasonFall);
-        springButton.addEventListener("click", setSeasonSpring); //deactivate button of current season
+        seasonButtons.children.forEach(function(child){
+            if(child.id == `${season}Button`){
+                child.disabled = true;
+            }else{
+                child.addEventListener("click", changeSeason)
+               
+            }
+        })
 
+        verifyButton.addEventListner("click", publishTeamsUpToDateVerification);
+    
         return content
-
-        function setSeasonFall(){ //is this all
-            events.publish("setSeasonFall")
+    
+        function changeSeason(){
+            let string = "Button";
+            const seasonButtonId = this.id;
+            const truncateIndex = seasonButtonId.indexOf(string);
+            const seasonName = seasonButtonId.slice(0, truncateIndex);
+            
+            events.publish("userSeasonChangeRequested", seasonName) 
         }
 
-        function setSeasonSpring(){ //is this all
-            events.publish("setSeasonSpring")
+        function publishTeamsUpToDateVerification(){
+            const date = new Date().toLocaleString();
+            
+            events.publish("verifyUpToDateClicked", date) //double check this, tired when wrote this
         }
     }
 
-    function renderMainPageAvailability(availabilityDOM, availability){
+    function renderMainPageAvailability(availabilityDOM, availabilityData){ //check dataModel and follow events, CONTINUE HERE BY FOLLOWING DATAMODEL
         const availabilityDisplay = availabilityDOM.querySelector("#availabilityDisplay");
         const editAvailability = availabilityDOM.querySelector("#editAvailability");
 
-        const availabilityDisplayNew = buildAvailabilityDisplay(availability);
+        const availabilityDisplayNew = buildAvailabilityDisplay(availabilityData);
         availabilityDisplay.replaceWith(availabilityDisplayNew);
 
         editAvailability.addEventListener("click", getAvailabilityModel);
@@ -137,13 +116,13 @@ const mainPageDOM = (function(){
         return availabilityDOM
         
         function getAvailabilityModel(){
-            events.publish("availabilityModelRequested")
+            events.publish("availabilityModelRequested") //follow this
         }
     }
 
-    function buildAvailabilityDisplay(availability){
+    function buildAvailabilityDisplay(availabilityData){
         const availabilityDisplayNew = document.createElement("div");
-        for(let day in availability){
+        for(let day in availabilityData){
             const dayDiv = document.createElement("div");
             const label = document.createElement("h3");
 
@@ -153,8 +132,8 @@ const mainPageDOM = (function(){
                 const startTime = document.createElement("p");
                 const endTime = document.createElement("p");
 
-                startTime.innerText = `Start Time: ${availability[day][timeBlock].startTime}`;
-                endTime.innerText = `End Time: ${availability[day][timeBlock].endTime}`;
+                startTime.innerText = `Start Time: ${availabilityData[day][timeBlock].startTime}`;
+                endTime.innerText = `End Time: ${availabilityData[day][timeBlock].endTime}`;
 
                 timeBlockDiv.appendChild(startTime);
                 timeBlockDiv.appendChild(endTime);
@@ -169,12 +148,10 @@ const mainPageDOM = (function(){
         
         const teamGrid = teamsDOM.querySelector("#teamGrid"); 
         const addButton = teamsDOM.querySelector("#teamGridAddTeam");
-
-        const teamArraySlice = teamArray.concat(); 
     
-        teamArraySlice.forEach(function(team){
-            const teamDOM = buildTeam(team, teamArraySlice); 
-            teamGrid.appendChild(teamDOM)
+        teamArray.forEach(function(team){
+            const teamElement = buildTeam(team, teamArray); 
+            teamGrid.appendChild(teamElement)
         })
 
         addButton.addEventListener("click", addTeam);
@@ -183,19 +160,19 @@ const mainPageDOM = (function(){
         
             
         function addTeam(){
-            events.publish("addTeam")
+            events.publish("addTeam") //follow this
         }
     }
-
-    function buildTeam(team, teamArraySlice){
+    //set CSS/class values for up/down buttons, check dataModels and follow events
+    function buildTeam(team, teamArray){
         const template = document.querySelector("#mainPageTeamTemplate");
         const content = document.importNode(template.content, true);
+
         const teamName = content.querySelector(".teamGridTeamName");
         const teamSize = content.querySelector(".teamGridTeamSize");
         const optionContainer = content.querySelector(".teamGridTeamOptionContainer");
         const editButton = content.querySelector(".teamGridTeamEditButton");
         const deleteButton = content.querySelector(".teamGridTeamDeleteButton");
-
 
         teamName.innerText = team.teamName;
         teamSize.innerText = team.teamSize;
@@ -206,15 +183,24 @@ const mainPageDOM = (function(){
             optionContainer.appendChild(option);
         })
 
-        if(teamArraySlice.length >1 && team.rank.myTeamIndex != 0){
-            const upButton = document.createElement("button"); //up icon if possible, set class and CSS
-            upButton.addEventListener("click", moveMyTeamUp);//
+        const upButton = document.createElement("button");
+        const downButton = document.createElement("button");
+
+        if(teamArray.length >1 && team.rank.myTeams != 0 && team.rank.myTeams!= teamArray.length -1){
+            upButton.addEventListener("click", moveMyTeamUp);
+            downButton.addEventListener("click", moveMyTeamDown);
+            
             content.insertBefore(upButton, editButton);
-       }else if(teamArraySlice.length >1 && team.rank.myTeamIndex != teamArraySlice.length-1){
-            const downButton = document.createElement("button"); //up icon if possible, set class and CSS
-            downButton.addEventListener("click", moveMyTeamDown);//
             content.insertBefore(downButton, editButton);
-       }
+        }else if(teamArray.length >1 && team.rank.myTeams == teamArray.length-1){
+            upButton.addEventListener("click", moveMyTeamUp);
+            
+            content.insertBefore(upButton, editButton);
+        }else if(teamArray.length >1 && team.rank.myTeams == 0){
+            downButton.addEventListener("click", moveMyTeamDown);
+            
+            content.insertBefore(downButton, editButton);
+        }
 
         editButton.addEventListener("click", editTeam);
         deleteButton.addEventListener("click", deleteTeam);
@@ -222,7 +208,7 @@ const mainPageDOM = (function(){
         return content
 
         function editTeam(){ 
-            events.publish("editTeam", team); 
+            events.publish("editTeam", team); //follow these
         }
     
         function deleteTeam(){
@@ -241,6 +227,7 @@ const mainPageDOM = (function(){
     function buildTeamOption(optionDetails, optNum){
         const template = document.querySelector("#mainPageTeamOptionTemplate");
         const content = document.importNode(template.content, true);
+
         const option = content.querySelector(".teamGridTeamOption");
         const dayContainer = content.querySelector(".teamGridTeamDayContainer");
 
@@ -257,6 +244,7 @@ const mainPageDOM = (function(){
     function buildTeamDayDetails(day){
         const template = document.querySelector("#mainPageTeamDayTemplate");
         const content = document.importNode(template.content, true);
+
         const dayOfWeek = content.querySelector(".teamGridTeamDayOfWeek");
         const startTime = content.querySelector(".teamGridTeamStartTime");
         const endTime = content.querySelector(".teamGridTeamEndTime");

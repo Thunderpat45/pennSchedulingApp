@@ -57,6 +57,8 @@ publishes:
     season change requests FOR (?)
     scheduler run requests FOR (?)
     admin allTeam rank changes FOR adminAllTeamsDataModel
+    user add requests FOR adminUserGeneratorModel 
+    user edit/delete requests for adminAllUsersDataModel
     facilityData changes, save requests, and change cancellations FOR adminMainPageFacilityDataModel
     
 
@@ -107,7 +109,7 @@ const adminMainPageDOM = (function(){
 
     function publishAdminMainPageRender(adminMainPageData){
         const adminMainPageDOM = buildAdminMainPageDOM(adminMainPageData);
-        events.publish("pageRenderRequested", adminMainPageDOM); //come back to this after checking
+        events.publish("pageRenderRequested", adminMainPageDOM);
     }
     //find subscribers to changeSeasons and runScheduler, issue NOT TO BE ADDRESSED:  scheduler could be run with unsaved modifications to adminAvail and facilityData
     function buildAdminMainPageDOM(adminMainPageData){

@@ -1,17 +1,15 @@
 import {events} from "../events"
 /* 
-actions: renders full page contents
+purpose: renders full page contents
 
 publishes: 
 
 subscribes to: 
-    pageRenderRequests from:
-        requestDOM
-        homePageDOM
+    pageRenderRequests FROM mainPageDOM, availabilityDOM, adminMainPageDOM, adminUserGeneratorDOM, requestFormDOM
 */
 
 const pageRenderer = (function(){
-
+    //no obvious issues here
     events.subscribe("pageRenderRequested", renderPageContent);
 
     function renderPageContent(page){
@@ -20,7 +18,6 @@ const pageRenderer = (function(){
 
         newMainContent.appendChild(page);
         mainContent.replaceWith(newMainContent);
-        //publish ???
     }
 
 })();

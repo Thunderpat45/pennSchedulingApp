@@ -66,7 +66,7 @@ const requestFormDOM = (function(){
 
     function publishRequestFormRender(workingModel){
         const requestPage = renderRequestFormPage(workingModel);
-        events.publish("renderPage", requestPage);
+        events.publish("pageRenderRequested", requestPage);
     }
 
 
