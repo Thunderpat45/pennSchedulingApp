@@ -2,26 +2,26 @@ import { events } from "./events";
 
 /*purpose: validator for availabiity/adminAvailability updates
 
-availabilityModel is modeled as such:
+adminAvailbilityModel/availabilityModel is modeled as such:
 
     {
        day:[
-           {start, end, admin},
-           {start, end, admin}
+           {startTime, endTime, admin},
+           {startTime, endTime, admin}
        ],
 
        day:[etc]
     }, 
 
 publishes:
-    successful validations FOR adminMainPageAdminTimeBlockModel
+    successful validations FOR adminMainPageAdminTimeBlockModel/availabiltyModel
    
 subscribes to: 
-    validation requests FROM adminMainPageAdminTimeBlockModel
+    validation requests FROM adminMainPageAdminTimeBlockModel/availabiltyModel
 */
 
 const availabilityValidator = (function(){
-    // no obvious issues, check userAvailability to confirm
+    // no obvious issues
     events.subscribe("adminAvailabilityValidationRequested", validateAllAdminAvailability);
     events.subscribe("userAvailabilityValidationRequested", validateAllUserAvailability);
     

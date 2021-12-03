@@ -15,7 +15,7 @@ allTeams =
 					allTeams
 				},
 			allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
-			//coach needs a source of data, work on that
+			coach
 		}, 
 		{etc}, {etc}
 	]
@@ -58,7 +58,7 @@ const adminMainPageAllTeamsData = (function(){
 		allTeamsSlice.splice(teamIndex + modifier, 0, team);
 		allTeamsSlice.forEach(function(team){
 			team.rank.allTeams = allTeamsSlice.findIndex(function(thisTeam){
-				return thisTeam.teamName = team.teamName
+				return thisTeam.teamName == team.teamName
 			})
 		})
 		events.publish("adminAllTeamsDataUpdated", allTeamsSlice); //find listener

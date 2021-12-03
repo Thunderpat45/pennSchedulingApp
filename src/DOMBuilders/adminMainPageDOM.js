@@ -15,7 +15,7 @@ obj = {
                     allTeams
                 },
             allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
-            coach, //needs a source of data, work on that
+            coach,
         }, {etc}, {etc}]
 
     allUsers:
@@ -33,7 +33,7 @@ obj = {
         {facilityOpen, facilityClose, facilityMaxCapacity}
 
     adminTimeBlocks:
-        {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, all days already input, make sure empties don't screw anything up
+        {day: [{{startTime, stopTime, admin}, {startTime, stopTime, admin}, ], day: [{startTime, stopTime, admin}, {startTime, stopTime, admin}]},  make sure empties don't screw anything up
 
     season,
 }

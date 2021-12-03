@@ -26,7 +26,7 @@ subscribes to:
 */
 
 const adminUserDataModel = (function(){
-    //no obvious issues, ensure that password does not come to front-end, ensure empty obj for newUser teams/availability is compatible with teamRequest and availabilty on userDOM
+    //no obvious issues, ensure that password does not come to front-end
     let userModel;
     let userModelCopy;
 
@@ -52,8 +52,8 @@ const adminUserDataModel = (function(){
             color: "#000000",
             password: "",
             privilegeLevel: false,
-            teams:{},
-            availability:{},
+            teams:[], 
+            availability:{Sun:[], Mon:[], Tue: [], Wed: [], Thu: [], Fri: [], Sat: []}, 
             lastVerified: null
         };
         userModelCopy = Object.assign({}, userModel);

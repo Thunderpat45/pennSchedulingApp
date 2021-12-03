@@ -1,28 +1,39 @@
 import {events} from "../events"
-/*
-action: stores current single team data, makes modifications on a copy
+
+/*purpose: dataModel for loading content and editing content for requestFormDOM
+
+team object is modeled as such:
+
+obj = {
+    
+    teamName,
+    teamSize, 
+    rank:
+        {
+            myTeams,
+            allTeams
+        },
+    allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+    coach
+                  
+}
 
 publishes:
-    DOM modifications to:
-        option length/ option rank/ day length/ dayDetail values
-    new team workingModels 
-    existing workingModels
-    addition/edit updates to myTeamsModel
+    dataModel generation/ allOpts, allDays, and value modifications FOR requestFormDOM build
 
 subscribes to: 
-    team Addition request
-        FROM: myTeamsDOM
+    team addition requests FROM mainPageModel
+    team editData loads FROM myTeamsModel
+    update requests FROM requestFormDOM
+    modifications to add/delete/change option order, add/delete/change values for days, modify name, size FROM requestFormDOM
+*/
 
-    teamRequest edit request
-        FROM: myTeamsModel
-    
-    workingModel update requests for:
-        teamName/ teamSize/ option length/ day length/ dayDetail values
-    teamRequest update validation requests
-        FROM: teamRequestDOM
-*/ 
 const teamRequestModel = (function(){
     
+    let coach
+    
+    events.subscribe("mainPageModelBuilt", setCoach)
+
     events.subscribe("addTeam", createWorkingModel);
     events.subscribe("teamEditDataLoaded", populateWorkingModel); 
     events.subscribe("updateTeamRequest", validateTeamUpdate);
@@ -38,12 +49,15 @@ const teamRequestModel = (function(){
     events.subscribe("modifyTeamSizeValue", modifyTeamSizeValue);
     events.subscribe("modifyTeamNameValue", modifyTeamNameValue);
     
-    // workingModel stores current teamData in a copy to make modifications on; teamRequest holds the original data (used by myTeams after validation to check if a team is new, or needs to be overwritten)
     let workingModel; 
     let teamRequest;
+
+    function setCoach(mainPageData){
+        coach = mainPageData.name
+    }
     
     function createWorkingModel(){
-        workingModel = {
+        teamRequest = {
             teamName: "",
             teamSize: "default", 
             rank: {
@@ -51,27 +65,34 @@ const teamRequestModel = (function(){
                 allTeams: null
             },
             allOpts: [[createDefaultDayDetails()]],
-           //coach needs a source of data, work on that
+           coach:coach
         };
-        teamRequest = {}; 
+
+        const workingModel = buildWorkingModelDeepCopy(teamRequest)
+        
         events.publish("workingModelPopulated", workingModel)
     }
 
     function populateWorkingModel(thisTeamRequest){
-        workingModel = buildWorkingModelDeepCopy(thisTeamRequest)
         teamRequest = thisTeamRequest
-        events.publish("workingModelPopulated", workingModel)
+        workingModel = buildWorkingModelDeepCopy(thisTeamRequest)
+
+        events.publish("workingModelPopulated", workingModel) //follow this
     }
 
     function buildWorkingModelDeepCopy(thisTeamRequest){
         const workingModel = Object.assign({}, thisTeamRequest);
+        workingModel.rank = Object.assign({}, thisTeamRequest.rank);
+
         workingModel.allOpts = thisTeamRequest.allOpts.concat();
         thisTeamRequest.allOpts.forEach(function(option){
+
             const optIndex = thisTeamRequest.allOpts.indexOf(option);
             workingModel.allOpts[optIndex] = thisTeamRequest.allOpts[optIndex].concat();
             option.forEach(function(day){
+
                 const dayIndex = option.indexOf(day);
-                workingModel.allOpts[optIndex][dayIndex] = Object.assign({}, option[dayIndex])
+                workingModel.allOpts[optIndex][dayIndex] = Object.assign({}, thisTeamRequest.allOpts[optIndex][dayIndex])
             })
         })
         return workingModel;
@@ -87,7 +108,7 @@ const teamRequestModel = (function(){
         return defaultDayDetails
     }
 
-    function validateTeamUpdate(workingModel){
+    function validateTeamUpdate(workingModel){ //REVIEW ALL OF THIS
         events.publish("validateTeamRequest", {workingModel, teamRequest}) 
     }
 

@@ -1,4 +1,43 @@
 import {events} from "../events"
+
+/*action: user interface for observing teams and availability
+
+userMainPageData object is modeled as such:
+
+obj = {
+    name,
+    myTeams: 
+        [{ 
+            teamName,
+            teamSize, 
+            rank:
+                {
+                    myTeams,
+                    allTeams
+                },
+            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+            coach,
+        }, {etc}, {etc}]
+
+    availability:
+        {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, all days already input, make sure empties don't screw anything up
+
+    season,
+    lastVerified,
+}
+
+publishes:
+    page render requests FOR pageRenderer
+    season change requests FOR (?)
+    add team requests FOR teamRequestModel
+    edit/delete/modify team order requests FOR myTeamsModel
+    
+
+subscribes to: 
+    userMainPageModel builds FROM mainPageModel
+    
+*/
+EDIT THIS AND CONTINUE WITH THIS AND DATAMODEL AND VALIDATOR, THEN WITH MASTERSCHEDULE DATA, PENNSCHEDULE, AND EXCEL BUILDER
 /*
 actions: single team interface for creating/editing/deleting teamRequest data
 

@@ -6,10 +6,10 @@ database object is modeled as such:
 
 obj = {
     day: [
-        {start, stop, admin}, {start, stop, admin}
+        {startTime, stopTime, admin}, {startTime, stopTime, admin}
     ],
     day: [
-        {start, stop, admin}, {start, stop, admin}
+        {startTime, stopTime, admin}, {startTime, stopTime, admin}
     ]
 }
 
@@ -29,8 +29,8 @@ const adminMainPageAdminTimeBlockModel = (function(){
     let adminAvailabilityModel;
     let adminAvailabilityModelCopy;
     let timeBlockDefault = {
-        start:"default",
-        end:"default",
+        startTime:"default",
+        endTime:"default",
         admin:"yes"
     };
 
@@ -65,8 +65,7 @@ const adminMainPageAdminTimeBlockModel = (function(){
 
     function deleteAdminAvailabilityRow(rowObj){
         const blockIndex = rowObj.blockNumber;
-        const timeBlock = adminAvailabilityModelCopy[rowObj.day][blockIndex];
-        adminAvailabilityModelCopy[rowObj.day].splice(timeBlock, 1);
+        adminAvailabilityModelCopy[rowObj.day].splice(blockIndex, 1);
 
         events.publish("adminAvailabilityModelModified", {adminTimeBlockDiv: rowObj.adminTimeBlockDiv, adminMainPageData: adminAvailabilityModelCopy});
     }

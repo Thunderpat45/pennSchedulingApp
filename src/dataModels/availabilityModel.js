@@ -1,28 +1,41 @@
 import {events} from "../events"
 
-/*
-actions: stores current availability, makes modifications on a copy
 
-publishes: 
-    availability data + changes to:
-        availabilityPageDOM
-        database module (?)
+/*purpose: dataModel for displaying availabilityDOM and modifying userAvailability content 
+
+availability object is modeled as such:
+
+obj = {
     
+    day: 
+    [
+        {start, stop, admin}, 
+        {start, stop, admin}
+    ], 
+    day: 
+    [
+        {etc}, 
+        {etc},
+    ]
+
+}
+
+publishes:
+    availabilityModel FOR availabilityPageDOM, availabilityValidator, and database updates
+
 subscribes to: 
-    requests to display/add/delete/modify/update availability data
-
-    {coachName: {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, coachName2...}
-
+    edit availabilityData requests FROM mainPageDOM
+    add/delete/update availabilityData requests FROM availabilityPageDOM
+    successful validations from availabilityValidator
 */
 
 const availabilityModel = (function(){
-
-    //availabilityModel is immutable current data reflecting database, Copy is mutable, unstable version until published to database
+    //no obvious issues, find subscriber for database updates
     let availabilityModel;
     let availabilityModelCopy;
-    let timeBlockDefault = { //issue with default vs null?
-        start:"default",
-        end:"default",
+    let timeBlockDefault = {
+        startTime:"default",
+        endTime:"default",
         admin: "no"
     };
 
@@ -51,7 +64,7 @@ const availabilityModel = (function(){
 
     function publishAvailabilityModel(){
         setAvailabilityModelCopy();
-        events.publish("availabilityDOMPageRequested", availabilityModelCopy) 
+        events.publish("availabilityDOMPageRequested", availabilityModelCopy)
     }
 
 
@@ -63,8 +76,7 @@ const availabilityModel = (function(){
 
     function deleteAvailabilityRow(rowObj){
         const blockIndex = rowObj.blockNumber;
-        const timeBlock = availabilityModelCopy[rowObj.day][blockIndex];
-        availabilityModelCopy[rowObj.day].splice(timeBlock, 1);
+        availabilityModelCopy[rowObj.day].splice(blockIndex, 1);
 
         events.publish("availabilityModelModified", availabilityModelCopy);
     }
@@ -78,7 +90,7 @@ const availabilityModel = (function(){
         events.publish("userAvailabilityValidationRequested", availabilityModelCopy)
     }
 
-    function updateAvailability(){ //listener is not yet specified, should be module that updates the DB
+    function updateAvailability(){
         events.publish("availabilityDataUpdated", availabilityModelCopy)
     }
 

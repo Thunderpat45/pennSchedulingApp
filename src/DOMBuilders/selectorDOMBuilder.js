@@ -24,7 +24,6 @@ subscribes:
 const selectorBuilder = (function(){ 
 
     //default values must be input (into database?) for facilityOpen/Close/MaxCapacity BEFORE first time running, or startTime/endTime/teamSize will have errors!
-    //ensure timeCoverter function is accurate
     const selectionOptions = { 
         startTime: {
             start: null,

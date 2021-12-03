@@ -1,13 +1,11 @@
 import { events } from "../events";
 
-/*
-
 /*purpose: dataModel from database for loading content for all userPages
 
 database object is modeled as such:
 
 obj = {
-    allTeams: 
+    teams:, and allTeams: 
         [{ 
             teamName,
             teamSize, 
@@ -17,28 +15,21 @@ obj = {
                     allTeams
                 },
             allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
-            //coach needs a source of data, work on that
+            coach
         }, {etc}, {etc}]
 
-    allUsers:
-        [{
+    user:
+        {
             name,
-            color,
-            password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END
-            privilegeLevel,
             teams:{},
             availability:{},
             lastVerified
-        }, {etc}, {etc}]
+        }
 
     facilitySelectors:
         {facilityOpen, facilityClose, facilityMaxCapacity}
 
-    adminTimeBlocks:
-        {day: [{start, stop, admin}, {start, stop, admin}], day: [{start, stop, admin}, {start, stop, admin}]} 
-
     season,
-    lastVerified
 }
 
 publishes:
@@ -72,12 +63,13 @@ const mainPageModel = (function(){
     events.subscribe("mainPageDOMRequested", distributeMainPageModel)
 
     function populateDataModels(databaseObj){//check these for recursive immutable copying properly/necessary, if not jsut do destructuring assingment
-        mainPageModel.name = databaseObj.name;
-        mainPageModel.availability = databaseObj.availability;
-        mainPageModel.myTeams = databaseObj.myTeams; 
-        mainPageModel.facilitySelectors = databaseObj.facilitySelectors
+        mainPageModel.name = databaseObj.user.name;
+        mainPageModel.availability = databaseObj.user.availability;
+        mainPageModel.teams = databaseObj.user.teams; 
+        mainPageModel.lastVerified = databaseObj.user.lastVerified;
+        
+        mainPageModel.facilitySelectors = databaseObj.facilitySelectors //are these all lumped together in same object as user properties?
         mainPageModel.allTeams = databaseObj.allTeams;
-        mainPageModel.lastVerified = databaseObj.lastVerified;
         mainPageModel.season = databaseObj.season;
 
         events.publish("mainPageSelectorsRequested", mainPageModel.facilitySelectors)

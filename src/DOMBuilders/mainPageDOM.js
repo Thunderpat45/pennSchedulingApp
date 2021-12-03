@@ -17,11 +17,8 @@ obj = {
                     allTeams
                 },
             allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
-            coach, //needs a source of data, work on that
+            coach,
         }, {etc}, {etc}]
-
-    facilitySelectors:
-        {facilityOpen, facilityClose, facilityMaxCapacity}
 
     availability:
         {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, all days already input, make sure empties don't screw anything up
@@ -33,16 +30,17 @@ obj = {
 publishes:
     page render requests FOR pageRenderer
     season change requests FOR (?)
+    add team requests FOR teamRequestModel
+    edit/delete/modify team order requests FOR myTeamsModel
     
 
 subscribes to: 
     userMainPageModel builds FROM mainPageModel
-    userSelectorsBuilt FROM selectorDOMBuilder
     
 */
 
 const mainPageDOM = (function(){
-
+    //display the name somewhere(?)
     let season; 
     
     events.subscribe("mainPageModelBuilt", setSeason)
@@ -100,11 +98,11 @@ const mainPageDOM = (function(){
         function publishTeamsUpToDateVerification(){
             const date = new Date().toLocaleString();
             
-            events.publish("verifyUpToDateClicked", date) //double check this, tired when wrote this
+            events.publish("verifyUpToDateClicked", date)
         }
     }
-
-    function renderMainPageAvailability(availabilityDOM, availabilityData){ //check dataModel and follow events, CONTINUE HERE BY FOLLOWING DATAMODEL
+    //no obvious issues here or with dataModel or availabilityDOM
+    function renderMainPageAvailability(availabilityDOM, availabilityData){
         const availabilityDisplay = availabilityDOM.querySelector("#availabilityDisplay");
         const editAvailability = availabilityDOM.querySelector("#editAvailability");
 
@@ -116,7 +114,7 @@ const mainPageDOM = (function(){
         return availabilityDOM
         
         function getAvailabilityModel(){
-            events.publish("availabilityModelRequested") //follow this
+            events.publish("availabilityModelRequested")
         }
     }
 
@@ -154,16 +152,16 @@ const mainPageDOM = (function(){
             teamGrid.appendChild(teamElement)
         })
 
-        addButton.addEventListener("click", addTeam);
+        addButton.addEventListener("click", addTeam); //follow this
         
         return teamsDOM
         
-            
         function addTeam(){
-            events.publish("addTeam") //follow this
+            events.publish("addTeam")
         }
     }
-    //set CSS/class values for up/down buttons, check dataModels and follow events
+
+    //set CSS/class values for up/down buttons
     function buildTeam(team, teamArray){
         const template = document.querySelector("#mainPageTeamTemplate");
         const content = document.importNode(template.content, true);
@@ -186,7 +184,7 @@ const mainPageDOM = (function(){
         const upButton = document.createElement("button");
         const downButton = document.createElement("button");
 
-        if(teamArray.length >1 && team.rank.myTeams != 0 && team.rank.myTeams!= teamArray.length -1){
+        if(teamArray.length >1 && team.rank.myTeams != 0 && team.rank.myTeams != teamArray.length -1){
             upButton.addEventListener("click", moveMyTeamUp);
             downButton.addEventListener("click", moveMyTeamDown);
             
@@ -216,11 +214,11 @@ const mainPageDOM = (function(){
         }
 
         function moveMyTeamUp(){
-            events.publish("modifyMyTeamOrder", {index: team.rank.myTeamIndex, modifier:-1});
+            events.publish("modifyMyTeamOrder", {index: team.rank.myTeams, modifier:-1});
         }
 
         function moveMyTeamDown(){
-            events.publish("modifyMyTeamOrder", {index: team.rank.myTeamIndex, modifier:1});
+            events.publish("modifyMyTeamOrder", {index: team.rank.myTeams, modifier:1});
         }
     }
 
