@@ -1,44 +1,55 @@
 import {events} from "../events"
-/*
-actions: checks for conflicts/errors in team workingModels submitted for database posts
 
-publishes: 
-    workingModel validations
+/*purpose: validator for single team dataModel updates
 
-subscribes to:
-    teamRequest validation requests
-        from teamRequestData
-    adjustedAdminOption loads
-        from masterScheduleData
+userObject is modeled as such:
+obj = { 
+    teamName,
+    teamSize, 
+    rank:
+        {
+            myTeams,
+            allTeams
+        },
+    allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+    coach           
+}
+
+publishes:
+    successful validations FOR myTeamsModel
+   
+subscribes to: 
+    validation requests FROM teamRequestModel
 */
+
 
 const requestValidator = (function(){
 
+    let facilityData
+
     events.subscribe("validateTeamRequest", validateAllInputs);
-    events.subscribe("SOMETHINGABOUTADJUSTEDADMINOPTIONSLOADED", setValueRanges) //get these from DB
+    events.subscribe("mainPageDataBuilt", setFacilityData)
 
-    let selectorValueRanges;
-
-    function setValueRanges(adminRanges){//adjust this when data incoming is more clear
-        selectorValueRanges = Object.assign({}, adminRanges)
+    function setFacilityData(mainPageModel){
+        facilityData = mainPageModel.facilitySelectors
     }
 
-    function validateAllInputs(obj){
+    function validateAllInputs(teamDataObj){
         const errorArray = [];
 
-        validateName(obj.workingModel, errorArray);
-        validateSize(obj.workingModel, errorArray);
-        validateSchedulePreferences(obj.workingModel, errorArray);
+        validateName(teamDataObj.workingModel, errorArray);
+        validateSize(teamDataObj.workingModel, errorArray);
+        validateSchedulePreferences(teamDataObj.workingModel, errorArray);
 
         if(errorArray.length > 0){
             const errorAlert = errorArray.join(" ");
             alert(errorAlert);
         }else{
-            events.publish("workingModelValidated", {workingModel : obj.workingModel, teamRequest : obj.teamRequest});
+            events.publish("workingModelValidated", {workingModel : teamDataObj.workingModel, teamRequest : teamDataObj.teamRequest});
         }
     }
 
-    function validateName(workingModel, array){ //MOVE THIS TO requestFormDOM
+    function validateName(workingModel, array){
         const name = workingModel.teamName;
         const nameRegex = /[^A-Za-z0-9]/;
         try{
@@ -52,12 +63,12 @@ const requestValidator = (function(){
         }
     }
 
-    function validateSize(workingModel,array){ //MOVE THIS TO requestFormDOM
+    function validateSize(workingModel,array){
         const size = workingModel.teamSize;
         try{
             if(size == "default"){
                 throw("Team size must have a value.")
-            }else if(size > selectorValueRanges.slots){
+            }else if(size > facilityData.facilityMaxCapacity){
                 throw("Team size is greater than max size value. Discuss max size value changes with administrator.")
             }
         }catch(err){
@@ -78,9 +89,9 @@ const requestValidator = (function(){
                 function catchInvalidInputs(){
                     for(const prop in day){
                         try{
-                            if(prop.value == "default"){
+                            if(day[prop] == "default"){
                                 throw(`Option${optNum} Day${dayNum} ${prop} must have a value.`);
-                            }else if((prop == "startTime" || prop == "endTime") && (prop.value < selectorValueRanges.openTime || prop.value > selectorValueRanges.closeTime)){
+                            }else if((prop == "startTime" || prop == "endTime") && (day[prop] < facilityData.facilityOpen || day[prop] > facilityData.facilityClose)){
                                 throw(`Option${optNum} Day ${dayNum} ${prop} is outside operating hours. Discuss operating hour changes with administrator.`);
                             }
                         }catch(err){

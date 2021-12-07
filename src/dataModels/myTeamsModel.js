@@ -32,7 +32,6 @@ subscribes to:
     myTeams order modifications FROM mainPageDOM
     requests to edit/delete teams FROM mainPage DOM
     successful validations from requestValidator
-    userMainPageDOM requests FROM 
 */
 
 const myTeamsModel = (function(){
@@ -60,26 +59,26 @@ const myTeamsModel = (function(){
         events.publish("teamEditDataLoaded", thisTeam); //follow this
     }
 
-    function modifyTeamOrder(teamIndex, modifier){
+    function modifyTeamOrder(teamInfoObj){
         const myTeamsSlice = myTeams.concat();
-        const team = myTeamsSlice.splice(teamIndex, 1)[0];
-        myTeamsSlice.splice(teamIndex + modifier, 0, team);
+        const team = myTeamsSlice.splice(teamInfoObj.teamIndex, 1)[0];
+        myTeamsSlice.splice(teamInfoObj.teamIndex + teamInfoObj.modifier, 0, team);
         myTeamsSlice.forEach(function(thisTeam){
             thisTeam.rank.myTeams = myTeamsSlice.findIndex(function(teams){
                 return teams.teamName == thisTeam.teamName
             })
         })     
-        events.publish("myTeamsDataUpdated", myTeamsSlice);
+        events.publish("myTeamsDataUpdated", myTeamsSlice); //send to DB for save
     }
 
-    function addEditTeamForDatabaseUpdate(obj){
+    function addEditTeamForDatabaseUpdate(teamObject){
         const myTeamsSlice = myTeams.concat();
         const existingTeamIndex = findExistingTeam()
         
        if(existingTeamIndex != -1){
-            myTeamsSlice.splice(existingTeamIndex, 1, obj.workingModel)
+            myTeamsSlice.splice(existingTeamIndex, 1, teamObject.workingModel)
        }else{
-            myTeamsSlice.push(obj.workingModel)
+            myTeamsSlice.push(teamObject.workingModel)
        }
        myTeamsSlice.forEach(function(thisTeam){
         thisTeam.rank.myTeams = myTeamsSlice.findIndex(function(teams){
@@ -90,7 +89,7 @@ const myTeamsModel = (function(){
 
         function findExistingTeam(){
             const existingTeam = myTeamsSlice.findIndex(function(teams){
-                return obj.teamRequest.teamName == teams.teamName
+                return teamObject.teamRequest.teamName == teams.teamName
             })
             return existingTeam
             
@@ -109,7 +108,7 @@ const myTeamsModel = (function(){
                 return teams.teamName == thisTeam.teamName
             })
         })
-        events.publish("myTeamsDataUpdated", myTeamsSlice)
+        events.publish("myTeamsDataUpdated", myTeamsSlice) //send to DB for save
     }
 
 

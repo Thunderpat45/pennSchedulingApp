@@ -7,15 +7,20 @@
 	<header>
 		<div id = "pageTitleIcon">
 			<img id = "pageIcon" src = "">
-			<div id = "pageTitle">UPenn S&C Scheduling App</div> <!--div here or not?-->
+			<div id = "pageTitle">UPenn S&C Scheduling App</div>
 		</div>	
 	</header>
 	<nav id = "nav">
 		<p id = "userNameLabel"></p>
-		<p id = "logOutText"></p>
+		<div id = "dropdown">
+			<button id= "dropButton"></button>
+			<div id = "dropdownContent">
+				<p id = "logOut">Log Out</p>
+			</div>
+		</div>
 	</nav>
 	<main></main>
-	<footer>OTHER LINKS AND STUFF</footer>
+	<footer></footer>
 </body>
 <script src = "main.js"></script>
 
@@ -84,7 +89,7 @@
 <template id = "requestPageTemplate">
 	<div id = "fillFormPage" class = "hidden">
 		<div id = "fillformTitle">
-		<h1>Add Team Requests</h1>
+			<h1>Add Team Requests</h1>
 		</div>
 			<form id = "teamRequestForm">
 				<div id = "formTeamNameDiv">
@@ -93,15 +98,13 @@
 				</div>
 				<div id = "formTeamSizeDiv">
 					<label for = "formTeamSize">Team Size</label><br>
-					<select id = "formTeamSize" name ="formTeamSize" class = "teamSize"><br>
-						<option value = "default">--</option>
-					</select>
+					<select id = "formTeamSize" name ="formTeamSize" class = "teamSize"><br></select>
 				</div>
 				<div id = "formAllOpts"></div>
 				<div id = "addTrainingOptionDiv">
 					<button id = "addTrainingOption">Add Training Option</button>
 				</div>
-				<div id = "modifierButton">
+				<div id = "modifierButtons">
 					<button id = "updateTeamRequest">Update</button>
 					<button id = "clearTeamRequest">Clear</button>
 					<button id = "cancelTeamRequest">Cancel</button>

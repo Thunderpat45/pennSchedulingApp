@@ -4,8 +4,7 @@ import {events} from "../events"
 
 team object is modeled as such:
 
-obj = {
-    
+obj = { 
     teamName,
     teamSize, 
     rank:
@@ -14,15 +13,16 @@ obj = {
             allTeams
         },
     allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
-    coach
-                  
+    coach           
 }
 
 publishes:
     dataModel generation/ allOpts, allDays, and value modifications FOR requestFormDOM build
+    validation requests for requestValidator
 
 subscribes to: 
-    team addition requests FROM mainPageModel
+    coachName from mainPageDataModel
+    team addition requests FROM mainPageDOM
     team editData loads FROM myTeamsModel
     update requests FROM requestFormDOM
     modifications to add/delete/change option order, add/delete/change values for days, modify name, size FROM requestFormDOM
@@ -43,7 +43,7 @@ const teamRequestModel = (function(){
     events.subscribe("modifyOptOrder", modifyOptionsOrder);
    
     events.subscribe("addDay", addDay);
-    events.subscribe("modifySelectorValue", modifySelectorValue);
+    events.subscribe("modifyTeamSelectorValue", modifySelectorValue);
     events.subscribe("deleteDay", deleteDay);
     
     events.subscribe("modifyTeamSizeValue", modifyTeamSizeValue);
@@ -108,7 +108,7 @@ const teamRequestModel = (function(){
         return defaultDayDetails
     }
 
-    function validateTeamUpdate(workingModel){ //REVIEW ALL OF THIS
+    function validateTeamUpdate(){ //follow this
         events.publish("validateTeamRequest", {workingModel, teamRequest}) 
     }
 
@@ -123,10 +123,10 @@ const teamRequestModel = (function(){
         events.publish("optionsModified");
     }
 
-    function modifyOptionsOrder(obj){
-        const index = obj.optNum - 1;
+    function modifyOptionsOrder(optionDetailsObj){
+        const index = optionDetailsObj.optNum - 1;
         const option = workingModel.allOpts.splice(index, 1)[0];
-        workingModel.allopts.splice(index + obj.modifier, 0, option);
+        workingModel.allopts.splice(index + optionDetailsObj.modifier, 0, option);
         events.publish("optionsModified");
     }
 
@@ -134,21 +134,21 @@ const teamRequestModel = (function(){
         const optIndex = optNum - 1;
         const optionDetails = workingModel.allOpts[optIndex];
         optionDetails.push(createDefaultDayDetails());
-        events.publish("daysModified", {optionDetails, optNum})
+        events.publish("daysModified", {publishedOptionDetails: optionDetails, publishedOptNum: optNum})
     }
 
-    function deleteDay(obj){
-        const optIndex = obj.optNum - 1;
-        const dayIndex = obj.dayNum - 1;
+    function deleteDay(dayDetailsObj){
+        const optIndex = dayDetailsObj.optNum - 1;
+        const dayIndex = dayDetailsObj.dayNum - 1;
         const optionDetails = workingModel.allOpts[optIndex];
         optionDetails.splice(dayIndex, 1);
-        events.publish("daysModified", {optionDetails, optNum:obj.optNum})
+        events.publish("daysModified", {publishedOptionDetails: optionDetails, publishedOptNum:dayDetailsObj.optNum})
     }
 
-    function modifySelectorValue(obj){
-        const optIndex = obj.optNum - 1;
-        const dayIndex = obj.dayNum - 1;
-        workingModel.allOpts[optIndex][dayIndex][obj.selector] = obj.value
+    function modifySelectorValue(dayDetailsObj){
+        const optIndex = dayDetailsObj.optNum - 1;
+        const dayIndex = dayDetailsObj.dayNum - 1;
+        workingModel.allOpts[optIndex][dayIndex][dayDetailsObj.selector] = dayDetailsObj.value
     }
 
     function modifyTeamSizeValue(size){

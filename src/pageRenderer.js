@@ -9,7 +9,7 @@ subscribes to:
 */
 
 const pageRenderer = (function(){
-    //no obvious issues here
+    //THIS NEEDS TO GET USER INFO (NAME AND ADMIN ACCESS)
     events.subscribe("pageRenderRequested", renderPageContent);
 
     function renderPageContent(page){
@@ -18,6 +18,28 @@ const pageRenderer = (function(){
 
         newMainContent.appendChild(page);
         mainContent.replaceWith(newMainContent);
+    }
+
+    function setName(userData){
+        const nameContent = document.querySelector("#userNameLabel")
+        nameContent.innerText = userData.name;
+    }
+
+    function setDropdownPrivilegeAccess(userData){
+        if(userData.admin == true){
+            const dropdownContent = document.querySelector("#dropdownContent");
+            const logOutButton = document.querySelector("#logOut");
+            const userPageButton = document.createElement("p");
+            const adminPageButton = document.createElement("p");
+
+            userPageButton.addEventListener("click", publishGetUserPage);
+            adminPageButton.addEventListener("click", publishGetAdminPage);
+
+            dropdownContent.insertBefore(userPageButton,logOutButton);
+            dropdownContent.insertBefore(adminPageButton,logOutButton);
+
+        }
+
     }
 
 })();

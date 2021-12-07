@@ -1,4 +1,4 @@
-import { events } from "./events";
+import { events } from "../events";
 
 /*purpose: validator for availabiity/adminAvailability updates
 

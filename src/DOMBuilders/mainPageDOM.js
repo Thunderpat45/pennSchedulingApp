@@ -40,7 +40,7 @@ subscribes to:
 */
 
 const mainPageDOM = (function(){
-    //display the name somewhere(?)
+    
     let season; 
     
     events.subscribe("mainPageModelBuilt", setSeason)
