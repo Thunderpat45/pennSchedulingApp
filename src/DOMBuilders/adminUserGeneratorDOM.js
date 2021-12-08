@@ -10,7 +10,6 @@ userObject is modeled as such:
     {
         name,
         color,
-        password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END
         privilegeLevel,
         teams:{},
         availability:{},
@@ -21,7 +20,7 @@ publishes:
     page render requests FOR pageRenderer
     data save requests FOR adminUserDataModel
     data change cancellation FOR adminMainPageModel
-    requests to add/delete/modify name/password/privilege/color data FOR adminUserDataModel
+    requests to add/delete/modify name/privilege/color data FOR adminUserDataModel
 
 subscribes to:
     userModel builds/loads FROM adminUserDataModel
@@ -30,7 +29,7 @@ subscribes to:
 
 
 const adminUserGeneratorDOM = (function(){
-    //no obvious issues, make sure hasOwnProperty(password) works as only new users should have password property, existing users passwords should not be brought to front end
+    //no obvious issues
     let allUsersList 
 
     events.subscribe("userModelPopulated", publishUserGeneratorPageRender);
@@ -50,7 +49,6 @@ const adminUserGeneratorDOM = (function(){
         const content = document.importNode(template.content, true);
 
         const userName = content.querySelector("#userGeneratorName");
-        const userPasswordSet = content.querySelector("#userGeneratorPassword");
         const userPrivilege = content.querySelector("#userGeneratorPrivilege");
         const userColor = content.querySelector("#userGeneratorColor");
         const saveButton = content.querySelector("#userGeneratorSaveButton");
@@ -60,12 +58,10 @@ const adminUserGeneratorDOM = (function(){
         cancelButton.addEventListener("click", cancelUserChanges)
         
         const userNameNew = renderUserName(userName, userModel) 
-        const userPasswordSetNew = renderUserPassword(userPasswordSet, userModel)
         const userPrivilegeNew = renderUserPrivilege(userPrivilege, userModel)
         const userColorNew = renderUserColor(userColor, userModel)
 
         userName.replaceWith(userNameNew);
-        userPasswordSet.replaceWith(userPasswordSetNew);
         userPrivilege.replaceWith(userPrivilegeNew);
         userColor.replaceWith(userColorNew);
        
@@ -115,31 +111,7 @@ const adminUserGeneratorDOM = (function(){
             return nameCheck;
         }
     }
-
-
-    function renderUserPassword(userPasswordDOM, userModel){
-
-        userPasswordDOM.addEventListener("blur", function confirmPasswordChange(){ 
-            if(userModel.hasOwnProperty("password") && userPasswordDOM.value == ""){
-                alert("A default password must be set.");
-                userPasswordDOM.focus();
-            }else if(!userModel.hasOwnProperty("password") && userPasswordDOM.value != ""){
-                const confirmation = confirm("This will attempt to overwrite the user's previous password. Continue?")
-                if(confirmation){
-                    events.publish("adminModifyUserPasswordValue", userPasswordDOM.value)
-                }else{
-                    userPasswordDOM.value = "";
-                }
-            }else if(userPasswordDOM.value != ""){
-                events.publish("adminModifyUserPasswordValue", userPasswordDOM.value)
-            }
-        })
-
-        return userPasswordDOM;
-
-    }
-
-
+    
     function renderUserPrivilege(userPrivilegeDOM, userModel){ 
 
         if(userModel.privilegeLevel == true){

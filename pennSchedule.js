@@ -1,7 +1,7 @@
 /* eslint-disable no-prototype-builtins */
 
 /*add pubsub */
-import { events } from "./events";
+import { events } from "./src/events";
 
 const scheduleBuilder = (function(){
 
@@ -232,6 +232,8 @@ const scheduleBuilder = (function(){
     }
         
 })()
+
+export {scheduleBuilder}
        
     
 

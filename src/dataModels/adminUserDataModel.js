@@ -7,7 +7,6 @@ userObject is modeled as such:
     {
         name,
         color,
-        password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END
         privilegeLevel,
         teams:{},
         availability:{},
@@ -31,7 +30,6 @@ const adminUserDataModel = (function(){
     let userModelCopy;
 
     events.subscribe("modifyUserNameValue", setName);
-    events.subscribe("adminModifyUserPasswordValue", adminSetPassword)
     events.subscribe("modifyUserPrivilegeLevelValue", setPrivilegeLevel)
     events.subscribe("modifyUserColorValue", setColor)
     events.subscribe("userEditDataLoaded", populateUserModel);
@@ -50,7 +48,6 @@ const adminUserDataModel = (function(){
         userModel = {
             name: "",
             color: "#000000",
-            password: "",
             privilegeLevel: false,
             teams:[], 
             availability:{Sun:[], Mon:[], Tue: [], Wed: [], Thu: [], Fri: [], Sat: []}, 
@@ -67,10 +64,6 @@ const adminUserDataModel = (function(){
 
     function setColor(color){
         userModelCopy.color = color
-    }
-
-    function adminSetPassword(password){
-         userModelCopy.password = password
     }
 
     function setPrivilegeLevel(privilege){

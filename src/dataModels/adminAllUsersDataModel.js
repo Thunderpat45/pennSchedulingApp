@@ -9,7 +9,6 @@ allUsers =
 		{
             name,
             color,
-            password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END
             privilegeLevel,
             teams:{},
             availability:{},
