@@ -16,7 +16,7 @@ publishes:
     selection DOM elements FOR multiple DOM modules
 
 subscribes:
-    admin facilitySelector data FROM adminMainPageModel
+    admin facilitySelector data FROM mainPageModel
     user facilitySelector data FROM mainPageModel
 
 */
@@ -62,7 +62,7 @@ const selectorBuilder = (function(){
     const selectors = {}
     
     events.subscribe("adminSelectorsRequested", setAdminSelectionOptions);
-    events.subscribe("mainPageSelectorsRequested", setUserSelectionOptions); 
+    events.subscribe("userSelectorsRequested", setUserSelectionOptions); 
 
     function setAdminSelectionOptions(selectorsModel){
         setSelectionOptions(selectorsModel);

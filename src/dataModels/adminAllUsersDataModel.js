@@ -12,7 +12,9 @@ allUsers =
             privilegeLevel,
             teams:{},
             availability:{},
-            lastVerified
+            lastVerified,
+			adminPageSet,
+            season
         }, 
 		{etc}, {etc}
 	]
@@ -39,7 +41,7 @@ const adminAllUsersDataModel = (function(){ //continue REVIEW HERE
 	events.subscribe("userDataValidated", addEditUserForDatabaseUpdate)
 
 	function populateAllUsers(adminAllUsers){
-		allUsers = adminAllUsers.concat(); //should not need deeper recursive copying
+		allUsers = adminAllUsers.allUsers.concat(); //should not need deeper recursive copying
 	}
 
 	function editUser(userData){

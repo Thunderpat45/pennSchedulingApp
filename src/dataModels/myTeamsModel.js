@@ -45,10 +45,10 @@ const myTeamsModel = (function(){
     events.subscribe("deleteTeam", deleteTeamForDatabaseUpdate)
 
      function populateMyTeams(userMyTeams){ 
-         myTeams = userMyTeams.concat();
-         for(let team in userMyTeams){
-			myTeams[team] = Object.assign({}, userMyTeams[team])
-			myTeams[team].rank = Object.assign({}, userMyTeams[team].rank)
+         myTeams = userMyTeams.teams.concat();
+         for(let team in userMyTeams.team){
+			myTeams[team] = Object.assign({}, userMyTeams.teams[team])
+			myTeams[team].rank = Object.assign({}, userMyTeams.teams[team].rank)
 		} 
     }
 

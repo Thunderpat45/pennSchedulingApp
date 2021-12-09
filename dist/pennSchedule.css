@@ -1,13 +1,46 @@
+header{
+	text-align:center;
+}
+
+nav{
+	display: grid;
+	grid-template-columns: 4fr 1fr 1fr;
+	grid-template-areas:
+		". userNameLabel dropdown";
+}
+
+#userNameLabel{
+	grid-area: userNameLabel
+}
+#dropdown{
+	grid-area: dropdown;
+	position:relative;
+	display: inline-block;
+}
+
+#dropdownContent{
+	display: none;
+	position:absolute;
+	z-index:1
+}
+
+.showDropdownContent{
+	display:block
+}
+
+
+
+
+
+
+
 html,body{
 	font-size: 20px;
 	margin:0px;
 	height:100%
 }
 
-header{
-	text-align:center;
-	
-}
+
 
 h1{
 	text-align:center;

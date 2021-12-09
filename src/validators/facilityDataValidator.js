@@ -1,6 +1,6 @@
 import { events } from "../events";
 
-/*purpose: validator for availabiity/adminAvailability updates
+/*purpose: validator for facilityData updates
 
 facilityData object is modeled as such:
 
@@ -17,7 +17,7 @@ subscribes to:
     validation requests FROM adminMainPageFacilityDataModel
 */
 
-const availabilityValidator = (function(){
+const facilityDataValidator = (function(){
     //no obvious issues here
     events.subscribe("adminFacilityDataValidationRequested", validateAdminFacilityData);
     
@@ -40,4 +40,4 @@ const availabilityValidator = (function(){
     }
 })()
 
-export {availabilityValidator}
+export {facilityDataValidator}

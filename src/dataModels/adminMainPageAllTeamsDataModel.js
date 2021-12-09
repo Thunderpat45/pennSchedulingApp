@@ -38,10 +38,10 @@ const adminMainPageAllTeamsData = (function(){
 	events.subscribe("modifyAdminTeamOrder", modifyTeamOrder);
 
 	function populateAllTeams(adminAllTeams){
-		allTeams = adminAllTeams.concat(); //does this need recursive copying? depth should be sufficient if so
-		for(let team in adminAllTeams){
-			allTeams[team] = Object.assign({}, adminAllTeams[team])
-			allTeams[team].rank = Object.assign({}, adminAllTeams[team].rank)
+		allTeams = adminAllTeams.allTeams.concat(); //does this need recursive copying? depth should be sufficient if so
+		for(let team in adminAllTeams.allTeams){
+			allTeams[team] = Object.assign({}, adminAllTeams.allTeams[team])
+			allTeams[team].rank = Object.assign({}, adminAllTeams.allTeams[team].rank)
 		}
 	}
 

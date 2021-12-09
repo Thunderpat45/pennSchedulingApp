@@ -10,7 +10,9 @@ userObject is modeled as such:
         privilegeLevel,
         teams:{},
         availability:{},
-        lastVerified
+        lastVerified,
+        adminPageSet,
+        season
     }, 
 
 publishes:
@@ -51,7 +53,9 @@ const adminUserDataModel = (function(){
             privilegeLevel: false,
             teams:[], 
             availability:{Sun:[], Mon:[], Tue: [], Wed: [], Thu: [], Fri: [], Sat: []}, 
-            lastVerified: null
+            lastVerified: null,
+            adminPageSet: null,
+            season: "fall"
         };
         userModelCopy = Object.assign({}, userModel);
 
@@ -68,6 +72,11 @@ const adminUserDataModel = (function(){
 
     function setPrivilegeLevel(privilege){
         userModelCopy.privilege = privilege;
+        if(privilege == false){
+            userModelCopy.adminPageSet = null
+        }else{
+            userModelCopy.adminPageSet = "admin"
+        }
     }
 
     function validateChanges(){

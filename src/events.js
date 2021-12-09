@@ -1,4 +1,4 @@
-export {events}
+
 
 const events = {
     events: {},
@@ -27,3 +27,5 @@ const events = {
         }
     }
 }
+
+export {events}

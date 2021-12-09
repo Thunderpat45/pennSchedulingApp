@@ -66,7 +66,7 @@ const mainPageDOM = (function(){
         const verifyButton = content.querySelector("#verifyButton");
 
         const mainPageAvailabilityNew = renderMainPageAvailability(mainPageAvailability, mainPageData.availability);
-        const mainPageMyTeamsNew = renderMainPageMyTeams(mainPageMyTeams, mainPageData.myTeams); 
+        const mainPageMyTeamsNew = renderMainPageMyTeams(mainPageMyTeams, mainPageData.teams); 
         
         mainPageAvailability.replaceWith(mainPageAvailabilityNew);
         mainPageMyTeams.replaceWith(mainPageMyTeamsNew);

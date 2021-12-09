@@ -253,21 +253,18 @@ export {scheduleBuilder}
         football:{
             name: "football",
             coach:"Rivera",
-            rank:1,
-            size: 3,
+            rank:{
+                myTeams: 1,
+                allTeams:1
+            },
+            size: 110,
             schedulePreferences:
                 [
                     [
-                        ["football","Tue", 870, 915, "yes", "yes"],
-                        ["football","Thu", 870, 915, "yes", "yes"],
-                        ["football","Fri", 945, 975, "yes", "yes"]
+                        {dayOfWeek:"Tue", startTime: 870, endTime:915, inWeiss:"yes"},
+                        {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
+                        {dayOfWeek:"Fri", startTime: 945, endTime:975, inWeiss:"yes"},
                     ],
-
-                   /* [
-                        ["football","Mon", 1300, 840,"yes", "yes"],
-                        ["football","Wed", 1300, 840,"yes", "yes"]
-
-                    ]*/
                 ]
             
         
@@ -277,15 +274,18 @@ export {scheduleBuilder}
         basketballWomen:{
             name:"basketballWomen",
             coach: "Brindle",
-            rank:6,
-            size: 1,
+            rank:{
+                myTeams: 2,
+                allTeams:6
+            },
+            size: 15,
             schedulePreferences:
                 
                 [
                     [
-                        ["basketballWomen","Tue", 420, 495,"yes", "yes"],
-                        ["basketballWomen","Thu", 420, 495,"yes", "yes"],
-                        ["basketballWomen","Fri", 420, 495,"yes", "yes"],
+                        {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
+                        {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
+                        {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
                     ],
 
                     /*[
@@ -298,15 +298,17 @@ export {scheduleBuilder}
         basketballMen:{
             name:"basketballMen",
             coach: "Brindle",
-            rank:5,
-            size: 1,
+            rank:{
+                myTeams: 1,
+                allTeams:5
+            },
             schedulePreferences:
             
                 [
                     [
-                        ["basketballMen","Tue", 930, 990,"yes", "yes"],
-                        ["basketballMen","Thu", 915, 975,"yes", "yes"],
-                        ["basketballMen","Fri", 870, 930,"yes", "yes"],
+                        {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
+                        {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
+                        {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
                     ],
 
                     /*[
@@ -319,20 +321,18 @@ export {scheduleBuilder}
         sprintFootball:{
             name:"sprintFootball",
             coach: "Dolan",
-            rank:15,
-            size: 2,
+            rank:{
+                myTeams: 4,
+                allTeams:4
+            },
+            size: 50,
             schedulePreferences:
             
                 [
                     [
-                        ["sprintFootball","Tue", 960, 1020,"yes", "yes"],
-                        ["sprintFootball","Sat", 540, 600,"yes", "yes"],
+                        {dayOfWeek:"Tue", startTime: 960, endTime:1020, inWeiss:"yes"},
+                        {dayOfWeek:"Sat", startTime: 540, endTime:600, inWeiss:"yes"},
                     ],
-
-                    /*[
-                        ["sprintFootball","Mon", 900, 960,"yes", "yes"],
-                        ["sprintFootball","Wed", 960, 1020,"yes", "yes"],
-                    ],*/
                 ]
         },
 

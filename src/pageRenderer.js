@@ -1,4 +1,4 @@
-import {events} from "../events"
+import {events} from "./events"
 /* 
 purpose: renders full page contents
 
@@ -6,11 +6,13 @@ publishes:
 
 subscribes to: 
     pageRenderRequests FROM mainPageDOM, availabilityDOM, adminMainPageDOM, adminUserGeneratorDOM, requestFormDOM
+    mainPage/adminMainPage model builds
 */
 
 const pageRenderer = (function(){
     
     events.subscribe("mainPageModelBuilt", copyNameAndAdminAccess)
+    events.subscribe("adminMainPageModelBuilt",copyNameAndAdminAccess)
     events.subscribe("pageRenderRequested", renderPageContent);
     
     let name;
@@ -24,11 +26,6 @@ const pageRenderer = (function(){
 
     //logOut add eventListener
 
-    function copyNameAndAdminAccess(userData){
-        name = userData.name;
-        adminAccess = userData.privilegeLevel
-    }
-
     function renderPageContent(page){
         const mainContent = document.getElementsByTagName("main")[0];
         const newMainContent = document.createElement("main");
@@ -38,6 +35,11 @@ const pageRenderer = (function(){
 
         setName();
         setDropdownPrivilegeAccess()
+    }
+
+    function copyNameAndAdminAccess(userData){
+        name = userData.name;
+        adminAccess = userData.privilegeLevel
     }
 
     function setName(){
@@ -65,9 +67,11 @@ const pageRenderer = (function(){
             const truncateIndex = this.id.indexOf(string);
             const pageIdentifier = this.id.slice(0, truncateIndex);
             
-            events.publish("pageChangeRequested", pageIdentifier)
+            events.publish("pageChangeRequested", {name, pageIdentifier})
         }  
     }
+
+    return {renderPageContent}
 
 })();
 

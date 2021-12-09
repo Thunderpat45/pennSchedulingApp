@@ -35,19 +35,17 @@ obj = {
     facilitySelectors:
         {facilityOpen, facilityClose, facilityMaxCapacity}
 
-    season,
-    adminPageSet,
     adminTimeBlocks:
         {day: [{start, stop, admin}, {start, stop, admin}], day: [{start, stop, admin}, {start, stop, admin}]}  //for ADMIN LEVEL ONLY
 }
 
 publishes:
-    admin/userSelector builds requests FOR selectorDOMBuilder
+    admin/userSelector build requests FOR selectorDOMBuilder
     admin/userMainPageData model builds FOR admin/userMainPage DOM and all necessary dataModels
 
 subscribes to: 
     data load FROM database
-    pageChange requests from pageRenderer
+    admin level pageChange requests from pageRenderer
     adminMainPageDOM requests FROM adminUserGenerator cancellation AND ...
 */
 
@@ -57,9 +55,7 @@ const mainPageModel = (function(){
     //determine if recursive copying for immutability is necessary directly off database
     //check lastVerified and season for proper execution
 
-    let adminPageSet;
-
-    let mainPageModel = {
+    let userPageModel = {
         name: null,
         privilegeLevel: null,
         availability: null,
@@ -71,64 +67,190 @@ const mainPageModel = (function(){
         facilitySelectors:null,
     }
 
+    
+    /*{
+        name: "Brindle",
+        privilegeLevel:"user",
+        availability:{
+            Sun:[],
+            Mon:[],
+            Tue:[],
+            Wed:[],
+            Thu:[],
+            Fri:[],
+            Sat:[]
+        },
+        myTeams:
+        [
+            {
+            name:"basketballWomen",
+            coach: "Brindle",
+            rank:{
+                myTeams: 2,
+                allTeams:6
+            },
+            size: 15,
+            allOpts:
+                
+                [
+                    [
+                        {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
+                        {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
+                        {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
+                    ],
+                ]
+            },
+            
+            {
+                name:"basketballMen",
+                coach: "Brindle",
+                rank:{
+                    myTeams: 1,
+                    allTeams:5
+                },
+                size: 25,
+                allOpts:
+                
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
+                            {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
+                            {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
+                        ],
+                    ]
+            },
+        ],
+        lastVerified: null,
+        adminPageSet:null,
+        season:"fall",
+        allTeams:
+        [
+            {
+            name: "football",
+            coach:"Rivera",
+            rank:{
+                myTeams: 1,
+                allTeams:1
+            },
+            size: 110,
+            allOpts:
+                [
+                    [
+                        {dayOfWeek:"Tue", startTime: 870, endTime:915, inWeiss:"yes"},
+                        {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
+                        {dayOfWeek:"Fri", startTime: 945, endTime:975, inWeiss:"yes"},
+                    ],
+                ]
+            
+        
+        
+        },
+    
+        {
+            name:"basketballWomen",
+            coach: "Brindle",
+            rank:{
+                myTeams: 2,
+                allTeams:6
+            },
+            size: 15,
+            allOpts:
+                
+                [
+                    [
+                        {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
+                        {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
+                        {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
+                    ],
+                ]
+            },
+            
+            {
+                name:"basketballMen",
+                coach: "Brindle",
+                rank:{
+                    myTeams: 1,
+                    allTeams:5
+                },
+                size: 25,
+                allOpts:
+                
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
+                            {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
+                            {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
+                        ],
+                    ]
+            },
+    
+            {
+                name:"sprintFootball",
+                coach: "Dolan",
+                rank:{
+                    myTeams: 4,
+                    allTeams:4
+                },
+                size: 50,
+                allOpts:
+                
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 960, endTime:1020, inWeiss:"yes"},
+                            {dayOfWeek:"Sat", startTime: 540, endTime:600, inWeiss:"yes"},
+                        ],
+                    ]
+            },
+        ],
+        facilitySelectors:{
+            facilityOpen:360,
+            facilityClose: 1200,
+            facilityMaxCapacity:150
+        }
+
+    }*/
+    
+
     let adminMainPageModel = {
+        name: null,
+        privilegeLevel: null,
+        season: null,
         allTeams: null,
         allUsers: null,
         facilitySelectors:null,
         adminTimeBlocks: null,
-        season: null
+        
     }
 
-    events.subscribe("dataLoadedFromDatabase", populateDataModels);
-    events.subscribe("mainDataModelsPopulated", distributeModels)
+    events.subscribe("dataLoadedFromDatabase", populateAndDistributeDataModels);
     events.subscribe("mainPageDOMRequested", distributeMainPageModel);
     events.subscribe("adminMainPageDOMRequested", distributeAdminMainPageModel)
-    events.subscribe("pageChangeRequested", setPageSetAndDistributeModel)
 
+    function populateAndDistributeDataModels(databaseObj){//check these for recursive immutable copying properly/necessary, if not jsut do destructuring assingment
 
-
-    function populateDataModels(databaseObj){//check these for recursive immutable copying properly/necessary, if not jsut do destructuring assingment
-
-        populateGeneralUserModel(databaseObj);
-        events.publish("mainPageSelectorsRequested", mainPageModel.facilitySelectors)
-        
-        if(databaseObj.user.adminPageSet != null){
-            populateAdminUserModel(databaseObj)
+        if(databaseObj.user.adminPageSet == "admin"){
+            populateAdminUserModel(databaseObj);
             events.publish("adminSelectorsRequested", adminMainPageModel.facilitySelectors)
-            adminPageSet = databaseObj.user.adminPageSet
+            distributeAdminMainPageModel()
+        }else{
+            populateGeneralUserModel(databaseObj);
+            events.publish("userSelectorsRequested", userPageModel.facilitySelectors)
+            distributeMainPageModel();
         }
-
-        events.publish("mainDataModelsPopulated")
-    }
-
-    function distributeModels(){
-         if(adminPageSet == null || adminPageSet == "user"){
-             distributeMainPageModel()
-         }else{
-             distributeAdminMainPageModel()
-         }
-    }
-
-    function setPageSetAndDistributeModel(seasonIdentifier){
-        if(adminPageSet != null){
-            adminPageSet = seasonIdentifier
-        }
-        
-        distributeModels();
     }
 
 
     function populateGeneralUserModel(databaseObj){
-        mainPageModel.name = databaseObj.user.name;
-        mainPageModel.privilegeLevel = databaseObj.user.privilegeLevel
-        mainPageModel.availability = databaseObj.user.availability;
-        mainPageModel.teams = databaseObj.user.teams; 
-        mainPageModel.lastVerified = databaseObj.user.lastVerified;
-        mainPageModel.season = databaseObj.user.season;
-        mainPageModel.adminPageSet = databaseObj.user.adminPageSet
+        userPageModel.name = databaseObj.user.name;
+        userPageModel.privilegeLevel = databaseObj.user.privilegeLevel
+        userPageModel.availability = databaseObj.user.availability;
+        userPageModel.teams = databaseObj.user.teams; 
+        userPageModel.lastVerified = databaseObj.user.lastVerified;
+        userPageModel.season = databaseObj.user.season;
+        userPageModel.adminPageSet = databaseObj.user.adminPageSet
         
-        mainPageModel.facilitySelectors = databaseObj.facilitySelectors
-        mainPageModel.allTeams = databaseObj.allTeams; 
+        userPageModel.facilitySelectors = databaseObj.facilitySelectors
+        userPageModel.allTeams = databaseObj.allTeams; 
     }
 
     function populateAdminUserModel(databaseObj){
@@ -143,7 +265,7 @@ const mainPageModel = (function(){
     }
 
     function distributeMainPageModel(){
-        events.publish("mainPageModelBuilt", mainPageModel)
+        events.publish("mainPageModelBuilt", userPageModel)
     }
 
     function distributeAdminMainPageModel(){
