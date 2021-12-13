@@ -56,7 +56,7 @@ const availabilityModel = (function(){
         availabilityModelCopy = Object.assign({}, availabilityModel);
         for(let day in availabilityModel){
             availabilityModelCopy[day] = availabilityModel[day].concat();
-            day.forEach(function(timeBlock){
+            availabilityModel[day].forEach(function(timeBlock){
                 availabilityModelCopy[day][timeBlock] = Object.assign({}, availabilityModel[day][timeBlock])
             });
         }

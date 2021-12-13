@@ -51,7 +51,7 @@ const adminMainPageAdminTimeBlockModel = (function(){
         adminAvailabilityModelCopy = Object.assign({}, adminAvailabilityModel);
         for(let day in adminAvailabilityModelCopy){
             adminAvailabilityModelCopy[day] = adminAvailabilityModel[day].concat();
-            day.forEach(function(timeBlock){
+            adminAvailabilityModel[day].forEach(function(timeBlock){
                 adminAvailabilityModelCopy[day][timeBlock] = Object.assign({}, adminAvailabilityModel[day][timeBlock])
             });
         }

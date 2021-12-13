@@ -58,7 +58,7 @@ const adminMainPageAllTeamsData = (function(){
 		allTeamsSlice.splice(teamIndex + modifier, 0, team);
 		allTeamsSlice.forEach(function(team){
 			team.rank.allTeams = allTeamsSlice.findIndex(function(thisTeam){
-				return thisTeam.teamName == team.teamName
+				return thisTeam.name == team.name
 			})
 		})
 		events.publish("adminAllTeamsDataUpdated", allTeamsSlice); //find listener

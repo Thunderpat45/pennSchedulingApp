@@ -58,8 +58,8 @@ const teamRequestModel = (function(){
     
     function createWorkingModel(){
         teamRequest = {
-            teamName: "",
-            teamSize: "default", 
+            name: "",
+            size: "default", 
             rank: {
                 myTeams: null,
                 allTeams: null
@@ -68,7 +68,7 @@ const teamRequestModel = (function(){
            coach:coach
         };
 
-        const workingModel = buildWorkingModelDeepCopy(teamRequest)
+        workingModel = buildWorkingModelDeepCopy(teamRequest)
         
         events.publish("workingModelPopulated", workingModel)
     }
@@ -114,20 +114,20 @@ const teamRequestModel = (function(){
 
     function addOption(){
         workingModel.allOpts.push([createDefaultDayDetails()]);
-        events.publish("optionsModified");
+        events.publish("optionsModified", workingModel);
     }
 
     function deleteOption(optNum){
         const index = optNum - 1;
         workingModel.allOpts.splice(index, 1);
-        events.publish("optionsModified");
+        events.publish("optionsModified", workingModel);
     }
 
     function modifyOptionsOrder(optionDetailsObj){
         const index = optionDetailsObj.optNum - 1;
         const option = workingModel.allOpts.splice(index, 1)[0];
-        workingModel.allopts.splice(index + optionDetailsObj.modifier, 0, option);
-        events.publish("optionsModified");
+        workingModel.allOpts.splice(index + optionDetailsObj.modifier, 0, option);
+        events.publish("optionsModified", workingModel);
     }
 
     function addDay(optNum){
@@ -152,11 +152,11 @@ const teamRequestModel = (function(){
     }
 
     function modifyTeamSizeValue(size){
-        workingModel.teamSize = size;
+        workingModel.size = size;
     }
 
     function modifyTeamNameValue(name){
-        workingModel.teamName = name
+        workingModel.name = name
     }
 
     

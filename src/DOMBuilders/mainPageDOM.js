@@ -60,6 +60,7 @@ const mainPageDOM = (function(){
         const content = document.importNode(template.content, true);
 
         const seasonButtons = content.querySelector("#seasonButtons");
+        const seasonButtonsChildren = Array.from(seasonButtons.children)
         const mainPageAvailability = content.querySelector("#userAvailability");
         const mainPageMyTeams = content.querySelector("#teamGridContainer");
         const verifyInfo = content.querySelector("#verifyInfo");
@@ -73,7 +74,8 @@ const mainPageDOM = (function(){
         
         verifyInfo.innerText = `The last time you verified all teams were up-to-date was ${mainPageData.lastVerified}`
 
-        seasonButtons.children.forEach(function(child){
+        
+        seasonButtonsChildren.forEach(function(child){
             if(child.id == `${season}Button`){
                 child.disabled = true;
             }else{
@@ -82,7 +84,7 @@ const mainPageDOM = (function(){
             }
         })
 
-        verifyButton.addEventListner("click", publishTeamsUpToDateVerification);
+        verifyButton.addEventListener("click", publishTeamsUpToDateVerification);
     
         return content
     
@@ -122,16 +124,20 @@ const mainPageDOM = (function(){
         const availabilityDisplayNew = document.createElement("div");
         for(let day in availabilityData){
             const dayDiv = document.createElement("div");
-            const label = document.createElement("h3");
+            const label = document.createElement("p");
 
             label.innerText = `${day}`;
-            day.forEach(function(timeBlock){
+            dayDiv.appendChild(label)
+
+            availabilityData[day].forEach(function(timeBlock){
+                const blockNumber = availabilityData[day].indexOf(timeBlock);
+                
                 const timeBlockDiv = document.createElement("div");
                 const startTime = document.createElement("p");
                 const endTime = document.createElement("p");
 
-                startTime.innerText = `Start Time: ${availabilityData[day][timeBlock].startTime}`;
-                endTime.innerText = `End Time: ${availabilityData[day][timeBlock].endTime}`;
+                startTime.innerText = `Start Time: ${timeValueConverter.runConvertTotalMinutesToTime(availabilityData[day][blockNumber].startTime)}`;
+                endTime.innerText = `End Time: ${timeValueConverter.runConvertTotalMinutesToTime(availabilityData[day][blockNumber].endTime)}`;
 
                 timeBlockDiv.appendChild(startTime);
                 timeBlockDiv.appendChild(endTime);
@@ -171,9 +177,11 @@ const mainPageDOM = (function(){
         const optionContainer = content.querySelector(".teamGridTeamOptionContainer");
         const editButton = content.querySelector(".teamGridTeamEditButton");
         const deleteButton = content.querySelector(".teamGridTeamDeleteButton");
+        const upButton = content.querySelector(".moveOptionUpButton");
+        const downButton = content.querySelector(".moveOptionDownButton");
 
-        teamName.innerText = team.teamName;
-        teamSize.innerText = team.teamSize;
+        teamName.innerText = team.name;
+        teamSize.innerText = team.size;
 
         team.allOpts.forEach(function(optionDetails){
             const optNum = team.allOpts.indexOf(optionDetails)+1;
@@ -181,23 +189,16 @@ const mainPageDOM = (function(){
             optionContainer.appendChild(option);
         })
 
-        const upButton = document.createElement("button");
-        const downButton = document.createElement("button");
-
         if(teamArray.length >1 && team.rank.myTeams != 0 && team.rank.myTeams != teamArray.length -1){
             upButton.addEventListener("click", moveMyTeamUp);
             downButton.addEventListener("click", moveMyTeamDown);
             
-            content.insertBefore(upButton, editButton);
-            content.insertBefore(downButton, editButton);
         }else if(teamArray.length >1 && team.rank.myTeams == teamArray.length-1){
             upButton.addEventListener("click", moveMyTeamUp);
-            
-            content.insertBefore(upButton, editButton);
+            downButton.remove();
         }else if(teamArray.length >1 && team.rank.myTeams == 0){
             downButton.addEventListener("click", moveMyTeamDown);
-            
-            content.insertBefore(downButton, editButton);
+            upButton.remove();
         }
 
         editButton.addEventListener("click", editTeam);
@@ -226,10 +227,10 @@ const mainPageDOM = (function(){
         const template = document.querySelector("#mainPageTeamOptionTemplate");
         const content = document.importNode(template.content, true);
 
-        const option = content.querySelector(".teamGridTeamOption");
+        const optionNumDiv = content.querySelector(".teamGridTeamOptionNumber")
         const dayContainer = content.querySelector(".teamGridTeamDayContainer");
 
-        option.innerText = `Option ${optNum}`;
+        optionNumDiv.innerText = `Option ${optNum}`;
 
         optionDetails.forEach(function(day){
             const dayDetails = buildTeamDayDetails(day);

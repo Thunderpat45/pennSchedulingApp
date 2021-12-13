@@ -28,7 +28,7 @@ const requestValidator = (function(){
     let facilityData
 
     events.subscribe("validateTeamRequest", validateAllInputs);
-    events.subscribe("mainPageDataBuilt", setFacilityData)
+    events.subscribe("mainPageModelBuilt", setFacilityData)
 
     function setFacilityData(mainPageModel){
         facilityData = mainPageModel.facilitySelectors
@@ -50,7 +50,7 @@ const requestValidator = (function(){
     }
 
     function validateName(workingModel, array){
-        const name = workingModel.teamName;
+        const name = workingModel.name;
         const nameRegex = /[^A-Za-z0-9]/;
         try{
             if(nameRegex.test(name)){
@@ -64,7 +64,7 @@ const requestValidator = (function(){
     }
 
     function validateSize(workingModel,array){
-        const size = workingModel.teamSize;
+        const size = workingModel.size;
         try{
             if(size == "default"){
                 throw("Team size must have a value.")
@@ -90,9 +90,9 @@ const requestValidator = (function(){
                     for(const prop in day){
                         try{
                             if(day[prop] == "default"){
-                                throw(`Option${optNum} Day${dayNum} ${prop} must have a value.`);
+                                throw(`Option ${optNum}: Day ${dayNum}: ${prop} must have a value.`);
                             }else if((prop == "startTime" || prop == "endTime") && (day[prop] < facilityData.facilityOpen || day[prop] > facilityData.facilityClose)){
-                                throw(`Option${optNum} Day ${dayNum} ${prop} is outside operating hours. Discuss operating hour changes with administrator.`);
+                                throw(`Option ${optNum}: Day ${dayNum}: ${prop} is outside operating hours. Discuss operating hour changes with administrator.`);
                             }
                         }catch(err){
                             array.push(err)
@@ -105,13 +105,13 @@ const requestValidator = (function(){
                         validatedDayArray.forEach(function(validatedDay){
                             const validatedNum = validatedDayArray.indexOf(validatedDay) + 1 ;
                             if(validatedDay.dayOfWeek == day.dayOfWeek && validatedDay.startTime == day.startTime && validatedDay.inWeiss == day.inWeiss){
-                                throw(`Option${optNum} Day${validatedNum} and Day${dayNum} are duplicates.`);
+                                throw(`Option ${optNum}: Day ${validatedNum} and Day ${dayNum} are duplicates.`);
                             }else if(validatedDay.dayOfWeek == day.dayOfWeek && day.startTime < validatedDay.startTime && day.endTime > validatedDay.endTime){
-                                throw(`Option${optNum} Day${dayNum}'s session runs through Day${validatedDay}'s session.`);
+                                throw(`Option ${optNum}: Day ${dayNum}'s session runs through Day ${validatedNum}'s session.`);
                             }else if(validatedDay.dayOfWeek == day.dayOfWeek && day.startTime > validatedDay.startTime && day.startTime < validatedDay.endTime){
-                                throw(`Option${optNum} Day${dayNum}'s start time is in the middle of  Day${validatedDay}'s session.`);
+                                throw(`Option ${optNum}: Day ${dayNum}'s start time is in the middle of  Day ${validatedNum}'s session.`);
                             }else if(validatedDay.dayOfWeek == day.dayOfWeek && day.endTime < validatedDay.endTime && day.endTime > validatedDay.startTime){
-                                throw(`Option${optNum} Day${dayNum}'s end time is in the middle of  Day${validatedDay}'s session.`);
+                                throw(`Option ${optNum}: Day ${dayNum}'s end time is in the middle of  Day ${validatedNum}'s session.`);
                             }   
                         })
                         validatedDayArray.push(day)

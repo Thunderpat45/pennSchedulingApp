@@ -59,7 +59,7 @@ const mainPageModel = (function(){
         name: null,
         privilegeLevel: null,
         availability: null,
-        myTeams: null,
+        teams: null,
         lastVerified:null,
         adminPageSet: null,
         season: null,
@@ -80,7 +80,7 @@ const mainPageModel = (function(){
             Fri:[],
             Sat:[]
         },
-        myTeams:
+        teams:
         [
             {
             name:"basketballWomen",
@@ -228,7 +228,7 @@ const mainPageModel = (function(){
 
     function populateAndDistributeDataModels(databaseObj){//check these for recursive immutable copying properly/necessary, if not jsut do destructuring assingment
 
-        if(databaseObj.user.adminPageSet == "admin"){
+        if(databaseObj.adminPageSet == "admin"){
             populateAdminUserModel(databaseObj);
             events.publish("adminSelectorsRequested", adminMainPageModel.facilitySelectors)
             distributeAdminMainPageModel()
@@ -241,22 +241,22 @@ const mainPageModel = (function(){
 
 
     function populateGeneralUserModel(databaseObj){
-        userPageModel.name = databaseObj.user.name;
-        userPageModel.privilegeLevel = databaseObj.user.privilegeLevel
-        userPageModel.availability = databaseObj.user.availability;
-        userPageModel.teams = databaseObj.user.teams; 
-        userPageModel.lastVerified = databaseObj.user.lastVerified;
-        userPageModel.season = databaseObj.user.season;
-        userPageModel.adminPageSet = databaseObj.user.adminPageSet
+        userPageModel.name = databaseObj.name;
+        userPageModel.privilegeLevel = databaseObj.privilegeLevel
+        userPageModel.availability = databaseObj.availability;
+        userPageModel.teams = databaseObj.teams; 
+        userPageModel.lastVerified = databaseObj.lastVerified;
+        userPageModel.season = databaseObj.season;
+        userPageModel.adminPageSet = databaseObj.adminPageSet
         
         userPageModel.facilitySelectors = databaseObj.facilitySelectors
         userPageModel.allTeams = databaseObj.allTeams; 
     }
 
     function populateAdminUserModel(databaseObj){
-        adminMainPageModel.name = databaseObj.user.name
-        adminMainPageModel.privilegeLevel = databaseObj.user.privilegeLevel
-        adminMainPageModel.season = databaseObj.user.season
+        adminMainPageModel.name = databaseObj.name
+        adminMainPageModel.privilegeLevel = databaseObj.privilegeLevel
+        adminMainPageModel.season = databaseObj.season
 
         adminMainPageModel.allUsers = databaseObj.allUsers;
         adminMainPageModel.allTeams = databaseObj.allTeams;

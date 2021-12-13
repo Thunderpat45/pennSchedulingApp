@@ -42,7 +42,7 @@ const timeValueConverter = (function(){
     }
 
     function runConvertTotalMinutesToTime(totalMins){
-        convertTotalMinutesToTime(totalMins)
+        return convertTotalMinutesToTime(totalMins)
     }
 
     function convertTimeToTotalMinutes(time){
@@ -63,7 +63,7 @@ const timeValueConverter = (function(){
     }
 
     function runConvertTimeToTotalMinutes(time){
-        convertTimeToTotalMinutes(time)
+        return convertTimeToTotalMinutes(time)
     }
 
     return {runConvertTimeToTotalMinutes, runConvertTotalMinutesToTime}

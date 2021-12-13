@@ -49,7 +49,7 @@ const availabilityPageDOM = (function(){
                     selectorNodes[selectorElement] = selectorElementObj[selectorElement];
                     break;
                 default:
-                    return;
+                    break;
             }  
         }  
     }
@@ -97,12 +97,13 @@ const availabilityPageDOM = (function(){
             const addButton = document.createElement("button");
 
             label.innerText = `${day}`
+            addButton.innerText = "Add Block"
 
             dayDiv.appendChild(label);
             dayDiv.appendChild(addButton);
 
-            day.forEach(function(timeBlock){
-                const blockNumber = day.indexOf(timeBlock);
+            availability[day].forEach(function(timeBlock){
+                const blockNumber = availability[day].indexOf(timeBlock);  //this throws -1 ??
                 const row = buildAvailabilityRow(day, timeBlock, blockNumber);
                 dayDiv.appendChild(row)
             })
@@ -137,8 +138,12 @@ const availabilityPageDOM = (function(){
             
             const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
             selectionNew.addEventListener("change", publishAvailabilitySelectionChange)
+            selectionNew.addEventListener("change", disableDefaultOption)
+            if(primaryClass == "startTime"){
+                selectionNew.addEventListener("click", modifyEndTimeDefaultValue)
+            }
             
-            const selectedOption = selectionNew.querySelector(`option[value = ${selectionNew.value}]`);
+            const selectedOption = selectionNew.querySelector(`option[value = "${timeBlock[primaryClass]}"]`);
             selectedOption.selected = true; 
             if(selectedOption.value != "default"){
                 selectionNew.firstChild.disabled = true;
@@ -149,7 +154,30 @@ const availabilityPageDOM = (function(){
             function publishAvailabilitySelectionChange(){
                 const selector = primaryClass;
                 const value = selectionNew.value
-                events.publish("modifySelectorValue", {blockNumber, day, selector, value})
+                events.publish("modifyAvailabilitySelectorValues", {blockNumber, day, selector, value})
+            }
+
+            function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+                const values = Array.from(this.children);
+                values[0].disabled = true;
+            }
+
+            function modifyEndTimeDefaultValue(){
+                const startTimeSelectedValue = Number(this.value);
+                const endTimeValuesArray = Array.from(this.parentElement.nextElementSibling.lastElementChild.children);
+                endTimeValuesArray.forEach(function(time){
+                    const endTimeValue = Number(time.value);
+                    if(endTimeValue < startTimeSelectedValue + 30 || endTimeValue == "default"){
+                        time.disabled = true;
+                    }else{
+                        time.disabled = false;
+                    }
+                    if(endTimeValue == startTimeSelectedValue + 60){
+                        time.selected = true;
+                    }else{
+                        time.selected = false;
+                    }
+                })
             }
         });
 

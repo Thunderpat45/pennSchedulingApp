@@ -11,8 +11,8 @@ subscribes to:
 
 const pageRenderer = (function(){
     
-    events.subscribe("mainPageModelBuilt", copyNameAndAdminAccess)
-    events.subscribe("adminMainPageModelBuilt",copyNameAndAdminAccess)
+    events.subscribe("mainPageModelBuilt", setNameAndAdminAccess)
+    events.subscribe("adminMainPageModelBuilt",setNameAndAdminAccess)
     events.subscribe("pageRenderRequested", renderPageContent);
     
     let name;
@@ -33,13 +33,14 @@ const pageRenderer = (function(){
         newMainContent.appendChild(page);
         mainContent.replaceWith(newMainContent);
 
-        setName();
-        setDropdownPrivilegeAccess()
     }
 
-    function copyNameAndAdminAccess(userData){
+    function setNameAndAdminAccess(userData){
         name = userData.name;
-        adminAccess = userData.privilegeLevel
+        adminAccess = userData.privilegeLevel;
+
+        setName();
+        setDropdownPrivilegeAccess();
     }
 
     function setName(){

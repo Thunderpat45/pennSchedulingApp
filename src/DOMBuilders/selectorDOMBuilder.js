@@ -92,7 +92,7 @@ const selectorBuilder = (function(){
         selection.classList.add("selector");
             const defaultOption = document.createElement("option");
             defaultOption.value = "default";
-            defaultOption.innerHTML = "--";
+            defaultOption.innerText = "--";
         selection.appendChild(defaultOption);
 
         switch(primaryClass){
@@ -103,10 +103,6 @@ const selectorBuilder = (function(){
             
             case "teamSize":
                 buildRangeSelectorOptions(primaryClass, selection);
-                selection.addEventListener("change", function modifyTeamSizeValue(){
-                    const value = selection.value 
-                    events.publish("modifyTeamSizeValue", value)
-                });
                 break;   
             case "endTime":
             case "facilityClose":
@@ -121,8 +117,7 @@ const selectorBuilder = (function(){
                 break;
         }
 
-        selection.addEventListener("change", disableDefaultOption) 
-        selection.addEventListener("blur", preventEmptySelectors)
+        return selection
     }
 
     function buildArraySelectorOptions(primaryClass, selector){
@@ -130,7 +125,7 @@ const selectorBuilder = (function(){
         optionValues.forEach(function(optionValue){
             const option = document.createElement("option");
             option.value = optionValue;
-            option.innerHTML = optionValue;
+            option.innerText = optionValue;
             selector.appendChild(option); 
         })
     }
@@ -141,17 +136,14 @@ const selectorBuilder = (function(){
             const option = document.createElement("option");
             option.value = i;
             if(primaryClass == "teamSize" || primaryClass == "facilityMaxCapacity"){
-                option.innerHTML = i;
+                option.innerText = i;
             }else{
-                option.innerHTML = timeValueConverter.runConvertTotalMinutesToTime(i); //toString() should not be necessary
+                option.innerText = timeValueConverter.runConvertTotalMinutesToTime(i); //toString() should not be necessary
             }selector.appendChild(option);
         }
     }
 
-    function disableDefaultOption(){
-        const values = Array.from(this.children);
-        values[0].disabled = true;
-    }
+        //these are all not working, may need to use event delegation within the modules themselves
 
     function modifyEndTimeDefaultValue(){
         const startTimeSelectedValue = Number(this.value);
@@ -171,13 +163,7 @@ const selectorBuilder = (function(){
         })
     }
 
-    function preventEmptySelectors(){
-        if(this.value == "default"){
-            const className = Array.from(this.classList)[0];
-            alert(`A non-default value must be selected for ${className}`);
-            this.focus();
-        }
-    }
+    
 
 })();
 

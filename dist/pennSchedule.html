@@ -44,10 +44,6 @@
 				<div>Name</div>
 				<div>Size</div>
 				<div>Option</div>
-				<div>Day</div>
-				<div>Start</div>
-				<div>End</div>
-				<div>Weiss</div>
 				<div>Buttons</div>
 			</div>
 			<div id = "teamGrid"></div>
@@ -67,31 +63,34 @@
 		<div class = "teamGridTeamSize"></div>
 		<div class = "teamGridTeamOptionContainer"></div>
 		<div class = "teamGridTeamButtons">
-			<button class = "teamGridTeamEditButton"></button>
-			<button class = "teamGridTeamDeleteButton"></button>
+			<button class = "moveOptionUpButton"></button>
+			<button class = "moveOptionDownButton"></button>
+			<button class = "teamGridTeamEditButton">Edit</button>
+			<button class = "teamGridTeamDeleteButton">X</button>
 		</div>
 	</div>
 </template>
 
 <template id = "mainPageTeamOptionTemplate">
 	<div class = "teamGridTeamOption">
+		<div class = "teamGridTeamOptionNumber"></div>
 		<div class = "teamGridTeamDayContainer"></div>
 	</div>
 </template>
 
 <template id = "mainPageTeamDayTemplate">
-	<div class = "teamGridTeamDayOfWeek"></div>
-	<div class = "teamGridTeamStartTime"></div>
-	<div class = "teamGridTeamEndTime"></div>
-	<div class = "teamGridTeamInWeiss"></div>
+		<div class = "teamGridTeamDayOfWeek"></div>
+		<div class = "teamGridTeamStartTime"></div>
+		<div class = "teamGridTeamEndTime"></div>
+		<div class = "teamGridTeamInWeiss"></div>
 </template>
 
-<template id = "requestPageTemplate">
-	<div id = "fillFormPage" class = "hidden">
+<template id = "requestFormPageTemplate">
+	<div id = "fillFormPage">
 		<div id = "fillformTitle">
 			<h1>Add Team Requests</h1>
 		</div>
-			<form id = "teamRequestForm">
+			<div id = "teamRequestForm">
 				<div id = "formTeamNameDiv">
 					<label for = "formTeamName">Team Name</label><br>
 					<input type = "text" id = "formTeamName" name ="formTeamName" maxlength="25"><br>
@@ -106,17 +105,16 @@
 				</div>
 				<div id = "modifierButtons">
 					<button id = "updateTeamRequest">Update</button>
-					<button id = "clearTeamRequest">Clear</button>
 					<button id = "cancelTeamRequest">Cancel</button>
 				</div>
-			</form>
+			</div>
 	</div>
 </template>
 
 <template id = "optionTemplate">
 	<div class = "formOpt">
 		<div class = "labelDeleteOptButton">
-			<h2 class = "optLabeavailabilityl"></h2>
+			<h2 class = "optLabel"></h2>
 		</div>
 		<div class = "formAllDays"></div>
 		<button class = "addTrainingDay">Add Training Day</button>
@@ -129,30 +127,32 @@
 		<div class = "labelDeleteDayButton">
 			<h3 class = "dayLabel"></h3>
 		</div>
-		<div class = "formDayDetails"></div>
+		<div class = "formAllDayDetails"></div>
 	</div>
 </template>
 
 <template id = "dayDetailsTemplate">
-	<div class = "dayOfWeekDiv">
-		<p>Day of Week</p><br>
-		<select class = "dayOfWeek selector"></select>
-	</div>
-	<div class = "startTimeDiv">
-		<p>Start Time</p><br>
-		<select class = "startTime selector"></select>
-	</div>
-	<div class = "endTimeDiv">
-		<p>End Time</p><br>
-		<select class = "endTime selector">	</select>
-	</div>
-	<div class = "inWeissDiv">
-		<p>In Weiss</p><br>
-		<select class = "inWeiss selector"></select>
+	<div class = "formAllDayDetails">
+		<div class = "dayOfWeekDiv">
+			<p>Day of Week</p><br>
+			<select class = "dayOfWeek selector"></select>
+		</div>
+		<div class = "startTimeDiv">
+			<p>Start Time</p><br>
+			<select class = "startTime selector"></select>
+		</div>
+		<div class = "endTimeDiv">
+			<p>End Time</p><br>
+			<select class = "endTime selector">	</select>
+		</div>
+		<div class = "inWeissDiv">
+			<p>In Weiss</p><br>
+			<select class = "inWeiss selector"></select>
+		</div>
 	</div>
 </template>
 
-<template id= "availabilityDOMTemplate"> <!--add button missing, check templates/functions for this to ensure days are not selectors-->
+<template id= "availabilityDOMTemplate">
 	<div id = "availabilityDOM">
 		<h1 id= "availabilityTitle">Availability</h1>
 		<div id= "availabilityGrid"></div>
@@ -220,7 +220,7 @@
 		<div class = "userListUserLastVerified"></div>
 		<div class = "userListUserButtons">
 			<button class = "userListEditUserButton">Edit User</button>
-			<button class = "userListDeleteUserButton">Delete User</button>
+			<button class = "userListDeleteUserButton">X</button>
 		</div>
 	</div>
 </template>
@@ -310,7 +310,7 @@
 		<div class = "adminUserGridUserLastVerified"></div>
 		<div class = "adminUserGridUserButtonDiv">
 			<button class = "adminUserGridUserEditButton">Edit User</button>
-			<button class = "adminUserGridUserDeleteButton">Delete User</button>
+			<button class = "adminUserGridUserDeleteButton">X</button>
 		</div>
 	</div>
 </template>
@@ -330,5 +330,5 @@
 </template>
 
 <template></template>
-<script src = "main.js"></script>
+<script src = "test.js"></script>
 </html>

@@ -98,7 +98,7 @@ const adminMainPageDOM = (function(){
                     selectorNodes[selectorElement] = selectorElementObj[selectorElement]
                     break;
                 default:
-                    return;
+                    break;
             }	
         }
     }
@@ -117,6 +117,7 @@ const adminMainPageDOM = (function(){
         const content = document.importNode(template.content, true);
         
         const seasonButtons = content.querySelector("#adminSeasonButtons");
+        const seasonButtonsChildren = Array.from(seasonButtons.children)
         const adminAllTeams = content.querySelector("#adminMainPageTeamGrid");
         const adminAllUsers = content.querySelector("#adminUsersGridContainer");
         const adminFacilityData = content.querySelector("#facilityDataGridContainer");
@@ -133,7 +134,7 @@ const adminMainPageDOM = (function(){
         adminFacilityData.replaceWith(adminFacilityDataNew);
         adminAddTimeBlock.replaceWith(adminAddTimeBlockNew);
     
-        seasonButtons.children.forEach(function(child){
+        seasonButtonsChildren.forEach(function(child){
             if(child.id == `${season}Button`){
                 child.disabled = true;
             }else{
@@ -188,9 +189,9 @@ const adminMainPageDOM = (function(){
         const uprankButton = document.createElement("button");
         const downrankButton = document.createElement("button");
 
-        teamName.innerText = teamData.teamName;
+        teamName.innerText = teamData.name;
         teamCoach.innerText = teamData.coach;
-        teamSize.innerText = teamData.teamSize;
+        teamSize.innerText = teamData.size;
         teamRank.innerText = teamData.rank.allTeams;
 
         uprankButton.id = "adminMainPageTeamGridTeamUprankButton"
@@ -295,9 +296,13 @@ const adminMainPageDOM = (function(){
             const primaryClass = Array.from(selector.classList)[0];
             
             const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
-            selectionNew.addEventListener("change", publishSelectionValueChange)
+            selectionNew.addEventListener("change", publishSelectionValueChange);
+            selectionNew.addEventListener("change", disableDefaultOption)
+            if(primaryClass == "facilityOpen"){
+                selectionNew.addEventListener("click", modifyEndTimeDefaultValue)
+            }
     
-            const selectedOption = selectionNew.querySelector(`option[value = ${adminMainPageData[primaryClass]}]`);
+            const selectedOption = selectionNew.querySelector(`option[value = "${adminMainPageData[primaryClass]}"]`);
             selectedOption.selected = true;
             if(selectedOption.value != "default"){
                 selectionNew.firstChild.disabled = true;
@@ -309,6 +314,29 @@ const adminMainPageDOM = (function(){
                 const selector = primaryClass
                 const value = selectionNew.value;
                 events.publish("modifyFacilitySelectorValue", {selector, value})
+            }
+
+            function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+                const values = Array.from(this.children);
+                values[0].disabled = true;
+            }
+
+            function modifyEndTimeDefaultValue(){
+                const startTimeSelectedValue = Number(this.value);
+                const endTimeValuesArray = Array.from(this.parentElement.nextElementSibling.lastElementChild.children);
+                endTimeValuesArray.forEach(function(time){
+                    const endTimeValue = Number(time.value);
+                    if(endTimeValue < startTimeSelectedValue + 30 || endTimeValue == "default"){
+                        time.disabled = true;
+                    }else{
+                        time.disabled = false;
+                    }
+                    if(endTimeValue == startTimeSelectedValue + 60){
+                        time.selected = true;
+                    }else{
+                        time.selected = false;
+                    }
+                })
             }
         })
 
@@ -369,12 +397,13 @@ const adminMainPageDOM = (function(){
             const addButton = document.createElement("button");
 
             label.innerText = `${day}`;
+            addButton.innerText = "Add Block"
 
             dayDiv.appendChild(label);
             dayDiv.appendChild(addButton)
 
-            day.forEach(function(timeBlock){
-                const blockNumber = day.indexOf(timeBlock);
+            adminMainPageData[day].forEach(function(timeBlock){
+                const blockNumber = adminMainPageData[day].indexOf(timeBlock);
                 const row = buildAdminTimeBlockRow(adminTimeBlockDiv, day, timeBlock, blockNumber);
                 dayDiv.appendChild(row)
             })
@@ -407,12 +436,18 @@ const adminMainPageDOM = (function(){
             
             const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
             selectionNew.addEventListener("change", publishSelectionValueChange)
+            selectionNew.addEventListener("change", disableDefaultOption)
+            if(primaryClass == "startTime"){
+                selectionNew.addEventListener("click", modifyEndTimeDefaultValue)
+            }
     
-            const selectedOption = selectionNew.querySelector(`option[value = ${timeBlock[primaryClass]}]`);
+            const selectedOption = selectionNew.querySelector(`option[value = "${timeBlock[primaryClass]}"]`);
             selectedOption.selected = true;
             if(selectedOption.value != "default"){
                 selectionNew.firstChild.disabled = true;
             }
+
+           
             
             selector.replaceWith(selectionNew);
     
@@ -420,6 +455,29 @@ const adminMainPageDOM = (function(){
                 const selector = primaryClass
                 const value = selectionNew.value;
                 events.publish("modifyAdminTimeBlockSelectorValue", {blockNumber, day, selector, value})
+            }
+
+            function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+                const values = Array.from(this.children);
+                values[0].disabled = true;
+            }
+
+            function modifyEndTimeDefaultValue(){
+                const startTimeSelectedValue = Number(this.value);
+                const endTimeValuesArray = Array.from(this.parentElement.nextElementSibling.lastElementChild.children);
+                endTimeValuesArray.forEach(function(time){
+                    const endTimeValue = Number(time.value);
+                    if(endTimeValue < startTimeSelectedValue + 30 || endTimeValue == "default"){
+                        time.disabled = true;
+                    }else{
+                        time.disabled = false;
+                    }
+                    if(endTimeValue == startTimeSelectedValue + 60){
+                        time.selected = true;
+                    }else{
+                        time.selected = false;
+                    }
+                })
             }
         })
 

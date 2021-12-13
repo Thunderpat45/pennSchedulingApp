@@ -12,6 +12,8 @@ const temporaryDatabasePostSimulator = (function(){
     events.subscribe("pageChangeRequested", alertAndLogCurrentObject);
     events.subscribe("userSeasonChangeRequested", alertAndLogCurrentObject);
     events.subscribe("adminSeasonChangeRequested", alertAndLogCurrentObject);
+    events.subscribe("userAvailabilityDataValidated", alertAndLogCurrentObject);
+
     
     function alertAndLogCurrentObject(databaseBoundObject){
         alert(databaseBoundObject);

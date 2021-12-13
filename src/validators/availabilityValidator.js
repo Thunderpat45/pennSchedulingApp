@@ -38,22 +38,24 @@ const availabilityValidator = (function(){
     }
     
     function validateAllInputs(availabilityData){
-        const string = "A non-default value must be selected for the following:";
+        let string = "A non-default value must be selected for the following: ";
         const emptySelectors = [];
 
         for(let day in availabilityData){
-            let dayString = `${day}`;
+            let dayString = `${day}--`;
             const dayEmptySelectors = [];
-            day.ForEach(function(prop){
-                if(prop == "default"){
-                    dayEmptySelectors.push(prop);
-                    dayString.concat("; ", prop)
+            availabilityData[day].forEach(function(block){
+                for(let prop in block){
+                    if(block[prop] == "default"){
+                        dayEmptySelectors.push(prop);
+                        dayString += `${prop}; `;
+                    }
                 }
             })
 
             if(dayEmptySelectors.length > 0){
                 emptySelectors.push(dayEmptySelectors);
-                string.concat(", ", dayString);
+                string += `${dayString}` ;
             }
         }
 

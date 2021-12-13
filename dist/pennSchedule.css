@@ -86,7 +86,7 @@ h1{
 
 #teamGridLabels{
 	display:grid;
-	grid-template-columns: 1.5fr .5fr 1fr 1fr 1fr 1fr .5fr 1fr
+	grid-template-columns: 1.5fr .5fr 4.5fr 1fr;
 }
 
 .teamGridTeamDayContainer{
@@ -103,7 +103,7 @@ h1{
 
 .teamGridTeamOptionContainer{
 	display:grid;
-	grid-template-columns:1fr 3.5fr;
+	grid-template-columns:1fr;
 	row-gap: 1rem;
 }
 
@@ -204,7 +204,7 @@ h1{
 	height:40px;
 }
 
-.formDayDetails{
+.formAllDayDetails{
 	display:grid;
 	grid-template-columns: repeat(4, 1fr);
 	grid-auto-rows: minmax(2.5rem, auto);

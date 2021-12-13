@@ -1,4 +1,6 @@
 
+
+import {events} from "./events"
 import {adminAllUsersDataModel} from "./dataModels/adminAllUsersDataModel"
 import {adminMainPageAdminTimeBlockModel} from "./dataModels/adminMainPageAdminTimeBlockModel"
 import {adminMainPageAllTeamsData} from "./dataModels/adminMainPageAllTeamsDataModel"
@@ -17,11 +19,6 @@ import {availabilityValidator} from "./validators/availabilityValidator"
 import {facilityDataValidator} from "./validators/facilityDataValidator"
 import {requestValidator} from "./validators/requestValidator"
 import {userValidator} from "./validators/userValidator"
-import {events} from "./events"
 import {pageRenderer} from "./pageRenderer"
 import {temporaryDatabasePostSimulator} from "./temporaryDatabasePostSimulator"
 import {timeValueConverter} from "./timeConverter"
-
-
-
-

@@ -46,7 +46,7 @@ const myTeamsModel = (function(){
 
      function populateMyTeams(userMyTeams){ 
          myTeams = userMyTeams.teams.concat();
-         for(let team in userMyTeams.team){
+         for(let team in userMyTeams.teams){
 			myTeams[team] = Object.assign({}, userMyTeams.teams[team])
 			myTeams[team].rank = Object.assign({}, userMyTeams.teams[team].rank)
 		} 
@@ -54,18 +54,18 @@ const myTeamsModel = (function(){
 
     function editTeam(teamRequest){ 
         const thisTeam = myTeams.filter(function(team){
-            teamRequest.teamName == team.teamName
+            return teamRequest.name == team.name
         })[0];
         events.publish("teamEditDataLoaded", thisTeam); //follow this
     }
 
     function modifyTeamOrder(teamInfoObj){
         const myTeamsSlice = myTeams.concat();
-        const team = myTeamsSlice.splice(teamInfoObj.teamIndex, 1)[0];
-        myTeamsSlice.splice(teamInfoObj.teamIndex + teamInfoObj.modifier, 0, team);
+        const team = myTeamsSlice.splice(teamInfoObj.index, 1)[0];
+        myTeamsSlice.splice(teamInfoObj.index + teamInfoObj.modifier, 0, team);
         myTeamsSlice.forEach(function(thisTeam){
             thisTeam.rank.myTeams = myTeamsSlice.findIndex(function(teams){
-                return teams.teamName == thisTeam.teamName
+                return teams.name == thisTeam.name
             })
         })     
         events.publish("myTeamsDataUpdated", myTeamsSlice); //send to DB for save
@@ -82,14 +82,14 @@ const myTeamsModel = (function(){
        }
        myTeamsSlice.forEach(function(thisTeam){
         thisTeam.rank.myTeams = myTeamsSlice.findIndex(function(teams){
-                return teams.teamName == thisTeam.teamName
+                return teams.name == thisTeam.name
             })
         })
         events.publish("myTeamsDataUpdated", myTeamsSlice) //send to DB for save
 
         function findExistingTeam(){
             const existingTeam = myTeamsSlice.findIndex(function(teams){
-                return teamObject.teamRequest.teamName == teams.teamName
+                return teamObject.teamRequest.name == teams.name
             })
             return existingTeam
             
@@ -99,13 +99,13 @@ const myTeamsModel = (function(){
     function deleteTeamForDatabaseUpdate(thisTeam){
         const myTeamsSlice = myTeams.concat();
         const existingTeamIndex = myTeamsSlice.findIndex(function(teams){ 
-            return teams.teamName == thisTeam.teamName
+            return teams.name == thisTeam.name
         })
 
         myTeamsSlice.splice(existingTeamIndex, 1)
         myTeamsSlice.forEach(function(thisTeam){
             thisTeam.rank.myTeams = myTeamsSlice.findIndex(function(teams){ 
-                return teams.teamName == thisTeam.teamName
+                return teams.name == thisTeam.name
             })
         })
         events.publish("myTeamsDataUpdated", myTeamsSlice) //send to DB for save

@@ -63,7 +63,7 @@ const requestFormDOM = (function(){
                     selectorNodes[selectorElement] = selectorElementObj[selectorElement];
                     break;
                 default:
-                    return;
+                    break;
             }  
         }  
     }
@@ -115,24 +115,24 @@ const requestFormDOM = (function(){
 
     function renderTeamName(teamNameDOM, workingModel){
         
-        teamNameDOM.value = workingModel.teamName;
+        teamNameDOM.value = workingModel.name;
 
         teamNameDOM.addEventListener("blur", function modifyTeamNameValue(){ 
-            if(workingModel.teamName != teamNameDOM.value && blockTeamDuplication() == true){
+            if(workingModel.name != teamNameDOM.value && blockTeamDuplication() == true){
                 alert(`Data already exists for ${teamNameDOM.value}. Use another team name or select edit for ${teamNameDOM.value}`);
-                teamNameDOM.value = "";
+                teamNameDOM.value = workingModel.name;
                 teamNameDOM.focus();
             }else if(teamNameDOM.value == ""){
                 alert("Team name must have a value.");
                 teamNameDOM.focus();
-            }else if(workingModel.teamName != "" && teamNameDOM.value != workingModel.teamName){
-                const confirmation = confirm(`If you submit changes, this will change team name from ${workingModel.teamName} to ${teamNameDOM.value}. Proceed? `);
+            }else if(workingModel.name != "" && teamNameDOM.value != workingModel.name){
+                const confirmation = confirm(`If you submit changes, this will change team name from ${workingModel.name} to ${teamNameDOM.value}. Proceed? `);
                 if(confirmation){
                     events.publish("modifyTeamNameValue", teamNameDOM.value)
                 }else{
-                    teamNameDOM.value = workingModel.teamName;
+                    teamNameDOM.value = workingModel.name;
                 }
-            }else if(workingModel.teamname != teamNameDOM.value){
+            }else if(workingModel.name != teamNameDOM.value){
                 events.publish("modifyTeamNameValue", teamNameDOM.value)
             } 
         })
@@ -141,7 +141,7 @@ const requestFormDOM = (function(){
 
         function blockTeamDuplication(){
             const teamCheck = allTeams.some(function(thisTeam){
-                return thisTeam.teamName.toLowerCase() == teamNameDOM.value.toLowerCase();
+                return thisTeam.name.toLowerCase() == teamNameDOM.value.toLowerCase();
             })
             return teamCheck;
         }
@@ -149,18 +149,21 @@ const requestFormDOM = (function(){
 
     
     function renderTeamSizeSelection(teamSizeDOM, workingModel){
-        const primaryClass = Array.from(this.classList)[0];
+        const primaryClass = Array.from(teamSizeDOM.classList)[0];
         
         const selection = selectorNodes[`${primaryClass}`].cloneNode(true);  
         selection.id = "formTeamSize";
 
-        const selectedOption= selection.querySelector(`option[value = ${workingModel.teamSize}]`);
+        const selectedOption= selection.querySelector(`option[value = "${workingModel.size}"]`);
         selectedOption.selected = true;
         if(selectedOption.value != "default"){
             selection.firstChild.disabled = true;
         }
 
+
+        selection.addEventListener("change", modifyTeamSizeValue)
         selection.addEventListener("blur", validateTeamSizeValue)
+        selection.addEventListener("change", disableDefaultOption)
         
         teamSizeDOM.replaceWith(selection); //may be able to get rid of this
 
@@ -172,6 +175,16 @@ const requestFormDOM = (function(){
                 selection.focus();
             }
         }
+
+        function modifyTeamSizeValue(){
+            const value = selection.value 
+            events.publish("modifyTeamSizeValue", value)
+        }
+
+        function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+            const values = Array.from(this.children);
+            values[0].disabled = true;
+        }
     }
 
     
@@ -181,7 +194,7 @@ const requestFormDOM = (function(){
 
         workingModel.allOpts.forEach(function(optionDetails){
             const optNum = workingModel.allOpts.indexOf(optionDetails) + 1; 
-            const option = buildOption(workingModel.allopts, optionDetails, optNum);
+            const option = buildOption(workingModel.allOpts, optionDetails, optNum);
             allOptsNew.appendChild(option);
         });
         
@@ -221,6 +234,8 @@ const requestFormDOM = (function(){
             deleteButton.addEventListener("click", deleteOpt)
             upButton.addEventListener("click", moveOptionUp);
             downButton.addEventListener("click", moveOptionDown);
+
+            deleteButton.innerText = "X"
 
             labelButtonDiv.appendChild(deleteButton)
 
@@ -297,21 +312,17 @@ const requestFormDOM = (function(){
         if(optionDetails.length>1){
             const deleteButton = document.createElement("button");
             deleteButton.classList.add("deleteDay");
+            deleteButton.innerText = "X"
             
             deleteButton.addEventListener("click", deleteDay);
             labelButtonDiv.appendChild(deleteButton)
         }
         
-        renderDayDetails();
+        const allDaysDetailsNew = buildDayDetails(dayDetails, optNum, dayNum);
+
+        allDaysDetails.replaceWith(allDaysDetailsNew)
 
         return content
-        
-        function renderDayDetails(){
-            const allDayDetailsNew = buildDayDetails(dayDetails, optNum, dayNum);
-            allDayDetailsNew.classList.add("formAllDayDetails")
-
-            allDaysDetails.replaceWith(allDayDetailsNew);   
-        }
 
         function deleteDay(){
             events.publish("deleteDay", {optNum, dayNum})
@@ -329,9 +340,13 @@ const requestFormDOM = (function(){
             const primaryClass = Array.from(selection.classList)[0];
             
             const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
-            selectionNew.addEventListener("change", publishSelectionValueChange)
+            selectionNew.addEventListener("change", publishSelectionValueChange);
+            selectionNew.addEventListener("change", disableDefaultOption);
+            if(primaryClass == "startTime"){
+                selectionNew.addEventListener("click", modifyEndTimeDefaultValue)
+            }
 
-            const selectedOption = selectionNew.querySelector(`option[value = ${dayDetails[primaryClass]}]`);
+            const selectedOption = selectionNew.querySelector(`option[value = "${dayDetails[primaryClass]}"]`);
             selectedOption.selected = true;
             if(selectedOption.value != "default"){
                 selectionNew.firstChild.disabled = true;
@@ -343,6 +358,30 @@ const requestFormDOM = (function(){
                 const selector = primaryClass;
                 const value = selectionNew.value
                 events.publish("modifyTeamSelectorValue", {optNum, dayNum, selector, value})
+            }
+
+            function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+                const values = Array.from(this.children);
+                values[0].disabled = true;
+            }
+
+
+            function modifyEndTimeDefaultValue(){
+                const startTimeSelectedValue = Number(this.value);
+                const endTimeValuesArray = Array.from(this.parentElement.nextElementSibling.lastElementChild.children);
+                endTimeValuesArray.forEach(function(time){
+                    const endTimeValue = Number(time.value);
+                    if(endTimeValue < startTimeSelectedValue + 30 || endTimeValue == "default"){
+                        time.disabled = true;
+                    }else{
+                        time.disabled = false;
+                    }
+                    if(endTimeValue == startTimeSelectedValue + 60){
+                        time.selected = true;
+                    }else{
+                        time.selected = false;
+                    }
+                })
             }
         });
 
