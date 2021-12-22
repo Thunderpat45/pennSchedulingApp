@@ -122,9 +122,13 @@ const mainPageDOM = (function(){
 
     function buildAvailabilityDisplay(availabilityData){
         const availabilityDisplayNew = document.createElement("div");
+        availabilityDisplayNew.id = "availabilityDisplay"
         for(let day in availabilityData){
             const dayDiv = document.createElement("div");
+            dayDiv.classList.add("userAvailabilityDay");
+
             const label = document.createElement("p");
+            label.classList.add("userAvailabilityDayLabel");
 
             label.innerText = `${day}`;
             dayDiv.appendChild(label)
@@ -133,11 +137,13 @@ const mainPageDOM = (function(){
                 const blockNumber = availabilityData[day].indexOf(timeBlock);
                 
                 const timeBlockDiv = document.createElement("div");
+                timeBlockDiv.classList.add("userAvailabilityTimeBlock")
+
                 const startTime = document.createElement("p");
                 const endTime = document.createElement("p");
 
-                startTime.innerText = `Start Time: ${timeValueConverter.runConvertTotalMinutesToTime(availabilityData[day][blockNumber].startTime)}`;
-                endTime.innerText = `End Time: ${timeValueConverter.runConvertTotalMinutesToTime(availabilityData[day][blockNumber].endTime)}`;
+                startTime.innerText = `Start: ${timeValueConverter.runConvertTotalMinutesToTime(availabilityData[day][blockNumber].startTime)}`;
+                endTime.innerText = `End: ${timeValueConverter.runConvertTotalMinutesToTime(availabilityData[day][blockNumber].endTime)}`;
 
                 timeBlockDiv.appendChild(startTime);
                 timeBlockDiv.appendChild(endTime);

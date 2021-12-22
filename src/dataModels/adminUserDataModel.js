@@ -71,7 +71,7 @@ const adminUserDataModel = (function(){
     }
 
     function setPrivilegeLevel(privilege){
-        userModelCopy.privilege = privilege;
+        userModelCopy.privilegeLevel = privilege;
         if(privilege == false){
             userModelCopy.adminPageSet = null
         }else{

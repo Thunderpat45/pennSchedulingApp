@@ -60,14 +60,14 @@ const adminMainPageAdminTimeBlockModel = (function(){
     function addAdminAvailabilityRow(obj){
         adminAvailabilityModelCopy[obj.day].push(Object.assign({}, timeBlockDefault));
 
-        events.publish("adminAvailabilityModelModified", {adminTimeBlockDiv : obj.adminTimeBlockDiv, adminMainPageData: adminAvailabilityModelCopy});
+        events.publish("adminAvailabilityModelModified", {adminTimeBlockDiv : obj.adminTimeBlockDiv, adminMainPageData: adminAvailabilityModelCopy, pageRenderOrigin: "dataChange"});
     }
 
     function deleteAdminAvailabilityRow(rowObj){
         const blockIndex = rowObj.blockNumber;
         adminAvailabilityModelCopy[rowObj.day].splice(blockIndex, 1);
 
-        events.publish("adminAvailabilityModelModified", {adminTimeBlockDiv: rowObj.adminTimeBlockDiv, adminMainPageData: adminAvailabilityModelCopy});
+        events.publish("adminAvailabilityModelModified", {adminTimeBlockDiv: rowObj.adminTimeBlockDiv, adminMainPageData: adminAvailabilityModelCopy, pageRenderOrigin: "dataChange"});
     }
 
     function modifyAdminAvailabilityValue(rowObj){
@@ -85,7 +85,7 @@ const adminMainPageAdminTimeBlockModel = (function(){
 
     function cancelAdminAvailabilityChanges(adminTimeBlockDiv){
         setAdminAvailabilityModelCopy();
-        events.publish("adminAvailabilityModelModified", {adminTimeBlockDiv, adminMainPageData: adminAvailabilityModel})
+        events.publish("adminAvailabilityModelModified", {adminTimeBlockDiv, adminMainPageData: adminAvailabilityModel, pageRenderOrigin: "dataChange"})
     }
 })()
 

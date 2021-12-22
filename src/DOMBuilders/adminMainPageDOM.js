@@ -126,8 +126,8 @@ const adminMainPageDOM = (function(){
     
         const adminAllTeamsNew = renderAdminAllTeamsGrid(adminAllTeams, adminMainPageData.allTeams);
         const adminAllUsersNew = renderAdminAllUsersGrid(adminAllUsers, adminMainPageData.allUsers);
-        const adminFacilityDataNew = renderFacilityDataGrid({adminFacilityDataContainer: adminFacilityData, adminMainPageData: adminMainPageData.facilitySelectors});
-        const adminAddTimeBlockNew = renderAdminTimeBlocker(adminAddTimeBlock, adminMainPageData.adminTimeBlocks);
+        const adminFacilityDataNew = renderFacilityDataGrid({adminFacilityDataContainer: adminFacilityData, adminMainPageData: adminMainPageData.facilitySelectors, pageRenderOrigin: "template"});
+        const adminAddTimeBlockNew = renderAdminTimeBlocker({adminTimeBlockDiv: adminAddTimeBlock, adminMainPageData: adminMainPageData.adminTimeBlocks, pageRenderOrigin: "template"});
     
         adminAllTeams.replaceWith(adminAllTeamsNew);
         adminAllUsers.replaceWith(adminAllUsersNew); 
@@ -184,7 +184,7 @@ const adminMainPageDOM = (function(){
         const teamCoach = content.querySelector(".adminMainPageTeamGridTeamCoach");
         const teamSize = content.querySelector(".adminMainPageTeamGridTeamSize");
         const teamRank = content.querySelector(".adminMainPageTeamGridTeamRank");
-        const teamButtons = content.querySelector(".adminMainPageTeamGridTeamsButtons");
+        const teamButtons = content.querySelector(".adminMainPageTeamGridTeamButtons");
         
         const uprankButton = document.createElement("button");
         const downrankButton = document.createElement("button");
@@ -192,7 +192,7 @@ const adminMainPageDOM = (function(){
         teamName.innerText = teamData.name;
         teamCoach.innerText = teamData.coach;
         teamSize.innerText = teamData.size;
-        teamRank.innerText = teamData.rank.allTeams;
+        teamRank.innerText = teamData.rank.allTeams +1;
 
         uprankButton.id = "adminMainPageTeamGridTeamUprankButton"
         downrankButton.id = "adminMainPageTeamGridTeamDownrankButton"
@@ -264,9 +264,14 @@ const adminMainPageDOM = (function(){
         deleteButton.addEventListener("click", deleteUser);
     
         userName.innerText = userData.name;
+        if(userData.privilegeLevel){
+            userPrivilege.innerText = "admin"
+        }else{
+            userPrivilege.innerText = "user"
+        }
         userPrivilege.innerText = userData.privilegeLevel;
         userLastVerified.innerText = userData.lastVerified;
-        userColorBlock.style.background = userData.color
+        userColorBlock.style.backgroundColor = userData.color
     
         return content
     
@@ -283,12 +288,13 @@ const adminMainPageDOM = (function(){
         
         const adminFacilityDataContainer = dataDomObj.adminFacilityDataContainer;
         const adminMainPageData = dataDomObj.adminMainPageData;
+        const pageRenderOrigin = dataDomObj.pageRenderOrigin
 
         const template = document.querySelector("#adminMainPageFacilityDataGridTemplate");
         const content = document.importNode(template.content, true);
 
         const facilityGridNew = content.querySelector("#facilityDataGrid");
-        const facilitySelectorsNodes = content.querySelectorAll(".select");
+        const facilitySelectorsNodes = content.querySelectorAll(".selector");
         const saveButton = content.querySelector("#adminMainPageFacilitySelectorsSaveButton");
         const cancelButton = content.querySelector("#adminMainPageFacilitySelectorsCancelButton");
     
@@ -331,11 +337,6 @@ const adminMainPageDOM = (function(){
                     }else{
                         time.disabled = false;
                     }
-                    if(endTimeValue == startTimeSelectedValue + 60){
-                        time.selected = true;
-                    }else{
-                        time.selected = false;
-                    }
                 })
             }
         })
@@ -351,7 +352,7 @@ const adminMainPageDOM = (function(){
         }
         
         const facilityGrid = document.querySelector("#facilityDataGrid");
-        if(facilityGrid != null){
+        if(pageRenderOrigin == "dataChange"){
             facilityGrid.replaceWith(facilityGridNew)
         }else{
             adminFacilityDataContainer.appendChild(facilityGridNew)
@@ -360,13 +361,14 @@ const adminMainPageDOM = (function(){
     } 
     
     //adminTimeBlocker display is blockGrid (allTimeBlocks), saveChanges, cancelChanges buttons; dataModel issue to determine when to write changes to allUsers (FE or BE)
-    function renderAdminTimeBlocker(adminTimeBlockDiv, adminMainPageData){
-     
-        const adminTimeBlockGrid = adminTimeBlockDiv.querySelect("#adminMainPageAddAvailabilityBlockAllUsersGrid");
-        const adminSaveTimeBlockButton = adminTimeBlockDiv.querySelect("#adminMainPageAddAvailabilityBlockAllUsersSaveButton");
-        const adminCancelTimeBlockChangesButton = adminTimeBlockDiv.querySelect("#adminMainPageAddAvailabilityBlockAllUsersCancelButton");
+    function renderAdminTimeBlocker(adminDomObj){
+        const adminTimeBlockDiv = adminDomObj.adminTimeBlockDiv
+
+        const adminTimeBlockGrid = adminTimeBlockDiv.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid");
+        const adminSaveTimeBlockButton = adminTimeBlockDiv.querySelector("#adminMainPageAddAvailabilityBlockAllUsersSaveButton");
+        const adminCancelTimeBlockChangesButton = adminTimeBlockDiv.querySelector("#adminMainPageAddAvailabilityBlockAllUsersCancelButton");
         
-        const adminTimeBlockGridNew = renderAdminAllTimeBlocks({adminTimeBlockDiv, adminMainPageData});
+        const adminTimeBlockGridNew = renderAdminAllTimeBlocks(adminDomObj);
 
         adminTimeBlockGrid.replaceWith(adminTimeBlockGridNew);
     
@@ -386,6 +388,8 @@ const adminMainPageDOM = (function(){
     function renderAdminAllTimeBlocks(dataDomObj){
         const adminTimeBlockDiv = dataDomObj.adminTimeBlockDiv;
         const adminMainPageData = dataDomObj.adminMainPageData
+        const pageRenderOrigin = dataDomObj.pageRenderOrigin
+
         const allTimeBlocksNew = document.createElement("div")
         allTimeBlocksNew.id = "adminMainPageAddAvailabilityBlockAllUsersGrid";
     
@@ -408,7 +412,7 @@ const adminMainPageDOM = (function(){
                 dayDiv.appendChild(row)
             })
 
-            allTimeBlocksNew.appendChild(day);
+            allTimeBlocksNew.appendChild(dayDiv);
 
             addButton.addEventListener("click", function addAdminTimeBlock(){
                 events.publish('addAdminTimeBlockClicked', {adminTimeBlockDiv, day})
@@ -416,7 +420,7 @@ const adminMainPageDOM = (function(){
         }
 
         const allTimeBlocks = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid");
-        if(allTimeBlocks != null){
+        if(pageRenderOrigin == "dataChange"){
             allTimeBlocks.replaceWith(allTimeBlocksNew)
         }else{
             return allTimeBlocksNew
@@ -428,8 +432,8 @@ const adminMainPageDOM = (function(){
         const template = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersBlockTemplate");
         const content = document.importNode(template.content, true);
 
-        const selectorsNodes = content.querySelectorAll(".select");
-        const deleteButton = content.querySelector("#adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton")
+        const selectorsNodes = content.querySelectorAll(".selector");
+        const deleteButton = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton")
     
         selectorsNodes.forEach(function(selector){
             const primaryClass = Array.from(selector.classList)[0];
@@ -471,11 +475,6 @@ const adminMainPageDOM = (function(){
                         time.disabled = true;
                     }else{
                         time.disabled = false;
-                    }
-                    if(endTimeValue == startTimeSelectedValue + 60){
-                        time.selected = true;
-                    }else{
-                        time.selected = false;
                     }
                 })
             }

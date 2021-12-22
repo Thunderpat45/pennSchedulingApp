@@ -172,11 +172,6 @@ const availabilityPageDOM = (function(){
                     }else{
                         time.disabled = false;
                     }
-                    if(endTimeValue == startTimeSelectedValue + 60){
-                        time.selected = true;
-                    }else{
-                        time.selected = false;
-                    }
                 })
             }
         });

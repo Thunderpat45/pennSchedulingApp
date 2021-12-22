@@ -17,14 +17,17 @@ const pageRenderer = (function(){
     
     let name;
     let adminAccess;
-   
-    const dropdownContent = document.querySelector("#dropdownContent");
-    const logOutButton = document.querySelector("#logOut");
 
-    dropdownContent.id = "dropdownContent";
-    logOutButton.id = "logOutButton";
+    let userPageLink;
+    let adminPageLink;
 
-    //logOut add eventListener
+    const nav = document.querySelector("#nav")
+    const logOutLink = document.querySelector("#logOutLink");
+
+    logOutLink.addEventListener("click", doTheThing);
+
+    function doTheThing(){} //make this a logOut Function
+
 
     function renderPageContent(page){
         const mainContent = document.getElementsByTagName("main")[0];
@@ -39,28 +42,27 @@ const pageRenderer = (function(){
         name = userData.name;
         adminAccess = userData.privilegeLevel;
 
-        setName();
         setDropdownPrivilegeAccess();
     }
 
-    function setName(){
-        const nameContent = document.querySelector("#userNameLabel")
-        nameContent.innerText = name;
-    }
-
     function setDropdownPrivilegeAccess(){
-        if(adminAccess == true){
-            const userPageButton = document.createElement("p");
-            const adminPageButton = document.createElement("p");
+        if(adminAccess == true && userPageLink == null && adminPageLink == null){
+            userPageLink = document.createElement("p");
+            adminPageLink = document.createElement("p");
 
-            userPageButton.id = "userPageButton";
-            adminPageButton.id = "adminPageButton"
+            userPageLink.id = "userPageLink";
+            userPageLink.classList.add("navLink");
+            userPageLink.innerText = "User Page"
+
+            adminPageLink.id = "adminPageLink";
+            adminPageLink.classList.add("navLink");
+            adminPageLink.innerText = "Admin Page"
         
-            userPageButton.addEventListener("click", publishPageChangeRequest);
-            adminPageButton.addEventListener("click", publishPageChangeRequest);
+            userPageLink.addEventListener("click", publishPageChangeRequest);
+            adminPageLink.addEventListener("click", publishPageChangeRequest);
 
-            dropdownContent.insertBefore(userPageButton,logOutButton);
-            dropdownContent.insertBefore(adminPageButton,logOutButton);
+            nav.insertBefore(userPageLink,logOutLink);
+            nav.insertBefore(adminPageLink,logOutLink);
         }
 
         function publishPageChangeRequest(){
@@ -73,6 +75,7 @@ const pageRenderer = (function(){
     }
 
     return {renderPageContent}
+
 
 })();
 

@@ -53,7 +53,7 @@ const adminMainPageFacilityDataModel = (function(){
     }
     function cancelFacilityDataChanges(adminFacilityDataContainer){
         setAdminFacilityDataModelCopy();
-        events.publish("adminFacilityModelModified", {adminFacilityDataContainer, adminMainPageData: adminFacilityDataModel})
+        events.publish("adminFacilityModelModified", {adminFacilityDataContainer, adminMainPageData: adminFacilityDataModel, pageRenderOrigin: "dataChange"})
     }
 
 

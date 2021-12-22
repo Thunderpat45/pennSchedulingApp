@@ -132,7 +132,7 @@ const selectorBuilder = (function(){
 
     function buildRangeSelectorOptions(primaryClass, selector){
         const optionValues = selectionOptions[primaryClass];
-        for(let i = optionValues.start; i<optionValues.end; i += optionValues.increment){
+        for(let i = optionValues.start; i<=optionValues.end; i += optionValues.increment){
             const option = document.createElement("option");
             option.value = i;
             if(primaryClass == "teamSize" || primaryClass == "facilityMaxCapacity"){

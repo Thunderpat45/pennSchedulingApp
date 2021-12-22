@@ -25,12 +25,12 @@ const facilityDataValidator = (function(){
         const string = "A non-default value must be selected for the following:";
         const emptySelectors = [];
   
-        facilityData.ForEach(function(prop){
-            if(prop == "default"){
+        for(let prop in facilityData){
+            if(facilityData[prop] == "default"){
                 emptySelectors.push(prop);
             string.concat(", ", prop);
             }
-        })
+        }
 
         if(emptySelectors.length > 0){
             alert(string)

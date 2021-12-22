@@ -46,7 +46,7 @@ const adminAllUsersDataModel = (function(){ //continue REVIEW HERE
 
 	function editUser(userData){
 		const thisUser = allUsers.filter(function(user){
-			return userData.userName = user.userName
+			return userData.name == user.name
 		})[0];
 
 		events.publish("userEditDataLoaded", thisUser);
@@ -54,13 +54,27 @@ const adminAllUsersDataModel = (function(){ //continue REVIEW HERE
 
 	function deleteUserForDatabaseUpdate(userData){
 		const allUsersSlice = allUsers.concat();
-		const existingUserIndex = allUsersSlice.findIndex(function(users){
-			return users.userName = userData.userName
-		})
+		
+		if(userData.privilegeLevel == true && !checkForLastAdmin()){
+			alert("Cannot demote last admin. Create new admin users before deleting this admin.")
+		}else{
+			
+			const existingUserIndex = allUsersSlice.findIndex(function(users){
+				return users.name ==userData.name
+			})
 
-		allUsersSlice.splice(existingUserIndex, 1);
+			allUsersSlice.splice(existingUserIndex, 1);
+	
+			events.publish("allUsersDataUpdated", allUsersSlice); //find database listener for this
+		} 	
 
-		events.publish("allUsersDataUpdated", allUsersSlice); //find database listener for this
+		function checkForLastAdmin(){
+			const adminUsers = allUsersSlice.filter(function(user){
+				return user.privilegeLevel == true
+			})
+
+			return adminUsers.length >1
+		}
 	}
 
 	function addEditUserForDatabaseUpdate(validatedUserData){

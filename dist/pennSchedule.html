@@ -7,18 +7,13 @@
 	<header>
 		<div id = "pageTitleIcon">
 			<img id = "pageIcon" src = "">
-			<div id = "pageTitle">UPenn S&C Scheduling App</div>
-		</div>	
-	</header>
-	<nav id = "nav">
-		<p id = "userNameLabel"></p>
-		<div id = "dropdown">
-			<button id= "dropButton">Options</button>
-			<div id = "dropdownContent">
-				<p id = "logOut">Log Out</p>
-			</div>
+			<div id = "pageTitle">UPenn S&C Facility Scheduling App</div>
 		</div>
-	</nav>
+		<nav id = "nav">
+			<p id= "logOutLink" class = "navLink">Log Out</p>
+		</nav>	
+	</header>
+	
 	<main></main>
 	<footer></footer>
 </body>
@@ -28,30 +23,33 @@
 <!--templates-->
 
 <template id = "mainPageTemplate">
-	<div id = "mainPage">
-		
-		<div id = "seasonButtons">
-			<button id = "fallButton">Fall</button>
-			<button id = "springButton">Spring</button>
-		</div>
-		<div id = "userAvailability">
-			<h3 id = "userAvailabilityLabel">Availabililty</h3>
-			<div id = "availabilityDisplay"></div>
-			<button id = "editAvailability">Edit Availability</button>
-		</div>
-		<div id = "teamGridContainer">
-			<div id = "teamGridLabels">
-				<div>Name</div>
-				<div>Size</div>
-				<div>Option</div>
-				<div>Buttons</div>
+	<div id = "mainPage" class= "page">
+		<div id = "mainPageMainColumn">
+			<div id = "seasonButtons">
+				<button id = "fallButton">Fall</button>
+				<button id = "springButton">Spring</button>
 			</div>
-			<div id = "teamGrid"></div>
-			<button id = "teamGridAddTeam">Add Team</button>
+			<div id = "teamGridContainer">
+				<div id = "teamGridLabels">
+					<div>Name</div>
+					<div>Size</div>
+					<div>Option</div>
+					<div>Buttons</div>
+				</div>
+				<div id = "teamGrid"></div>
+				<button id = "teamGridAddTeam">Add Team</button>
+			</div>
+			<div id = "verifyDiv">
+				<p id = "verifyInfo"></p>
+				<button id = "verifyButton">Verify Teams Up To Date</button>
+			</div>
 		</div>
-		<div id = "verifyDiv">
-			<p id = "verifyInfo"></p>
-			<button id = "verifyButton">Verify Teams Up To Date</button>
+		<div id = "mainPageSideColumn">
+			<div id = "userAvailability">
+				<h3 id = "userAvailabilityLabel">Availability</h3>
+				<button id = "editAvailability">Edit Availability</button>
+				<div id = "availabilityDisplay"></div>
+			</div>
 		</div>
 		
 	</div>
@@ -186,10 +184,6 @@
 			<label for = "userGeneratorName">Name</label><br>
 			<input type = "text" id = "userGeneratorName" name ="userGeneratorName" maxlength="25"><br>
 		</div>
-		<div id = "userGeneratorPasswordDiv">
-			<label for = "userGeneratorPassword">Password</label><br>
-			<input type = "text" id = "userGeneratorPassword" name ="userGeneratorPassword" maxlength="25">
-		</div>
 		<div id = "userGeneratorPrivilegeDiv">
 			<label for = "userGeneratorPrivilege">Set to Admin Role</label><br>
 			<input id = "userGeneratorPrivilege" name = "userGeneratorPrivilege" type = "checkbox" value = "true"><br> 
@@ -229,7 +223,7 @@
 	<div id = "adminMainPage">
 		<div id = "adminSeasonButtons">
 			<button id = "fallButton">Fall</button>
-			<button id = "springButton">Spring<button>
+			<button id = "springButton">Spring</button>
 		</div>
 		<div id = "adminMainPageTeamsGridContainer">
 			<h2>All Teams</h2>

@@ -86,11 +86,7 @@ const adminUserGeneratorDOM = (function(){
                 alert(`Data already exists for ${userNameDOM.value}. Use another name or edit/delete the other user for the name you are trying to switch to.`);
                 userNameDOM.value = "";
                 userNameDOM.focus()
-            }else if(userNameDOM.value == ""){
-                alert("User name must have a value");
-                userNameDOM.focus();
-            }   
-            else if(userModel.name != "" && userNameDOM.value != userModel.name){
+            }else if(userModel.name != "" && userNameDOM.value != userModel.name){
                 const confirmation = confirm(`If you submit changes, this will change the user name from ${userModel.name} to ${userNameDOM.value}. Proceed? `);
                 if(confirmation){
                     events.publish("modifyUserNameValue", userNameDOM.value)
@@ -148,9 +144,6 @@ const adminUserGeneratorDOM = (function(){
             if(userModel.color != userColorDOM.value && blockColorDuplication()){
                 alert(`Another user is already using this color. Considering all the possible colors available, the odds are pretty low. Unlucky pick, I guess!`)
                 userColorDOM.value = userModel.color; 
-                userColorDOM.focus();
-            }else if(userColorDOM.value == "#000000"){
-                alert("Color must have a value not equal to black. Black is default value, and must be changed.");
                 userColorDOM.focus();
             }else if(userModel.color != userColorDOM.value){
                 events.publish("modifyUserColorValue", userColorDOM.value)

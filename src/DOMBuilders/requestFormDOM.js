@@ -122,9 +122,6 @@ const requestFormDOM = (function(){
                 alert(`Data already exists for ${teamNameDOM.value}. Use another team name or select edit for ${teamNameDOM.value}`);
                 teamNameDOM.value = workingModel.name;
                 teamNameDOM.focus();
-            }else if(teamNameDOM.value == ""){
-                alert("Team name must have a value.");
-                teamNameDOM.focus();
             }else if(workingModel.name != "" && teamNameDOM.value != workingModel.name){
                 const confirmation = confirm(`If you submit changes, this will change team name from ${workingModel.name} to ${teamNameDOM.value}. Proceed? `);
                 if(confirmation){
@@ -162,19 +159,11 @@ const requestFormDOM = (function(){
 
 
         selection.addEventListener("change", modifyTeamSizeValue)
-        selection.addEventListener("blur", validateTeamSizeValue)
         selection.addEventListener("change", disableDefaultOption)
         
         teamSizeDOM.replaceWith(selection); //may be able to get rid of this
 
         return selection
-
-        function validateTeamSizeValue(){
-            if(selection.value == "default"){
-                alert("Team size must have a value.");
-                selection.focus();
-            }
-        }
 
         function modifyTeamSizeValue(){
             const value = selection.value 
@@ -375,11 +364,6 @@ const requestFormDOM = (function(){
                         time.disabled = true;
                     }else{
                         time.disabled = false;
-                    }
-                    if(endTimeValue == startTimeSelectedValue + 60){
-                        time.selected = true;
-                    }else{
-                        time.selected = false;
                     }
                 })
             }

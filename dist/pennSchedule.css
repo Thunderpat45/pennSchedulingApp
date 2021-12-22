@@ -1,38 +1,8 @@
-header{
-	text-align:center;
+/*general page elements*/
+
+html{
+	box-sizing: border-box;
 }
-
-nav{
-	display: grid;
-	grid-template-columns: 4fr 1fr 1fr;
-	grid-template-areas:
-		". userNameLabel dropdown";
-}
-
-#userNameLabel{
-	grid-area: userNameLabel
-}
-#dropdown{
-	grid-area: dropdown;
-	position:relative;
-	display: inline-block;
-}
-
-#dropdownContent{
-	display: none;
-	position:absolute;
-	z-index:1
-}
-
-.showDropdownContent{
-	display:block
-}
-
-
-
-
-
-
 
 html,body{
 	font-size: 20px;
@@ -40,27 +10,92 @@ html,body{
 	height:100%
 }
 
-
-
-h1{
-	text-align:center;
+body{
+	overflow-y: scroll;
 }
 
-.hidden{
-	display:none;
+.smallMedia{
+	content: "This page is optimized for PC/tablet use for screen widths of XXX and wider. Please use a different device to access this application."
 }
 
-#fillFormPage{
-	
-	margin:0px;
-	min-height: 100%;
-	background-color: rgb(161, 0, 0);
+
+/*header, nav elements*/
+
+header{
+	background-color: #011F5b;
+	color: white;
+	display:flex;
+	height: 3.5rem;
+	position:sticky;
 }
 
-#viewRequestPage{
-	margin:0px;
-	min-height: 100%;
-	background-color: rgb(161, 0, 0);
+#pageTitleIcon, #nav{
+	display:flex;
+	align-items: center;
+}
+
+#pageTitleIcon{
+	justify-content:left;
+	margin-left: 1rem;
+	font-size: 1.5rem;
+	flex-grow: 3;
+}
+
+#nav{
+	flex-grow: 1;
+}
+
+.navLink{
+	flex-grow:1;
+	margin: .5rem;
+	text-align: center;
+}
+
+.navLink:hover{
+	background-color: #9898dd;
+	border-radius:5px;
+}
+
+/*general page content elements*/
+
+main *{
+	opacity: .97;
+}
+
+main{
+	background-image: url("franklinField.jpg");
+	background-attachment: fixed;	
+}
+
+main, .page{
+	min-height: calc(100vh - 3.5rem);
+}
+
+/*userMainPage elements*/
+
+#mainPage{
+	display:grid;
+	grid-template-columns: 4fr 1fr;
+	grid-template-areas: 
+	"mainColumn sideColumn";
+}
+
+#seasonButtons{
+	text-align: center;
+	background-color: #9898dd;
+	padding: .7rem;
+}
+
+#seasonButtons button{
+	margin-left: 1rem;
+	margin-right: 1rem;
+	height: 2rem;
+	width: 5rem;
+	border-radius: 5px;
+	font-size: 1.2rem;
+}
+
+#mainPageMainColumn{
 }
 
 #teamGridContainer{
@@ -68,7 +103,7 @@ h1{
 	grid-template-columns: 1fr;
 	width: 85%;
 	background-color:grey;
-	margin:auto;
+	margin: 3rem auto;
 	border-style:solid;
 	padding:.5rem;
 	gap:1rem;
@@ -125,6 +160,78 @@ h1{
 	margin:auto;
 	height: 25px;
 }
+
+#mainPageSideColumn{
+	background-color: #990000;
+	color: white;
+	text-align: center;
+	height: inherit;
+}
+
+#userAvailabilityLabel{
+	background-color: red;
+	margin: 0px;
+	padding: 1rem;
+}
+
+#editAvailability{
+	margin: 1rem;
+	border-radius: 5px;
+	height: 2rem;
+	font-size: .8rem;
+}
+
+#availabilityDisplay{
+	
+}
+
+.userAvailabilityDay{
+	margin: 1.25rem auto;
+}
+
+.userAvailabilityDayLabel{
+	margin:.5rem;
+	font-size: 1.25rem;
+	
+}
+
+.userAvailabilityTimeBlock{
+	display:flex;
+	margin: .25rem;
+}
+
+.userAvailabilityTimeBlock p{
+	flex-grow: 1;
+	margin:0px;
+	font-size: 1rem;
+}
+
+
+
+
+
+h1{
+	text-align:center;
+}
+
+.hidden{
+	display:none;
+}
+
+#fillFormPage{
+	
+	margin:0px;
+	min-height: 100%;
+	background-color: rgb(161, 0, 0);
+}
+
+#viewRequestPage{
+	margin:0px;
+	min-height: 100%;
+	background-color: rgb(161, 0, 0);
+}
+
+
 
 #teamRequestForm{
 	margin:auto;

@@ -46,7 +46,7 @@ const adminMainPageAllTeamsData = (function(){
 	}
 
 	function modifyTeamOrder(teamOrderObj){
-		const {teamIndex, modifier} = teamOrderObj;
+		const {index, modifier} = teamOrderObj;
 
 		const allTeamsSlice = allTeams.concat();
 		for(let team in allTeams){
@@ -54,8 +54,8 @@ const adminMainPageAllTeamsData = (function(){
 			allTeamsSlice[team].rank = Object.assign({}, allTeams[team].rank)
 		}
 
-		const team = allTeamsSlice.splice(teamIndex, 1)[0];
-		allTeamsSlice.splice(teamIndex + modifier, 0, team);
+		const team = allTeamsSlice.splice(index, 1)[0];
+		allTeamsSlice.splice(index + modifier, 0, team);
 		allTeamsSlice.forEach(function(team){
 			team.rank.allTeams = allTeamsSlice.findIndex(function(thisTeam){
 				return thisTeam.name == team.name
