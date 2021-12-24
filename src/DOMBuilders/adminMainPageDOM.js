@@ -191,7 +191,7 @@ const adminMainPageDOM = (function(){
 
         teamName.innerText = teamData.name;
         teamCoach.innerText = teamData.coach;
-        teamSize.innerText = teamData.size;
+        teamSize.innerText = `${teamData.size} athletes`;
         teamRank.innerText = teamData.rank.allTeams +1;
 
         uprankButton.id = "adminMainPageTeamGridTeamUprankButton"

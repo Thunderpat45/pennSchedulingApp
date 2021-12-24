@@ -1073,6 +1073,7 @@ const myTeamsModel = (function(){
     events.subscribe("mainPageModelBuilt", populateMyTeams)
     events.subscribe("workingModelValidated", addEditTeamForDatabaseUpdate)
     events.subscribe("deleteTeam", deleteTeamForDatabaseUpdate)
+    events.subscribe("setTeamVerification", verifyTeam)
 
      function populateMyTeams(userMyTeams){ 
          myTeams = userMyTeams.teams.concat();
@@ -1141,6 +1142,20 @@ const myTeamsModel = (function(){
         events.publish("myTeamsDataUpdated", myTeamsSlice) //send to DB for save
     }
 
+    function verifyTeam(thisTeam){
+        const myTeamsSlice = myTeams.concat();
+        const existingTeamIndex = myTeamsSlice.findIndex(function(teams){ 
+            return teams.name == thisTeam.name
+        })
+        
+        const now = new Date();
+        const nowParsed = `${now.getMonth()+1}-${now.getDate()}-${now.getFullYear()}`
+
+        myTeamsSlice[existingTeamIndex].lastVerified = nowParsed;
+        
+        events.publish("myTeamsDataUpdated", myTeamsSlice) //send to DB for save
+    }
+
 
 })();
 
@@ -1181,7 +1196,8 @@ const teamRequestModel = (function(){
                 allTeams: null
             },
             allOpts: [[createDefaultDayDetails()]],
-           coach:coach
+           coach:coach,
+           lastVerified: null
         };
 
         workingModel = buildWorkingModelDeepCopy(teamRequest)
@@ -1274,6 +1290,7 @@ const teamRequestModel = (function(){
     function modifyTeamNameValue(name){
         workingModel.name = name
     }
+
 
     
 
@@ -1402,7 +1419,7 @@ const adminMainPageDOM = (function(){
 
         teamName.innerText = teamData.name;
         teamCoach.innerText = teamData.coach;
-        teamSize.innerText = teamData.size;
+        teamSize.innerText = `${teamData.size} athletes`;
         teamRank.innerText = teamData.rank.allTeams +1;
 
         uprankButton.id = "adminMainPageTeamGridTeamUprankButton"
@@ -2025,7 +2042,9 @@ const mainPageDOM = (function(){
         mainPageAvailability.replaceWith(mainPageAvailabilityNew);
         mainPageMyTeams.replaceWith(mainPageMyTeamsNew);
         
-        verifyInfo.innerText = `The last time you verified all teams were up-to-date was ${mainPageData.lastVerified}`
+        if(mainPageData.lastVerified != null){
+            verifyInfo.innerText += mainPageData.lastVerified
+        }
 
         seasonButtonsChildren.forEach(function(child){
             if(child.id == `${season}Button`){
@@ -2132,14 +2151,20 @@ const mainPageDOM = (function(){
 
         const teamName = content.querySelector(".teamGridTeamName");
         const teamSize = content.querySelector(".teamGridTeamSize");
+        const lastVerified = content.querySelector(".teamGridTeamLastVerified");
         const optionContainer = content.querySelector(".teamGridTeamOptionContainer");
         const editButton = content.querySelector(".teamGridTeamEditButton");
         const deleteButton = content.querySelector(".teamGridTeamDeleteButton");
+        const verifyButton = content.querySelector(".teamGridTeamVerifyButton");
         const upButton = content.querySelector(".moveOptionUpButton");
         const downButton = content.querySelector(".moveOptionDownButton");
 
         teamName.innerText = team.name;
-        teamSize.innerText = team.size;
+        teamSize.innerText = `${team.size} athletes`;
+        if(team.lastVerified != null){
+            lastVerified.innerText += team.lastVerified
+        }
+        
 
         team.allOpts.forEach(function(optionDetails){
             const optNum = team.allOpts.indexOf(optionDetails)+1;
@@ -2161,6 +2186,7 @@ const mainPageDOM = (function(){
 
         editButton.addEventListener("click", editTeam);
         deleteButton.addEventListener("click", deleteTeam);
+        verifyButton.addEventListener("click", verifyTeam)
 
         return content
 
@@ -2169,7 +2195,10 @@ const mainPageDOM = (function(){
         }
     
         function deleteTeam(){
-            events.publish("deleteTeam", team);
+            const confirmation = confirm(`Delete ${team.name}?`);
+            if(confirmation){
+                events.publish("deleteTeam", team);
+            }   
         }
 
         function moveMyTeamUp(){
@@ -2178,6 +2207,10 @@ const mainPageDOM = (function(){
 
         function moveMyTeamDown(){
             events.publish("modifyMyTeamOrder", {index: team.rank.myTeams, modifier:1});
+        }
+
+        function verifyTeam(){
+            events.publish("setTeamVerification", team)
         }
     }
 
@@ -2412,7 +2445,7 @@ const requestFormDOM = (function(){
 
             deleteButton.innerText = "X"
 
-            labelButtonDiv.appendChild(deleteButton)
+            labelButtonDiv.insertBefore(deleteButton, label)
 
             if(optNum != 1 && optNum != allOptsDetails.length){
                 labelButtonDiv.appendChild(upButton)
@@ -2490,7 +2523,7 @@ const requestFormDOM = (function(){
             deleteButton.innerText = "X"
             
             deleteButton.addEventListener("click", deleteDay);
-            labelButtonDiv.appendChild(deleteButton)
+            labelButtonDiv.insertBefore(deleteButton, label)
         }
         
         const allDaysDetailsNew = buildDayDetails(dayDetails, optNum, dayNum);
@@ -2944,8 +2977,8 @@ const pageRenderer = (function(){
 
     function setDropdownPrivilegeAccess(){
         if(adminAccess == true && userPageLink == null && adminPageLink == null){
-            userPageLink = document.createElement("p");
-            adminPageLink = document.createElement("p");
+            userPageLink = document.createElement("h3");
+            adminPageLink = document.createElement("h3");
 
             userPageLink.id = "userPageLink";
             userPageLink.classList.add("navLink");

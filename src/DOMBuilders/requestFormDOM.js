@@ -226,7 +226,7 @@ const requestFormDOM = (function(){
 
             deleteButton.innerText = "X"
 
-            labelButtonDiv.appendChild(deleteButton)
+            labelButtonDiv.insertBefore(deleteButton, label)
 
             if(optNum != 1 && optNum != allOptsDetails.length){
                 labelButtonDiv.appendChild(upButton)
@@ -304,7 +304,7 @@ const requestFormDOM = (function(){
             deleteButton.innerText = "X"
             
             deleteButton.addEventListener("click", deleteDay);
-            labelButtonDiv.appendChild(deleteButton)
+            labelButtonDiv.insertBefore(deleteButton, label)
         }
         
         const allDaysDetailsNew = buildDayDetails(dayDetails, optNum, dayNum);

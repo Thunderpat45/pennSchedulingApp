@@ -10,7 +10,7 @@
 			<div id = "pageTitle">UPenn S&C Facility Scheduling App</div>
 		</div>
 		<nav id = "nav">
-			<p id= "logOutLink" class = "navLink">Log Out</p>
+			<h3 id= "logOutLink" class = "navLink">Log Out</h3>
 		</nav>	
 	</header>
 	
@@ -31,16 +31,18 @@
 			</div>
 			<div id = "teamGridContainer">
 				<div id = "teamGridLabels">
-					<div>Name</div>
-					<div>Size</div>
-					<div>Option</div>
+					<div>Team Details</div>
+					<div>Option #</div>
+					<div>Day Of Week</div>
+					<div>Time</div>
+					<div>In Weiss</div> 
 					<div>Buttons</div>
 				</div>
 				<div id = "teamGrid"></div>
 				<button id = "teamGridAddTeam">Add Team</button>
 			</div>
 			<div id = "verifyDiv">
-				<p id = "verifyInfo"></p>
+				<p id = "verifyInfo">The last time you verified all teams were up-to-date was:</p>
 				<button id = "verifyButton">Verify Teams Up To Date</button>
 			</div>
 		</div>
@@ -57,14 +59,28 @@
 
 <template id = "mainPageTeamTemplate">
 	<div class = "teamGridTeam">
-		<div class = "teamGridTeamName"></div>
-		<div class = "teamGridTeamSize"></div>
+		<div class = "teamGridTeamNameSizeContainer">
+			<div class = "teamGridTeamName"></div>
+			<div class = "teamGridTeamSize"></div>
+			<div class = "teamGridTeamLastVerified">Last Verified: </div>
+		</div>
 		<div class = "teamGridTeamOptionContainer"></div>
 		<div class = "teamGridTeamButtons">
-			<button class = "moveOptionUpButton"></button>
-			<button class = "moveOptionDownButton"></button>
-			<button class = "teamGridTeamEditButton">Edit</button>
-			<button class = "teamGridTeamDeleteButton">X</button>
+			<div class = "teamRankButtons">
+				<button class = "moveOptionUpButton">
+					<i class = "arrow up"></i>
+				</button>
+				<button class = "moveOptionDownButton">
+					<i class = "arrow down"></i>
+				</button>
+			</div>
+			<div class = "verifyEditTeamDiv">
+				<button class = "teamGridTeamVerifyButton">Verify</button>
+				<button class = "teamGridTeamEditButton">Edit</button>
+			</div>
+			<div class = "deleteTeamDiv">
+				<button class = "teamGridTeamDeleteButton">X</button>
+			</div>	
 		</div>
 	</div>
 </template>
@@ -79,33 +95,36 @@
 <template id = "mainPageTeamDayTemplate">
 		<div class = "teamGridTeamDayOfWeek"></div>
 		<div class = "teamGridTeamStartTime"></div>
+		<div class = "teamGridTimeAppender"> - </div>
 		<div class = "teamGridTeamEndTime"></div>
 		<div class = "teamGridTeamInWeiss"></div>
 </template>
 
 <template id = "requestFormPageTemplate">
-	<div id = "fillFormPage">
-		<div id = "fillformTitle">
-			<h1>Add Team Requests</h1>
-		</div>
-			<div id = "teamRequestForm">
-				<div id = "formTeamNameDiv">
-					<label for = "formTeamName">Team Name</label><br>
-					<input type = "text" id = "formTeamName" name ="formTeamName" maxlength="25"><br>
-				</div>
-				<div id = "formTeamSizeDiv">
-					<label for = "formTeamSize">Team Size</label><br>
-					<select id = "formTeamSize" name ="formTeamSize" class = "teamSize"><br></select>
-				</div>
-				<div id = "formAllOpts"></div>
-				<div id = "addTrainingOptionDiv">
-					<button id = "addTrainingOption">Add Training Option</button>
-				</div>
-				<div id = "modifierButtons">
-					<button id = "updateTeamRequest">Update</button>
-					<button id = "cancelTeamRequest">Cancel</button>
-				</div>
+	<div id = "fillFormPage" class= "page">
+		<div id = "fillFormPageContainer">
+			<div id = "fillformTitle">
+				<h2>Add Team Requests</h2>
 			</div>
+				<div id = "teamRequestForm">
+					<div id = "formTeamNameDiv">
+						<label for = "formTeamName">Team Name</label><br>
+						<input type = "text" id = "formTeamName" name ="formTeamName" maxlength="25"><br>
+					</div>
+					<div id = "formTeamSizeDiv">
+						<label for = "formTeamSize">Team Size</label><br>
+						<select id = "formTeamSize" name ="formTeamSize" class = "teamSize"><br></select>
+					</div>
+					<div id = "formAllOpts"></div>
+					<div id = "addTrainingOptionDiv">
+						<button id = "addTrainingOption">Add Training Option</button>
+					</div>
+					<div id = "modifierButtons">
+						<button id = "updateTeamRequest">Update</button>
+						<button id = "cancelTeamRequest">Cancel</button>
+					</div>
+				</div>
+		</div>
 	</div>
 </template>
 
@@ -132,19 +151,19 @@
 <template id = "dayDetailsTemplate">
 	<div class = "formAllDayDetails">
 		<div class = "dayOfWeekDiv">
-			<p>Day of Week</p><br>
+			<p>Day of Week</p>
 			<select class = "dayOfWeek selector"></select>
 		</div>
 		<div class = "startTimeDiv">
-			<p>Start Time</p><br>
+			<p>Start Time</p>
 			<select class = "startTime selector"></select>
 		</div>
 		<div class = "endTimeDiv">
-			<p>End Time</p><br>
+			<p>End Time</p>
 			<select class = "endTime selector">	</select>
 		</div>
 		<div class = "inWeissDiv">
-			<p>In Weiss</p><br>
+			<p>In Weiss</p>
 			<select class = "inWeiss selector"></select>
 		</div>
 	</div>

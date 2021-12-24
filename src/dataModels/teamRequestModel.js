@@ -65,7 +65,8 @@ const teamRequestModel = (function(){
                 allTeams: null
             },
             allOpts: [[createDefaultDayDetails()]],
-           coach:coach
+           coach:coach,
+           lastVerified: null
         };
 
         workingModel = buildWorkingModelDeepCopy(teamRequest)
@@ -157,9 +158,7 @@ const teamRequestModel = (function(){
 
     function modifyTeamNameValue(name){
         workingModel.name = name
-    }
-
-    
+    }   
 
 })();
 

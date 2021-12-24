@@ -72,7 +72,9 @@ const mainPageDOM = (function(){
         mainPageAvailability.replaceWith(mainPageAvailabilityNew);
         mainPageMyTeams.replaceWith(mainPageMyTeamsNew);
         
-        verifyInfo.innerText = `The last time you verified all teams were up-to-date was ${mainPageData.lastVerified}`
+        if(mainPageData.lastVerified != null){
+            verifyInfo.innerText += mainPageData.lastVerified
+        }
 
         
         seasonButtonsChildren.forEach(function(child){
@@ -180,14 +182,19 @@ const mainPageDOM = (function(){
 
         const teamName = content.querySelector(".teamGridTeamName");
         const teamSize = content.querySelector(".teamGridTeamSize");
+        const lastVerified = content.querySelector(".teamGridTeamLastVerified");
         const optionContainer = content.querySelector(".teamGridTeamOptionContainer");
         const editButton = content.querySelector(".teamGridTeamEditButton");
         const deleteButton = content.querySelector(".teamGridTeamDeleteButton");
+        const verifyButton = content.querySelector(".teamGridTeamVerifyButton");
         const upButton = content.querySelector(".moveOptionUpButton");
         const downButton = content.querySelector(".moveOptionDownButton");
 
         teamName.innerText = team.name;
-        teamSize.innerText = team.size;
+        teamSize.innerText = `${team.size} athletes`;
+        if(team.lastVerified != null){
+            lastVerified.innerText += team.lastVerified
+        }
 
         team.allOpts.forEach(function(optionDetails){
             const optNum = team.allOpts.indexOf(optionDetails)+1;
@@ -209,6 +216,7 @@ const mainPageDOM = (function(){
 
         editButton.addEventListener("click", editTeam);
         deleteButton.addEventListener("click", deleteTeam);
+        verifyButton.addEventListener("click", verifyTeam)
 
         return content
 
@@ -217,7 +225,10 @@ const mainPageDOM = (function(){
         }
     
         function deleteTeam(){
-            events.publish("deleteTeam", team);
+            const confirmation = confirm(`Delete ${team.name}?`);
+            if(confirmation){
+                events.publish("deleteTeam", team);
+            }   
         }
 
         function moveMyTeamUp(){
@@ -226,6 +237,10 @@ const mainPageDOM = (function(){
 
         function moveMyTeamDown(){
             events.publish("modifyMyTeamOrder", {index: team.rank.myTeams, modifier:1});
+        }
+
+        function verifyTeam(){
+            events.publish("setTeamVerification", team)
         }
     }
 

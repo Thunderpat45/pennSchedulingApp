@@ -47,8 +47,8 @@ const pageRenderer = (function(){
 
     function setDropdownPrivilegeAccess(){
         if(adminAccess == true && userPageLink == null && adminPageLink == null){
-            userPageLink = document.createElement("p");
-            adminPageLink = document.createElement("p");
+            userPageLink = document.createElement("h3");
+            adminPageLink = document.createElement("h3");
 
             userPageLink.id = "userPageLink";
             userPageLink.classList.add("navLink");

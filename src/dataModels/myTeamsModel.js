@@ -43,6 +43,7 @@ const myTeamsModel = (function(){
     events.subscribe("mainPageModelBuilt", populateMyTeams)
     events.subscribe("workingModelValidated", addEditTeamForDatabaseUpdate)
     events.subscribe("deleteTeam", deleteTeamForDatabaseUpdate)
+    events.subscribe("setTeamVerification", verifyTeam)
 
      function populateMyTeams(userMyTeams){ 
          myTeams = userMyTeams.teams.concat();
@@ -108,6 +109,20 @@ const myTeamsModel = (function(){
                 return teams.name == thisTeam.name
             })
         })
+        events.publish("myTeamsDataUpdated", myTeamsSlice) //send to DB for save
+    }
+
+    function verifyTeam(thisTeam){
+        const myTeamsSlice = myTeams.concat();
+        const existingTeamIndex = myTeamsSlice.findIndex(function(teams){ 
+            return teams.name == thisTeam.name
+        })
+        
+        const now = new Date();
+        const nowParsed = `${now.getMonth()+1}-${now.getDate()}-${now.getFullYear()}`
+
+        myTeamsSlice[existingTeamIndex].lastVerified = nowParsed;
+
         events.publish("myTeamsDataUpdated", myTeamsSlice) //send to DB for save
     }
 
