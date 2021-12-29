@@ -8,16 +8,20 @@ html{
 html,body{
 	font-size: 20px;
 	margin:0px;
-	height:100%
+	height:100%;
+	min-width: 1000px;
 }
 
 body{
 	overflow-y: scroll;
 }
 
-.smallMedia{
-	content: "This page is optimized for PC/tablet use for screen widths of XXX and wider. Please use a different device to access this application."
-}
+@media screen and (max-width: 600px){
+	body {
+	  background:grey;
+	  content: "This page is optimized for PC/tablet use for screen widths of XXX and wider. Please use a different device to access this application."
+	}
+}/*doesn't seem to be doing anything...*/
 
 
 /*header, nav elements*/
@@ -60,7 +64,7 @@ header{
 /*general page content elements*/
 
 main{
-	background-image: url("franklinField.jpg");
+	background: linear-gradient(rgba(255,255,255,.5), rgba(255,255,255,.5)), url("franklinField.jpg");
 	background-attachment: fixed;	
 }
 
@@ -276,16 +280,14 @@ main, .page{
 #teamRequestForm{
 	background-color: grey;
 	opacity: .9;
-	padding: 1rem;
+	padding: 5rem;
 	border-width: 1rem 1rem .5rem 1rem;
 	display:grid;
 	grid-template-columns: repeat(4, 1fr);
 	grid-template-areas:
 		"teamName teamName teamSize teamSize"
 		"formAllOpts formAllOpts formAllOpts formAllOpts"
-		" addTrainingOption . . ."
-		". . . ."
-		" modifierButton modifierButton . .";
+		" addTrainingOption . . modifierButtons";
 		
 	
 }
@@ -296,7 +298,7 @@ main, .page{
 	width: 40%
 }
 
-#formTeamName label, #formTeamSize label{
+#formTeamNameDiv label, #formTeamSizeDiv label{
 	font-size: 1.5rem;
 }
 
@@ -312,6 +314,7 @@ main, .page{
 	grid-area: formAllOpts;	
 	grid-template-rows: 1fr;
 	text-align: center;
+	margin: 2rem 0;
 }
 
 .formOpt{
@@ -325,42 +328,73 @@ main, .page{
 	
 }
 
+.arrowButtonsDiv{
+	display:grid;
+}
+
+.optionButtonsDiv{
+	display:flex;
+	flex-grow: 1;
+}
+
+
 .formAllDays{
 	display:grid;
 	grid-template-columns: repeat(2, 1fr);
-	gap:1rem;
+	gap:.5rem;
 }
 
 .formDay{
 	display:grid;
-	grid-template-columns:1fr;
-	gap:1rem;	
+	grid-template-columns:1fr;	
 	background-color:#9898dd;
 	border: #011F5b solid .125rem;
 }
 
-.labelDeleteDayButton, .labelDeleteOptButton{
+.labelDeleteDayButton, .labelButtonDiv{
 	display:grid;
 }
 
 .deleteDay, .deleteOpt{
 	width:10%;
-	margin-left:auto;
 	background-color: red;
-	height:1.5rem;
 }
+
+.arrowButtonsDiv{
+	align-items: center;
+}
+
+.deleteDay, .arrowButtonsDiv{
+	margin-left:auto;
+}
+
+.deleteOpt{
+	margin-left: .5rem;
+	height:2.5rem;
+}
+
+.deleteDay{
+	height: 1.25rem;
+}
+
+.myTeamsMoveUpButton, .myTeamsMoveDownButton{
+	height: 1.25rem;
+	width: 2rem;
+}
+
 
 .formAllDayDetails{
 	display:flex;
+	flex-wrap: wrap;
 	justify-content: center;
 }
 
 .formAllDayDetails *{
-	flex: 1 1 0px;
+	flex: 1 0 50%;
 }
 
 .formAllDayDetails * *{
-	margin: .5rem;
+	margin: .25rem;
 }
 
 
@@ -372,7 +406,7 @@ main, .page{
 .addTrainingDay{
 	height:50%;
 	width: 25%;
-	margin-top:auto;
+	background-color: rgb(189, 189, 189);
 }
 
 #addTrainingOption{
@@ -381,18 +415,17 @@ main, .page{
 }
 
 
-#modifierButton{
-	grid-area: modifierButton
+#modifierButtons{
+	grid-area: modifierButtons;
+	display:flex;
 }
 
 #updateTeamRequest{
-	grid-area: updateRequest
+	grid-area: updateRequest;
+	flex-grow: 1
 }
 
 #cancelTeamRequest{
-	grid-area: cancelRequest
-}
-
-#clearTeamRequest{
-	grid-area: clearRequest
+	grid-area: cancelRequest; 
+	flex-grow: 1;
 }

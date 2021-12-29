@@ -1,6 +1,5 @@
 /* eslint-disable no-prototype-builtins */
 import { events } from "../events";
-
 /*
 
 purpose:  admin interface for creating/editing/deleting users

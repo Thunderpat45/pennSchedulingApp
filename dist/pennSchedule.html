@@ -130,7 +130,10 @@
 
 <template id = "optionTemplate">
 	<div class = "formOpt">
-		<div class = "labelDeleteOptButton">
+		<div class = "labelButtonDiv">
+			<div class = "optionButtonsDiv">
+				<div class = "arrowButtonsDiv"></div>
+			</div>
 			<h2 class = "optLabel"></h2>
 		</div>
 		<div class = "formAllDays"></div>
@@ -158,14 +161,15 @@
 			<p>Start Time</p>
 			<select class = "startTime selector"></select>
 		</div>
-		<div class = "endTimeDiv">
-			<p>End Time</p>
-			<select class = "endTime selector">	</select>
-		</div>
 		<div class = "inWeissDiv">
 			<p>In Weiss</p>
 			<select class = "inWeiss selector"></select>
 		</div>
+		<div class = "endTimeDiv">
+			<p>End Time</p>
+			<select class = "endTime selector">	</select>
+		</div>
+		
 	</div>
 </template>
 
@@ -343,5 +347,5 @@
 </template>
 
 <template></template>
-<script src = "test.js"></script>
+<script src = "main.js"></script>
 </html>

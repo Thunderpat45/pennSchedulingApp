@@ -204,7 +204,7 @@ const requestFormDOM = (function(){
         const template = document.querySelector("#optionTemplate");
         const content = document.importNode(template.content, true);
 
-        const labelButtonDiv = content.querySelector(".labelDeleteOptButton");
+        const arrowButtonsDiv = content.querySelector(".arrowButtonsDiv")
         const label = content.querySelector(".optLabel");
         const allDaysDOM = content.querySelector(".formAllDays"); 
         const addDayButton = content.querySelector(".addTrainingDay");
@@ -213,12 +213,22 @@ const requestFormDOM = (function(){
 
         if(allOptsDetails.length >1){
             const deleteButton = document.createElement("button");
-            const upButton = document.createElement("button"); //both need class and css
+            const upButton = document.createElement("button");
+            const upImage = document.createElement("i");
             const downButton = document.createElement("button");
+            const downImage = document.createElement("i")
+            
             
             deleteButton.classList.add("deleteOpt");
+
             upButton.classList.add("myTeamsMoveUpButton");
+            upImage.classList.add("arrow", "up")
+            upButton.appendChild(upImage)
+
             downButton.classList.add("myTeamsMoveDownButton");
+            downImage.classList.add("arrow", "down")
+            downButton.appendChild(downImage)
+
 
             deleteButton.addEventListener("click", deleteOpt)
             upButton.addEventListener("click", moveOptionUp);
@@ -226,17 +236,17 @@ const requestFormDOM = (function(){
 
             deleteButton.innerText = "X"
 
-            labelButtonDiv.insertBefore(deleteButton, label)
+            arrowButtonsDiv.after(deleteButton)
 
             if(optNum != 1 && optNum != allOptsDetails.length){
-                labelButtonDiv.appendChild(upButton)
-                labelButtonDiv.appendChild(downButton)
+                arrowButtonsDiv.appendChild(upButton)
+                arrowButtonsDiv.appendChild(downButton)
             }
             if(optNum == allOptsDetails.length){
-                labelButtonDiv.appendChild(upButton)
+                arrowButtonsDiv.appendChild(upButton)
             }
             if(optNum == 1){
-                labelButtonDiv.appendChild(downButton)
+                arrowButtonsDiv.appendChild(downButton)
             }
         }
 

@@ -1,14 +1,64 @@
-/*
- * ATTENTION: The "eval" devtool has been used (maybe by default in mode: "development").
- * This devtool is neither made for production nor for readable output files.
- * It uses "eval()" calls to create a separate source file in the browser devtools.
- * If you are trying to read the output file, select a different devtool (https://webpack.js.org/configuration/devtool/)
- * or disable the default devtool with "devtool: false".
- * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
- */
 /******/ (() => { // webpackBootstrap
-/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
+
+/***/ "./src/events-exposed.js":
+/*!*******************************!*\
+  !*** ./src/events-exposed.js ***!
+  \*******************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var ___EXPOSE_LOADER_IMPORT___ = __webpack_require__(/*! -!./events.js */ "./src/events.js");
+var ___EXPOSE_LOADER_GET_GLOBAL_THIS___ = __webpack_require__(/*! ../node_modules/expose-loader/dist/runtime/getGlobalThis.js */ "./node_modules/expose-loader/dist/runtime/getGlobalThis.js");
+var ___EXPOSE_LOADER_GLOBAL_THIS___ = ___EXPOSE_LOADER_GET_GLOBAL_THIS___;
+if (typeof ___EXPOSE_LOADER_GLOBAL_THIS___["events"] === 'undefined') ___EXPOSE_LOADER_GLOBAL_THIS___["events"] = ___EXPOSE_LOADER_IMPORT___;
+else throw new Error('[exposes-loader] The "events" value exists in the global scope, it may not be safe to overwrite it, use the "override" option')
+module.exports = ___EXPOSE_LOADER_IMPORT___;
+
+
+/***/ }),
+
+/***/ "./node_modules/expose-loader/dist/runtime/getGlobalThis.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/expose-loader/dist/runtime/getGlobalThis.js ***!
+  \******************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+// eslint-disable-next-line func-names
+module.exports = function () {
+  if (typeof globalThis === "object") {
+    return globalThis;
+  }
+
+  var g;
+
+  try {
+    // This works if eval is allowed (see CSP)
+    // eslint-disable-next-line no-new-func
+    g = this || new Function("return this")();
+  } catch (e) {
+    // This works if the window reference is available
+    if (typeof window === "object") {
+      return window;
+    } // This works if the self reference is available
+
+
+    if (typeof self === "object") {
+      return self;
+    } // This works if the global reference is available
+
+
+    if (typeof __webpack_require__.g !== "undefined") {
+      return __webpack_require__.g;
+    }
+  }
+
+  return g;
+}();
+
+/***/ }),
 
 /***/ "./src/DOMBuilders/adminMainPageDOM.js":
 /*!*********************************************!*\
@@ -16,7 +66,506 @@
   \*********************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"adminMainPageDOM\": () => (/* binding */ adminMainPageDOM)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n/*action: admin interface for observing allTeams/allUsers, setting facility parameters, blocking off time for all users, and running the scheduling function\n\nadminMainPageData object is modeled as such:\n\nobj = {\n    allTeams: \n        [{ \n            teamName,\n            teamSize, \n            rank:\n                {\n                    myTeams,\n                    allTeams\n                },\n            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],\n            coach,\n        }, {etc}, {etc}]\n\n    allUsers:\n        [{\n            name,\n            color,\n            password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END\n            privilegeLevel,\n            teams:{},\n            availability:{},\n            lastVerified\n        }, {etc}, {etc}]\n\n    facilitySelectors:\n        {facilityOpen, facilityClose, facilityMaxCapacity}\n\n    adminTimeBlocks:\n        {day: [{{startTime, stopTime, admin}, {startTime, stopTime, admin}, ], day: [{startTime, stopTime, admin}, {startTime, stopTime, admin}]},  make sure empties don't screw anything up\n\n    season,\n}\n\nadminSelectorsObj is modeled as such:\n\nobj = {\n\n    startTime: (pre-built select HTML element),\n    endTime: etc,\n    teamSize: etc,\n    facilityOpen: etc,\n    facilityClose: etc,\n    facilityMaxCapacity: etc,\n    dayOfWeek: etc,\n    inWeiss: etc\n}\n\npublishes:\n    page render requests FOR pageRenderer\n    season change requests FOR (?)\n    scheduler run requests FOR (?)\n    admin allTeam rank changes FOR adminAllTeamsDataModel\n    user add requests FOR adminUserGeneratorModel \n    user edit/delete requests for adminAllUsersDataModel\n    facilityData changes, save requests, and change cancellations FOR adminMainPageFacilityDataModel\n    \n\nsubscribes to: \n    adminMainPageModel builds FROM adminMainPageModel\n    adminSelectorsBuilt FROM selectorDOMBuilder\n    adminAvailability and adminFacility model updates FROM adminAvailabity and adminFacility data models\n*/\n\nconst adminMainPageDOM = (function(){\n\n    let season\n    \n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminSelectorsBuilt\", setSelectorNodes);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminMainPageModelBuilt\", setSeason)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminMainPageModelBuilt\", publishAdminMainPageRender);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminAvailabilityModelModified\", renderAdminAllTimeBlocks);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminFacilityModelModified\", renderFacilityDataGrid)\n    \n    \n    const selectorNodes = {\n        facilityOpen: null,\n        facilityClose: null,\n        facilityMaxCapacity: null,\n        startTime: null,\n        endTime: null\n    }\n    //watch for CSS conflicts on start/endTime between this, userAvailability and requestFormDOMs\n    function setSelectorNodes(selectorElementObj){\n        for(let selectorElement in selectorElementObj){\n            switch(selectorElement){\n                case `facilityOpen`:\n                case `facilityClose`:\n                case `facilityMaxCapacity`:\n                case `startTime`: //watch CSS between this and requestFormDOM\n                case `endTime`:\n                    selectorNodes[selectorElement] = selectorElementObj[selectorElement]\n                    break;\n                default:\n                    return;\n            }\t\n        }\n    }\n    \n    function setSeason(adminMainPageData){ //make sure this happens before publishAdminMainPageRender, it should\n        season = adminMainPageData.season\n    }\n\n    function publishAdminMainPageRender(adminMainPageData){\n        const adminMainPageDOM = buildAdminMainPageDOM(adminMainPageData);\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"pageRenderRequested\", adminMainPageDOM);\n    }\n    //find subscribers to changeSeasons and runScheduler, issue NOT TO BE ADDRESSED:  scheduler could be run with unsaved modifications to adminAvail and facilityData\n    function buildAdminMainPageDOM(adminMainPageData){\n        const template = document.querySelector(\"#adminMainPageTemplate\");\n        const content = document.importNode(template.content, true);\n        \n        const seasonButtons = content.querySelector(\"#adminSeasonButtons\");\n        const adminAllTeams = content.querySelector(\"#adminMainPageTeamGrid\");\n        const adminAllUsers = content.querySelector(\"#adminUsersGridContainer\");\n        const adminFacilityData = content.querySelector(\"#facilityDataGridContainer\");\n        const adminAddTimeBlock = content.querySelector(\"#setAllUsersAvailabilityGridContainer\");\n        const schedulerButton = content.querySelector(\"#runScheduleBuilderButton\");\n    \n        const adminAllTeamsNew = renderAdminAllTeamsGrid(adminAllTeams, adminMainPageData.allTeams);\n        const adminAllUsersNew = renderAdminAllUsersGrid(adminAllUsers, adminMainPageData.allUsers);\n        const adminFacilityDataNew = renderFacilityDataGrid({adminFacilityDataContainer: adminFacilityData, adminMainPageData: adminMainPageData.facilitySelectors});\n        const adminAddTimeBlockNew = renderAdminTimeBlocker(adminAddTimeBlock, adminMainPageData.adminTimeBlocks);\n    \n        adminAllTeams.replaceWith(adminAllTeamsNew);\n        adminAllUsers.replaceWith(adminAllUsersNew); \n        adminFacilityData.replaceWith(adminFacilityDataNew);\n        adminAddTimeBlock.replaceWith(adminAddTimeBlockNew);\n    \n        seasonButtons.children.forEach(function(child){\n            if(child.id == `${season}Button`){\n                child.disabled = true;\n            }else{\n                child.addEventListener(\"click\", changeSeason)\n               \n            }\n        })\n\n        schedulerButton.addEventListener(\"click\", runScheduler)\n    \n        return content\n    \n        function changeSeason(){\n            let string = \"Button\";\n            const seasonButtonId = this.id;\n            const truncateIndex = seasonButtonId.indexOf(string);\n            const seasonName = seasonButtonId.slice(0, truncateIndex);\n            \n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminSeasonChangeRequested\", seasonName)\n        }\n\n        function runScheduler(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"runSchedulerRequested\") \n        }\n    }\n    //no obvious issues with this or allTeamsData\n    function renderAdminAllTeamsGrid(teamGrid, allTeamsData){ \n        const teamGridNew = document.createElement(\"div\")\n\n        allTeamsData.forEach(function(team){\n            const teamRow = buildAdminTeamRow(team, allTeamsData);\n            teamGridNew.appendChild(teamRow);\n        })\n\n        teamGrid.replaceWith(teamGridNew);\n        teamGridNew.id = \"adminMainPageTeamGrid\"\n    \n        return teamGridNew\n    }\n\n    //adminTeamRow display is: teamName, coach, lastVerified, teamRank, up and downrank buttons\n    function buildAdminTeamRow(teamData, allTeamsData){ //after viewing full page, determine whether to add allOpts for admin viewing\n        const template = document.querySelector(\"#adminMainPageTeamTemplate\");\n        const content = document.importNode(template.content, true);\n    \n        const teamName = content.querySelector(\".adminMainPageTeamGridTeamName\");\n        const teamCoach = content.querySelector(\".adminMainPageTeamGridTeamCoach\");\n        const teamSize = content.querySelector(\".adminMainPageTeamGridTeamSize\");\n        const teamRank = content.querySelector(\".adminMainPageTeamGridTeamRank\");\n        const teamButtons = content.querySelector(\".adminMainPageTeamGridTeamsButtons\");\n        \n        const uprankButton = document.createElement(\"button\");\n        const downrankButton = document.createElement(\"button\");\n\n        teamName.innerText = teamData.teamName;\n        teamCoach.innerText = teamData.coach;\n        teamSize.innerText = teamData.teamSize;\n        teamRank.innerText = teamData.rank.allTeams;\n\n        uprankButton.id = \"adminMainPageTeamGridTeamUprankButton\"\n        downrankButton.id = \"adminMainPageTeamGridTeamDownrankButton\"\n    \n        uprankButton.addEventListener(\"click\", moveAdminRankUp);\n        downrankButton.addEventListener(\"click\", moveAdminRankDown);\n    \n        if(allTeamsData.length > 1 && teamData.rank.allTeams != 0 && teamData.rank.allTeams != allTeamsData.length - 1){\n            teamButtons.appendChild(uprankButton);\n            teamButtons.appendChild(downrankButton);\n        }else if(allTeamsData.length > 1 && teamData.rank.allTeams == allTeamsData.length - 1){\n            teamButtons.appendChild(uprankButton)\n        }else if(allTeamsData.length > 1 && teamData.rank.allTeams == 0){\n            teamButtons.appendChild(downrankButton)\n        }   \n    \n        return content\n    \n        function moveAdminRankUp(){ \n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyAdminTeamOrder\", {index: teamData.rank.allTeams, modifier: -1})\n        }\n        function moveAdminRankDown(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyAdminTeamOrder\", {index: teamData.rank.allTeams, modifier: 1})\n        }\n    }\n    //no obvious issues with this or dataModel, display is usersGrid and addUserButton\n    function renderAdminAllUsersGrid(adminAllUsersContainer, adminMainPageData){\n    \n        const userGrid = adminAllUsersContainer.querySelector(\"#adminUsersGrid\");\n        const addUserButton = adminAllUsersContainer.querySelector(\"#adminUsersGridAddUser\");\n        const userGridNew = renderAdminAllUsers(adminMainPageData);\n    \n        userGrid.replaceWith(userGridNew);\n        \n        addUserButton.addEventListener(\"click\", addUser)\n    \n        return adminAllUsersContainer\n\n        function addUser(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"addUser\")\n        }\n    }\n    \n    function renderAdminAllUsers(adminMainPageData){\n        const allUsers = document.createElement(\"div\");\n        allUsers.id = \"adminUsersGrid\";\n    \n        adminMainPageData.forEach(function(user){\n            const userRow = buildAdminUserRow(user);\n            allUsers.appendChild(userRow);\n        })\n\n        return allUsers;\n    }\n    //userRow display is: name, privilegeLevel, color, lastVerified date, edit and deleteButtons\n    function buildAdminUserRow(userData){\n        const template = document.querySelector(\"#adminMainPageUserGridUserTemplate\");\n        const content = document.importNode(template.content, true);\n    \n        const userName = content.querySelector(\".adminUserGridUserName\");\n        const userPrivilege = content.querySelector(\".adminUserGridUserPrivilege\");\n        const userLastVerified = content.querySelector(\".adminUserGridUserLastVerified\");\n        const userColorBlock = content.querySelector(\".adminUserColor\");\n    \n        const editButton = content.querySelector(\".adminUserGridUserEditButton\");\n        const deleteButton = content.querySelector(\".adminUserGridUserDeleteButton\");\n    \n        editButton.addEventListener(\"click\", editUser);\n        deleteButton.addEventListener(\"click\", deleteUser);\n    \n        userName.innerText = userData.name;\n        userPrivilege.innerText = userData.privilegeLevel;\n        userLastVerified.innerText = userData.lastVerified;\n        userColorBlock.style.background = userData.color\n    \n        return content\n    \n        function editUser(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"editUser\", userData)\n        }\n        function deleteUser(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"deleteUser\", userData)\t\n        }\n    }\n\n    //renderFacilityDataGrid display is: facilityOpen selector, facilityClose selector, facility maxCapacity, saveButton, cancelButton\n    function renderFacilityDataGrid(dataDomObj){\n        \n        const adminFacilityDataContainer = dataDomObj.adminFacilityDataContainer;\n        const adminMainPageData = dataDomObj.adminMainPageData;\n\n        const template = document.querySelector(\"#adminMainPageFacilityDataGridTemplate\");\n        const content = document.importNode(template.content, true);\n\n        const facilityGridNew = content.querySelector(\"#facilityDataGrid\");\n        const facilitySelectorsNodes = content.querySelectorAll(\".select\");\n        const saveButton = content.querySelector(\"#adminMainPageFacilitySelectorsSaveButton\");\n        const cancelButton = content.querySelector(\"#adminMainPageFacilitySelectorsCancelButton\");\n    \n        facilitySelectorsNodes.forEach(function(selector){\n            const primaryClass = Array.from(selector.classList)[0];\n            \n            const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);\n            selectionNew.addEventListener(\"change\", publishSelectionValueChange)\n    \n            const selectedOption = selectionNew.querySelector(`option[value = ${adminMainPageData[primaryClass]}]`);\n            selectedOption.selected = true;\n            if(selectedOption.value != \"default\"){\n                selectionNew.firstChild.disabled = true;\n            }\n            \n            selector.replaceWith(selectionNew);\n    \n            function publishSelectionValueChange(){\n                const selector = primaryClass\n                const value = selectionNew.value;\n                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyFacilitySelectorValue\", {selector, value})\n            }\n        })\n\n        saveButton.addEventListener(\"click\", updateFacilityData);\n        cancelButton.addEventListener(\"click\", cancelFacilityDataChanges);\n    \n        function updateFacilityData(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"updateFacilityDataClicked\");\n        }\n        function cancelFacilityDataChanges(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"cancelFacilityDataChangesClicked\", adminFacilityDataContainer)\n        }\n        \n        const facilityGrid = document.querySelector(\"#facilityDataGrid\");\n        if(facilityGrid != null){\n            facilityGrid.replaceWith(facilityGridNew)\n        }else{\n            adminFacilityDataContainer.appendChild(facilityGridNew)\n            return adminFacilityDataContainer\n        }\n    } \n    \n    //adminTimeBlocker display is blockGrid (allTimeBlocks), saveChanges, cancelChanges buttons; dataModel issue to determine when to write changes to allUsers (FE or BE)\n    function renderAdminTimeBlocker(adminTimeBlockDiv, adminMainPageData){\n     \n        const adminTimeBlockGrid = adminTimeBlockDiv.querySelect(\"#adminMainPageAddAvailabilityBlockAllUsersGrid\");\n        const adminSaveTimeBlockButton = adminTimeBlockDiv.querySelect(\"#adminMainPageAddAvailabilityBlockAllUsersSaveButton\");\n        const adminCancelTimeBlockChangesButton = adminTimeBlockDiv.querySelect(\"#adminMainPageAddAvailabilityBlockAllUsersCancelButton\");\n        \n        const adminTimeBlockGridNew = renderAdminAllTimeBlocks({adminTimeBlockDiv, adminMainPageData});\n\n        adminTimeBlockGrid.replaceWith(adminTimeBlockGridNew);\n    \n        adminSaveTimeBlockButton.addEventListener(\"click\", updateAdminAvailability);\n        adminCancelTimeBlockChangesButton.addEventListener(\"click\", cancelAdminAvailabilityChanges);\n\n        return adminTimeBlockDiv\n\n        function updateAdminAvailability(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"updateAdminAvailabilityClicked\")\n        }\n        function cancelAdminAvailabilityChanges(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"cancelAdminAvailabilityChangesClicked\", adminTimeBlockDiv)\n        }\n    }\n    //allTimeBlocks display is forEach day (Day Label, addButton, [row for each timeBlock])\n    function renderAdminAllTimeBlocks(dataDomObj){\n        const adminTimeBlockDiv = dataDomObj.adminTimeBlockDiv;\n        const adminMainPageData = dataDomObj.adminMainPageData\n        const allTimeBlocksNew = document.createElement(\"div\")\n        allTimeBlocksNew.id = \"adminMainPageAddAvailabilityBlockAllUsersGrid\";\n    \n        for(let day in adminMainPageData){\n            const dayDiv = document.createElement(\"div\");\n            dayDiv.classList.add(\"adminTimeBlockDay\");\n\n            const label = document.createElement(\"h3\");\n            const addButton = document.createElement(\"button\");\n\n            label.innerText = `${day}`;\n\n            dayDiv.appendChild(label);\n            dayDiv.appendChild(addButton)\n\n            day.forEach(function(timeBlock){\n                const blockNumber = day.indexOf(timeBlock);\n                const row = buildAdminTimeBlockRow(adminTimeBlockDiv, day, timeBlock, blockNumber);\n                dayDiv.appendChild(row)\n            })\n\n            allTimeBlocksNew.appendChild(day);\n\n            addButton.addEventListener(\"click\", function addAdminTimeBlock(){\n                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish('addAdminTimeBlockClicked', {adminTimeBlockDiv, day})\n            });\n        }\n\n        const allTimeBlocks = document.querySelector(\"#adminMainPageAddAvailabilityBlockAllUsersGrid\");\n        if(allTimeBlocks != null){\n            allTimeBlocks.replaceWith(allTimeBlocksNew)\n        }else{\n            return allTimeBlocksNew\n        }\n    }\n\n    //adminBlockRow display is (startTime selector, endTime selector, deleteButton)\n    function buildAdminTimeBlockRow(adminTimeBlockDiv, day, timeBlock, blockNumber){\n        const template = document.querySelector(\"#adminMainPageAddAvailabilityBlockAllUsersBlockTemplate\");\n        const content = document.importNode(template.content, true);\n\n        const selectorsNodes = content.querySelectorAll(\".select\");\n        const deleteButton = content.querySelector(\"#adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton\")\n    \n        selectorsNodes.forEach(function(selector){\n            const primaryClass = Array.from(selector.classList)[0];\n            \n            const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);\n            selectionNew.addEventListener(\"change\", publishSelectionValueChange)\n    \n            const selectedOption = selectionNew.querySelector(`option[value = ${timeBlock[primaryClass]}]`);\n            selectedOption.selected = true;\n            if(selectedOption.value != \"default\"){\n                selectionNew.firstChild.disabled = true;\n            }\n            \n            selector.replaceWith(selectionNew);\n    \n            function publishSelectionValueChange(){\n                const selector = primaryClass\n                const value = selectionNew.value;\n                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyAdminTimeBlockSelectorValue\", {blockNumber, day, selector, value})\n            }\n        })\n\n        deleteButton.addEventListener(\"click\", deleteAdminTimeBlock);\n\n        return content\n\n        function deleteAdminTimeBlock(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"deleteAdminTimeBlockClicked\", {adminTimeBlockDiv, day, blockNumber})\n        }\n    } \n})()\n\n\n\n//# sourceURL=webpack://pennschedule/./src/DOMBuilders/adminMainPageDOM.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "adminMainPageDOM": () => (/* binding */ adminMainPageDOM)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/*action: admin interface for observing allTeams/allUsers, setting facility parameters, blocking off time for all users, and running the scheduling function
+
+adminMainPageData object is modeled as such:
+
+obj = {
+    allTeams: 
+        [{ 
+            teamName,
+            teamSize, 
+            rank:
+                {
+                    myTeams,
+                    allTeams
+                },
+            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+            coach,
+        }, {etc}, {etc}]
+
+    allUsers:
+        [{
+            name,
+            color,
+            password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END
+            privilegeLevel,
+            teams:{},
+            availability:{},
+            lastVerified
+        }, {etc}, {etc}]
+
+    facilitySelectors:
+        {facilityOpen, facilityClose, facilityMaxCapacity}
+
+    adminTimeBlocks:
+        {day: [{{startTime, stopTime, admin}, {startTime, stopTime, admin}, ], day: [{startTime, stopTime, admin}, {startTime, stopTime, admin}]},  make sure empties don't screw anything up
+
+    season,
+}
+
+adminSelectorsObj is modeled as such:
+
+obj = {
+
+    startTime: (pre-built select HTML element),
+    endTime: etc,
+    teamSize: etc,
+    facilityOpen: etc,
+    facilityClose: etc,
+    facilityMaxCapacity: etc,
+    dayOfWeek: etc,
+    inWeiss: etc
+}
+
+publishes:
+    page render requests FOR pageRenderer
+    season change requests FOR (?)
+    scheduler run requests FOR (?)
+    admin allTeam rank changes FOR adminAllTeamsDataModel
+    user add requests FOR adminUserGeneratorModel 
+    user edit/delete requests for adminAllUsersDataModel
+    facilityData changes, save requests, and change cancellations FOR adminMainPageFacilityDataModel
+    
+
+subscribes to: 
+    adminMainPageModel builds FROM adminMainPageModel
+    adminSelectorsBuilt FROM selectorDOMBuilder
+    adminAvailability and adminFacility model updates FROM adminAvailabity and adminFacility data models
+*/
+
+const adminMainPageDOM = (function(){
+
+    let season
+    
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminSelectorsBuilt", setSelectorNodes);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminMainPageModelBuilt", setSeason)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminMainPageModelBuilt", publishAdminMainPageRender);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminAvailabilityModelModified", renderAdminAllTimeBlocks);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityModelModified", renderFacilityDataGrid)
+    
+    
+    const selectorNodes = {
+        facilityOpen: null,
+        facilityClose: null,
+        facilityMaxCapacity: null,
+        startTime: null,
+        endTime: null
+    }
+    //watch for CSS conflicts on start/endTime between this, userAvailability and requestFormDOMs
+    function setSelectorNodes(selectorElementObj){
+        for(let selectorElement in selectorElementObj){
+            switch(selectorElement){
+                case `facilityOpen`:
+                case `facilityClose`:
+                case `facilityMaxCapacity`:
+                case `startTime`: //watch CSS between this and requestFormDOM
+                case `endTime`:
+                    selectorNodes[selectorElement] = selectorElementObj[selectorElement]
+                    break;
+                default:
+                    break;
+            }	
+        }
+    }
+    
+    function setSeason(adminMainPageData){ //make sure this happens before publishAdminMainPageRender, it should
+        season = adminMainPageData.season
+    }
+
+    function publishAdminMainPageRender(adminMainPageData){
+        const adminMainPageDOM = buildAdminMainPageDOM(adminMainPageData);
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("pageRenderRequested", adminMainPageDOM);
+    }
+    //find subscribers to changeSeasons and runScheduler, issue NOT TO BE ADDRESSED:  scheduler could be run with unsaved modifications to adminAvail and facilityData
+    function buildAdminMainPageDOM(adminMainPageData){
+        const template = document.querySelector("#adminMainPageTemplate");
+        const content = document.importNode(template.content, true);
+        
+        const seasonButtons = content.querySelector("#adminSeasonButtons");
+        const seasonButtonsChildren = Array.from(seasonButtons.children)
+        const adminAllTeams = content.querySelector("#adminMainPageTeamGrid");
+        const adminAllUsers = content.querySelector("#adminUsersGridContainer");
+        const adminFacilityData = content.querySelector("#facilityDataGridContainer");
+        const adminAddTimeBlock = content.querySelector("#setAllUsersAvailabilityGridContainer");
+        const schedulerButton = content.querySelector("#runScheduleBuilderButton");
+    
+        const adminAllTeamsNew = renderAdminAllTeamsGrid(adminAllTeams, adminMainPageData.allTeams);
+        const adminAllUsersNew = renderAdminAllUsersGrid(adminAllUsers, adminMainPageData.allUsers);
+        const adminFacilityDataNew = renderFacilityDataGrid({adminFacilityDataContainer: adminFacilityData, adminMainPageData: adminMainPageData.facilitySelectors, pageRenderOrigin: "template"});
+        const adminAddTimeBlockNew = renderAdminTimeBlocker({adminTimeBlockDiv: adminAddTimeBlock, adminMainPageData: adminMainPageData.adminTimeBlocks, pageRenderOrigin: "template"});
+    
+        adminAllTeams.replaceWith(adminAllTeamsNew);
+        adminAllUsers.replaceWith(adminAllUsersNew); 
+        adminFacilityData.replaceWith(adminFacilityDataNew);
+        adminAddTimeBlock.replaceWith(adminAddTimeBlockNew);
+    
+        seasonButtonsChildren.forEach(function(child){
+            if(child.id == `${season}Button`){
+                child.disabled = true;
+            }else{
+                child.addEventListener("click", changeSeason)
+               
+            }
+        })
+
+        schedulerButton.addEventListener("click", runScheduler)
+    
+        return content
+    
+        function changeSeason(){
+            let string = "Button";
+            const seasonButtonId = this.id;
+            const truncateIndex = seasonButtonId.indexOf(string);
+            const seasonName = seasonButtonId.slice(0, truncateIndex);
+            
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminSeasonChangeRequested", seasonName)
+        }
+
+        function runScheduler(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("runSchedulerRequested") 
+        }
+    }
+    //no obvious issues with this or allTeamsData
+    function renderAdminAllTeamsGrid(teamGrid, allTeamsData){ 
+        const teamGridNew = document.createElement("div")
+
+        allTeamsData.forEach(function(team){
+            const teamRow = buildAdminTeamRow(team, allTeamsData);
+            teamGridNew.appendChild(teamRow);
+        })
+
+        teamGrid.replaceWith(teamGridNew);
+        teamGridNew.id = "adminMainPageTeamGrid"
+    
+        return teamGridNew
+    }
+
+    //adminTeamRow display is: teamName, coach, lastVerified, teamRank, up and downrank buttons
+    function buildAdminTeamRow(teamData, allTeamsData){ //after viewing full page, determine whether to add allOpts for admin viewing
+        const template = document.querySelector("#adminMainPageTeamTemplate");
+        const content = document.importNode(template.content, true);
+    
+        const teamName = content.querySelector(".adminMainPageTeamGridTeamName");
+        const teamCoach = content.querySelector(".adminMainPageTeamGridTeamCoach");
+        const teamSize = content.querySelector(".adminMainPageTeamGridTeamSize");
+        const teamRank = content.querySelector(".adminMainPageTeamGridTeamRank");
+        const teamButtons = content.querySelector(".adminMainPageTeamGridTeamButtons");
+        
+        const uprankButton = document.createElement("button");
+        const downrankButton = document.createElement("button");
+
+        teamName.innerText = teamData.name;
+        teamCoach.innerText = teamData.coach;
+        teamSize.innerText = `${teamData.size} athletes`;
+        teamRank.innerText = teamData.rank.allTeams +1;
+
+        uprankButton.id = "adminMainPageTeamGridTeamUprankButton"
+        downrankButton.id = "adminMainPageTeamGridTeamDownrankButton"
+    
+        uprankButton.addEventListener("click", moveAdminRankUp);
+        downrankButton.addEventListener("click", moveAdminRankDown);
+    
+        if(allTeamsData.length > 1 && teamData.rank.allTeams != 0 && teamData.rank.allTeams != allTeamsData.length - 1){
+            teamButtons.appendChild(uprankButton);
+            teamButtons.appendChild(downrankButton);
+        }else if(allTeamsData.length > 1 && teamData.rank.allTeams == allTeamsData.length - 1){
+            teamButtons.appendChild(uprankButton)
+        }else if(allTeamsData.length > 1 && teamData.rank.allTeams == 0){
+            teamButtons.appendChild(downrankButton)
+        }   
+    
+        return content
+    
+        function moveAdminRankUp(){ 
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyAdminTeamOrder", {index: teamData.rank.allTeams, modifier: -1})
+        }
+        function moveAdminRankDown(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyAdminTeamOrder", {index: teamData.rank.allTeams, modifier: 1})
+        }
+    }
+    //no obvious issues with this or dataModel, display is usersGrid and addUserButton
+    function renderAdminAllUsersGrid(adminAllUsersContainer, adminMainPageData){
+    
+        const userGrid = adminAllUsersContainer.querySelector("#adminUsersGrid");
+        const addUserButton = adminAllUsersContainer.querySelector("#adminUsersGridAddUser");
+        const userGridNew = renderAdminAllUsers(adminMainPageData);
+    
+        userGrid.replaceWith(userGridNew);
+        
+        addUserButton.addEventListener("click", addUser)
+    
+        return adminAllUsersContainer
+
+        function addUser(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("addUser")
+        }
+    }
+    
+    function renderAdminAllUsers(adminMainPageData){
+        const allUsers = document.createElement("div");
+        allUsers.id = "adminUsersGrid";
+    
+        adminMainPageData.forEach(function(user){
+            const userRow = buildAdminUserRow(user);
+            allUsers.appendChild(userRow);
+        })
+
+        return allUsers;
+    }
+    //userRow display is: name, privilegeLevel, color, lastVerified date, edit and deleteButtons
+    function buildAdminUserRow(userData){
+        const template = document.querySelector("#adminMainPageUserGridUserTemplate");
+        const content = document.importNode(template.content, true);
+    
+        const userName = content.querySelector(".adminUserGridUserName");
+        const userPrivilege = content.querySelector(".adminUserGridUserPrivilege");
+        const userLastVerified = content.querySelector(".adminUserGridUserLastVerified");
+        const userColorBlock = content.querySelector(".adminUserColor");
+    
+        const editButton = content.querySelector(".adminUserGridUserEditButton");
+        const deleteButton = content.querySelector(".adminUserGridUserDeleteButton");
+    
+        editButton.addEventListener("click", editUser);
+        deleteButton.addEventListener("click", deleteUser);
+    
+        userName.innerText = userData.name;
+        if(userData.privilegeLevel){
+            userPrivilege.innerText = "admin"
+        }else{
+            userPrivilege.innerText = "user"
+        }
+        userPrivilege.innerText = userData.privilegeLevel;
+        userLastVerified.innerText = userData.lastVerified;
+        userColorBlock.style.backgroundColor = userData.color
+    
+        return content
+    
+        function editUser(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editUser", userData)
+        }
+        function deleteUser(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteUser", userData)	
+        }
+    }
+
+    //renderFacilityDataGrid display is: facilityOpen selector, facilityClose selector, facility maxCapacity, saveButton, cancelButton
+    function renderFacilityDataGrid(dataDomObj){
+        
+        const adminFacilityDataContainer = dataDomObj.adminFacilityDataContainer;
+        const adminMainPageData = dataDomObj.adminMainPageData;
+        const pageRenderOrigin = dataDomObj.pageRenderOrigin
+
+        const template = document.querySelector("#adminMainPageFacilityDataGridTemplate");
+        const content = document.importNode(template.content, true);
+
+        const facilityGridNew = content.querySelector("#facilityDataGrid");
+        const facilitySelectorsNodes = content.querySelectorAll(".selector");
+        const saveButton = content.querySelector("#adminMainPageFacilitySelectorsSaveButton");
+        const cancelButton = content.querySelector("#adminMainPageFacilitySelectorsCancelButton");
+    
+        facilitySelectorsNodes.forEach(function(selector){
+            const primaryClass = Array.from(selector.classList)[0];
+            
+            const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
+            selectionNew.addEventListener("change", publishSelectionValueChange);
+            selectionNew.addEventListener("change", disableDefaultOption)
+            if(primaryClass == "facilityOpen"){
+                selectionNew.addEventListener("click", modifyEndTimeDefaultValue)
+            }
+    
+            const selectedOption = selectionNew.querySelector(`option[value = "${adminMainPageData[primaryClass]}"]`);
+            selectedOption.selected = true;
+            if(selectedOption.value != "default"){
+                selectionNew.firstChild.disabled = true;
+            }
+            
+            selector.replaceWith(selectionNew);
+    
+            function publishSelectionValueChange(){
+                const selector = primaryClass
+                const value = selectionNew.value;
+                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyFacilitySelectorValue", {selector, value})
+            }
+
+            function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+                const values = Array.from(this.children);
+                values[0].disabled = true;
+            }
+
+            function modifyEndTimeDefaultValue(){
+                const startTimeSelectedValue = Number(this.value);
+                const endTimeValuesArray = Array.from(this.parentElement.nextElementSibling.lastElementChild.children);
+                endTimeValuesArray.forEach(function(time){
+                    const endTimeValue = Number(time.value);
+                    if(endTimeValue < startTimeSelectedValue + 30 || endTimeValue == "default"){
+                        time.disabled = true;
+                    }else{
+                        time.disabled = false;
+                    }
+                })
+            }
+        })
+
+        saveButton.addEventListener("click", updateFacilityData);
+        cancelButton.addEventListener("click", cancelFacilityDataChanges);
+    
+        function updateFacilityData(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateFacilityDataClicked");
+        }
+        function cancelFacilityDataChanges(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("cancelFacilityDataChangesClicked", adminFacilityDataContainer)
+        }
+        
+        const facilityGrid = document.querySelector("#facilityDataGrid");
+        if(pageRenderOrigin == "dataChange"){
+            facilityGrid.replaceWith(facilityGridNew)
+        }else{
+            adminFacilityDataContainer.appendChild(facilityGridNew)
+            return adminFacilityDataContainer
+        }
+    } 
+    
+    //adminTimeBlocker display is blockGrid (allTimeBlocks), saveChanges, cancelChanges buttons; dataModel issue to determine when to write changes to allUsers (FE or BE)
+    function renderAdminTimeBlocker(adminDomObj){
+        const adminTimeBlockDiv = adminDomObj.adminTimeBlockDiv
+
+        const adminTimeBlockGrid = adminTimeBlockDiv.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid");
+        const adminSaveTimeBlockButton = adminTimeBlockDiv.querySelector("#adminMainPageAddAvailabilityBlockAllUsersSaveButton");
+        const adminCancelTimeBlockChangesButton = adminTimeBlockDiv.querySelector("#adminMainPageAddAvailabilityBlockAllUsersCancelButton");
+        
+        const adminTimeBlockGridNew = renderAdminAllTimeBlocks(adminDomObj);
+
+        adminTimeBlockGrid.replaceWith(adminTimeBlockGridNew);
+    
+        adminSaveTimeBlockButton.addEventListener("click", updateAdminAvailability);
+        adminCancelTimeBlockChangesButton.addEventListener("click", cancelAdminAvailabilityChanges);
+
+        return adminTimeBlockDiv
+
+        function updateAdminAvailability(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateAdminAvailabilityClicked")
+        }
+        function cancelAdminAvailabilityChanges(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("cancelAdminAvailabilityChangesClicked", adminTimeBlockDiv)
+        }
+    }
+    //allTimeBlocks display is forEach day (Day Label, addButton, [row for each timeBlock])
+    function renderAdminAllTimeBlocks(dataDomObj){
+        const adminTimeBlockDiv = dataDomObj.adminTimeBlockDiv;
+        const adminMainPageData = dataDomObj.adminMainPageData
+        const pageRenderOrigin = dataDomObj.pageRenderOrigin
+
+        const allTimeBlocksNew = document.createElement("div")
+        allTimeBlocksNew.id = "adminMainPageAddAvailabilityBlockAllUsersGrid";
+    
+        for(let day in adminMainPageData){
+            const dayDiv = document.createElement("div");
+            dayDiv.classList.add("adminTimeBlockDay");
+
+            const label = document.createElement("h3");
+            const addButton = document.createElement("button");
+
+            label.innerText = `${day}`;
+            addButton.innerText = "Add Block"
+
+            dayDiv.appendChild(label);
+            dayDiv.appendChild(addButton)
+
+            adminMainPageData[day].forEach(function(timeBlock){
+                const blockNumber = adminMainPageData[day].indexOf(timeBlock);
+                const row = buildAdminTimeBlockRow(adminTimeBlockDiv, day, timeBlock, blockNumber);
+                dayDiv.appendChild(row)
+            })
+
+            allTimeBlocksNew.appendChild(dayDiv);
+
+            addButton.addEventListener("click", function addAdminTimeBlock(){
+                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish('addAdminTimeBlockClicked', {adminTimeBlockDiv, day})
+            });
+        }
+
+        const allTimeBlocks = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid");
+        if(pageRenderOrigin == "dataChange"){
+            allTimeBlocks.replaceWith(allTimeBlocksNew)
+        }else{
+            return allTimeBlocksNew
+        }
+    }
+
+    //adminBlockRow display is (startTime selector, endTime selector, deleteButton)
+    function buildAdminTimeBlockRow(adminTimeBlockDiv, day, timeBlock, blockNumber){
+        const template = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersBlockTemplate");
+        const content = document.importNode(template.content, true);
+
+        const selectorsNodes = content.querySelectorAll(".selector");
+        const deleteButton = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton")
+    
+        selectorsNodes.forEach(function(selector){
+            const primaryClass = Array.from(selector.classList)[0];
+            
+            const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
+            selectionNew.addEventListener("change", publishSelectionValueChange)
+            selectionNew.addEventListener("change", disableDefaultOption)
+            if(primaryClass == "startTime"){
+                selectionNew.addEventListener("click", modifyEndTimeDefaultValue)
+            }
+    
+            const selectedOption = selectionNew.querySelector(`option[value = "${timeBlock[primaryClass]}"]`);
+            selectedOption.selected = true;
+            if(selectedOption.value != "default"){
+                selectionNew.firstChild.disabled = true;
+            }
+
+           
+            
+            selector.replaceWith(selectionNew);
+    
+            function publishSelectionValueChange(){
+                const selector = primaryClass
+                const value = selectionNew.value;
+                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyAdminTimeBlockSelectorValue", {blockNumber, day, selector, value})
+            }
+
+            function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+                const values = Array.from(this.children);
+                values[0].disabled = true;
+            }
+
+            function modifyEndTimeDefaultValue(){
+                const startTimeSelectedValue = Number(this.value);
+                const endTimeValuesArray = Array.from(this.parentElement.nextElementSibling.lastElementChild.children);
+                endTimeValuesArray.forEach(function(time){
+                    const endTimeValue = Number(time.value);
+                    if(endTimeValue < startTimeSelectedValue + 30 || endTimeValue == "default"){
+                        time.disabled = true;
+                    }else{
+                        time.disabled = false;
+                    }
+                })
+            }
+        })
+
+        deleteButton.addEventListener("click", deleteAdminTimeBlock);
+
+        return content
+
+        function deleteAdminTimeBlock(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteAdminTimeBlockClicked", {adminTimeBlockDiv, day, blockNumber})
+        }
+    } 
+})()
+
+
 
 /***/ }),
 
@@ -26,7 +575,177 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \**************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"adminUserGeneratorDOM\": () => (/* binding */ adminUserGeneratorDOM)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n/* eslint-disable no-prototype-builtins */\n\n\n/*\n\npurpose:  admin interface for creating/editing/deleting users\n\nuserObject is modeled as such:\n\n    {\n        name,\n        color,\n        privilegeLevel,\n        teams:{},\n        availability:{},\n        lastVerified\n    }, \n\npublishes:\n    page render requests FOR pageRenderer\n    data save requests FOR adminUserDataModel\n    data change cancellation FOR adminMainPageModel\n    requests to add/delete/modify name/privilege/color data FOR adminUserDataModel\n\nsubscribes to:\n    userModel builds/loads FROM adminUserDataModel\n    adminMainPageModel data FROM adminMainPageModel\n*/\n\n\nconst adminUserGeneratorDOM = (function(){\n    //no obvious issues\n    let allUsersList \n\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"userModelPopulated\", publishUserGeneratorPageRender);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminMainPageModelBuilt\", setAllUsers);\n\n    function publishUserGeneratorPageRender(userModel){\n        const userGeneratorPage = renderUserGeneratorDOM(userModel);\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"pageRenderRequested\", userGeneratorPage)\n    }\n\n    function setAllUsers(adminDataModel){\n        allUsersList = adminDataModel.allUsers\n    }\n\n    function renderUserGeneratorDOM(userModel){\n        const template = document.querySelector(\"#adminUserGeneratorTemplate\");\n        const content = document.importNode(template.content, true);\n\n        const userName = content.querySelector(\"#userGeneratorName\");\n        const userPrivilege = content.querySelector(\"#userGeneratorPrivilege\");\n        const userColor = content.querySelector(\"#userGeneratorColor\");\n        const saveButton = content.querySelector(\"#userGeneratorSaveButton\");\n        const cancelButton = content.querySelector(\"#userGeneratorCancelButton\");\n\n        saveButton.addEventListener(\"click\", saveUserData) \n        cancelButton.addEventListener(\"click\", cancelUserChanges)\n        \n        const userNameNew = renderUserName(userName, userModel) \n        const userPrivilegeNew = renderUserPrivilege(userPrivilege, userModel)\n        const userColorNew = renderUserColor(userColor, userModel)\n\n        userName.replaceWith(userNameNew);\n        userPrivilege.replaceWith(userPrivilegeNew);\n        userColor.replaceWith(userColorNew);\n       \n        return content\n        \n        function saveUserData(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"saveUserDataClicked\")\n        }\n\n        function cancelUserChanges(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminMainPageDOMRequested\")\n        }\n    }\n\n    function renderUserName(userNameDOM, userModel){\n        \n        //this is good, compare this against other validator in singleUser teams to make sure they are comprehensive;\n        userNameDOM.value = userModel.name;\n\n        userNameDOM.addEventListener(\"blur\", function modifyUserNameValue(){ \n            if(userModel.name != userNameDOM.value && blockNameDuplication(userNameDOM.value)){\n                alert(`Data already exists for ${userNameDOM.value}. Use another name or edit/delete the other user for the name you are trying to switch to.`);\n                userNameDOM.value = \"\";\n                userNameDOM.focus()\n            }else if(userNameDOM.value == \"\"){\n                alert(\"User name must have a value\");\n                userNameDOM.focus();\n            }   \n            else if(userModel.name != \"\" && userNameDOM.value != userModel.name){\n                const confirmation = confirm(`If you submit changes, this will change the user name from ${userModel.name} to ${userNameDOM.value}. Proceed? `);\n                if(confirmation){\n                    _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyUserNameValue\", userNameDOM.value)\n                }else{\n                    userNameDOM.value = userModel.name;\n                }\n            }else if(userModel.name != userNameDOM.value){\n                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyUserNameValue\", userNameDOM.value)\n            } \n        })\n\n        return userNameDOM;\n\n        function blockNameDuplication(thisName){\n            const nameCheck = allUsersList.some(function(user){\n                return user.name.toLowerCase() == thisName.toLowerCase();\n            })\n            return nameCheck;\n        }\n    }\n    \n    function renderUserPrivilege(userPrivilegeDOM, userModel){ \n\n        if(userModel.privilegeLevel == true){\n            userPrivilegeDOM.checked = true\n        }\n       \n        userPrivilegeDOM.addEventListener(\"blur\", updateUserPrivilege)\n\n        return userPrivilegeDOM;\n\n        function updateUserPrivilege(){\n            if(userModel.privilegeLevel == true & !userPrivilegeDOM.checked && !checkForLastAdmin()){\n                alert(\"Cannot demote last admin. Create new admin users before demoting this admin.\")\n                userPrivilegeDOM.checked = true;\n            }else if(userPrivilegeDOM.checked != userModel.privilegeLevel){\n                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyUserPrivilegeLevelValue\", userPrivilegeDOM.checked)\n            } \n\n            function checkForLastAdmin(){\n                const adminUsers = allUsersList.filter(function(user){\n                    return user.privilegeLevel == true\n                })\n\n                return adminUsers.length >1\n            }\n        }\n    }\n\n    function renderUserColor(userColorDOM, userModel){\n\n        userColorDOM.value = userModel.color\n\n        userColorDOM.addEventListener(\"blur\", function verifyColorChange(){\n            if(userModel.color != userColorDOM.value && blockColorDuplication()){\n                alert(`Another user is already using this color. Considering all the possible colors available, the odds are pretty low. Unlucky pick, I guess!`)\n                userColorDOM.value = userModel.color; \n                userColorDOM.focus();\n            }else if(userColorDOM.value == \"#000000\"){\n                alert(\"Color must have a value not equal to black. Black is default value, and must be changed.\");\n                userColorDOM.focus();\n            }else if(userModel.color != userColorDOM.value){\n                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyUserColorValue\", userColorDOM.value)\n            }\n            \n            function blockColorDuplication(){\n                const nameCheck = allUsersList.some(function(user){\n                    return (user.name != userModel.name && user.color == userColorDOM.value)\n                })\n                return nameCheck;\n            }\n        })\n\n        return userColorDOM\n    }\n\n})()\n\n\n\n//# sourceURL=webpack://pennschedule/./src/DOMBuilders/adminUserGeneratorDOM.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "adminUserGeneratorDOM": () => (/* binding */ adminUserGeneratorDOM)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+/* eslint-disable no-prototype-builtins */
+
+/*
+
+purpose:  admin interface for creating/editing/deleting users
+
+userObject is modeled as such:
+
+    {
+        name,
+        color,
+        privilegeLevel,
+        teams:{},
+        availability:{},
+        lastVerified
+    }, 
+
+publishes:
+    page render requests FOR pageRenderer
+    data save requests FOR adminUserDataModel
+    data change cancellation FOR adminMainPageModel
+    requests to add/delete/modify name/privilege/color data FOR adminUserDataModel
+
+subscribes to:
+    userModel builds/loads FROM adminUserDataModel
+    adminMainPageModel data FROM adminMainPageModel
+*/
+
+
+const adminUserGeneratorDOM = (function(){
+    //no obvious issues
+    let allUsersList 
+
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userModelPopulated", publishUserGeneratorPageRender);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminMainPageModelBuilt", setAllUsers);
+
+    function publishUserGeneratorPageRender(userModel){
+        const userGeneratorPage = renderUserGeneratorDOM(userModel);
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("pageRenderRequested", userGeneratorPage)
+    }
+
+    function setAllUsers(adminDataModel){
+        allUsersList = adminDataModel.allUsers
+    }
+
+    function renderUserGeneratorDOM(userModel){
+        const template = document.querySelector("#adminUserGeneratorTemplate");
+        const content = document.importNode(template.content, true);
+
+        const userName = content.querySelector("#userGeneratorName");
+        const userPrivilege = content.querySelector("#userGeneratorPrivilege");
+        const userColor = content.querySelector("#userGeneratorColor");
+        const saveButton = content.querySelector("#userGeneratorSaveButton");
+        const cancelButton = content.querySelector("#userGeneratorCancelButton");
+
+        saveButton.addEventListener("click", saveUserData) 
+        cancelButton.addEventListener("click", cancelUserChanges)
+        
+        const userNameNew = renderUserName(userName, userModel) 
+        const userPrivilegeNew = renderUserPrivilege(userPrivilege, userModel)
+        const userColorNew = renderUserColor(userColor, userModel)
+
+        userName.replaceWith(userNameNew);
+        userPrivilege.replaceWith(userPrivilegeNew);
+        userColor.replaceWith(userColorNew);
+       
+        return content
+        
+        function saveUserData(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("saveUserDataClicked")
+        }
+
+        function cancelUserChanges(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminMainPageDOMRequested")
+        }
+    }
+
+    function renderUserName(userNameDOM, userModel){
+        
+        //this is good, compare this against other validator in singleUser teams to make sure they are comprehensive;
+        userNameDOM.value = userModel.name;
+
+        userNameDOM.addEventListener("blur", function modifyUserNameValue(){ 
+            if(userModel.name != userNameDOM.value && blockNameDuplication(userNameDOM.value)){
+                alert(`Data already exists for ${userNameDOM.value}. Use another name or edit/delete the other user for the name you are trying to switch to.`);
+                userNameDOM.value = "";
+                userNameDOM.focus()
+            }else if(userModel.name != "" && userNameDOM.value != userModel.name){
+                const confirmation = confirm(`If you submit changes, this will change the user name from ${userModel.name} to ${userNameDOM.value}. Proceed? `);
+                if(confirmation){
+                    _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserNameValue", userNameDOM.value)
+                }else{
+                    userNameDOM.value = userModel.name;
+                }
+            }else if(userModel.name != userNameDOM.value){
+                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserNameValue", userNameDOM.value)
+            } 
+        })
+
+        return userNameDOM;
+
+        function blockNameDuplication(thisName){
+            const nameCheck = allUsersList.some(function(user){
+                return user.name.toLowerCase() == thisName.toLowerCase();
+            })
+            return nameCheck;
+        }
+    }
+    
+    function renderUserPrivilege(userPrivilegeDOM, userModel){ 
+
+        if(userModel.privilegeLevel == true){
+            userPrivilegeDOM.checked = true
+        }
+       
+        userPrivilegeDOM.addEventListener("blur", updateUserPrivilege)
+
+        return userPrivilegeDOM;
+
+        function updateUserPrivilege(){
+            if(userModel.privilegeLevel == true & !userPrivilegeDOM.checked && !checkForLastAdmin()){
+                alert("Cannot demote last admin. Create new admin users before demoting this admin.")
+                userPrivilegeDOM.checked = true;
+            }else if(userPrivilegeDOM.checked != userModel.privilegeLevel){
+                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserPrivilegeLevelValue", userPrivilegeDOM.checked)
+            } 
+
+            function checkForLastAdmin(){
+                const adminUsers = allUsersList.filter(function(user){
+                    return user.privilegeLevel == true
+                })
+
+                return adminUsers.length >1
+            }
+        }
+    }
+
+    function renderUserColor(userColorDOM, userModel){
+
+        userColorDOM.value = userModel.color
+
+        userColorDOM.addEventListener("blur", function verifyColorChange(){
+            if(userModel.color != userColorDOM.value && blockColorDuplication()){
+                alert(`Another user is already using this color. Considering all the possible colors available, the odds are pretty low. Unlucky pick, I guess!`)
+                userColorDOM.value = userModel.color; 
+                userColorDOM.focus();
+            }else if(userModel.color != userColorDOM.value){
+                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserColorValue", userColorDOM.value)
+            }
+            
+            function blockColorDuplication(){
+                const nameCheck = allUsersList.some(function(user){
+                    return (user.name != userModel.name && user.color == userColorDOM.value)
+                })
+                return nameCheck;
+            }
+        })
+
+        return userColorDOM
+    }
+
+})()
+
+
 
 /***/ }),
 
@@ -36,7 +755,206 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"availabilityPageDOM\": () => (/* binding */ availabilityPageDOM)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n\n/*action: user interface for modifying availability\n\navailability object is modeled as such:\n\nobj = {\n    \n    day: \n    [\n        {startTime, stopTime, admin}, \n        {startTime, stopTime, admin}\n    ], \n    day: \n    [\n        {etc}, \n        {etc},\n    ]\n}\n\npublishes:\n    page render requests FOR pageRenderer\n    add/delete/modify/update requests FOR availabilityModel\n\nsubscribes to: \n    userMainPageModel builds FROM mainPageModel\n    userSelectorsBuilt FROM selectorDOMBuilder\n    build requests FROM availabilityModel\n    \n*/\n\nconst availabilityPageDOM = (function(){\n    //no obvious issues here\n    let selectorNodes = {\n        startTime:null, \n        endTime:null\n    };\n\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"userSelectorsBuilt\", setSelectorNodes);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"availabilityModelModified\", buildAvailabilityGrid);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"availabilityDOMPageRequested\", publishAvailabilityPageRender);\n\n    function setSelectorNodes(selectorElementObj){\n        for(let selectorElement in selectorElementObj){\n            switch(selectorElement){\n                case `startTime`:\n                case `endTime`:\n                    selectorNodes[selectorElement] = selectorElementObj[selectorElement];\n                    break;\n                default:\n                    return;\n            }  \n        }  \n    }\n\n    function publishAvailabilityPageRender(availability){\n        const availabilityPage = renderAvailabilityDOM(availability);\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"pageRenderRequested\", availabilityPage)\n    }\n\n    function renderAvailabilityDOM(availability){\n        const template = document.querySelector(\"#availabilityDOMTemplate\");\n        const content = document.importNode(template.content, true);\n\n        const grid = content.querySelector(\"#availabilityGrid\");\n        const updateButton = content.querySelector(\"#availabilityUpdateButton\");\n        const cancelButton = content.querySelector(\"#availabilityCancelButton\");\n\n        const gridNew = buildAvailabilityGrid(availability);\n\n        grid.replaceWith(gridNew);\n\n        updateButton.addEventListener(\"click\", updateAvailability)\n        cancelButton.addEventListener(\"click\", cancelAvailabilityChanges);\n\n        return content\n        \n        function updateAvailability(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"updateAvailabilityClicked\")\n        }\n\n        function cancelAvailabilityChanges(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"mainPageDOMRequested\")\n        }\n    }\n\n    function buildAvailabilityGrid(availability){\n        const gridNew = document.createElement(\"div\");\n        gridNew.id = \"availabilityGrid\";\n\n        for(let day in availability){\n            const dayDiv = document.createElement(\"div\");\n            dayDiv.classList.add(\"availabilityDay\")\n            \n            const label = document.createElement(\"h3\");\n            const addButton = document.createElement(\"button\");\n\n            label.innerText = `${day}`\n\n            dayDiv.appendChild(label);\n            dayDiv.appendChild(addButton);\n\n            day.forEach(function(timeBlock){\n                const blockNumber = day.indexOf(timeBlock);\n                const row = buildAvailabilityRow(day, timeBlock, blockNumber);\n                dayDiv.appendChild(row)\n            })\n            \n            gridNew.appendChild(dayDiv);\n            \n            addButton.addEventListener(\"click\", function addTimeBlock(){\n                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"addTimeBlockClicked\", day)\n            })\n        }\n\n        const grid = document.querySelector(\"#availabilityGrid\");\n        if(grid != null){\n            grid.replaceWith(gridNew)\n        }else{\n            return gridNew\n        }\n        \n        \n    }\n\n    function buildAvailabilityRow(day, timeBlock, blockNumber){\n        const template = document.querySelector(\"#availabilityGridRowTemplate\");\n        const content = document.importNode(template.content, true);\n\n        const availabilitySelectors = content.querySelectorAll(\".selector\")\n        const deleteButton = content.querySelector(\".availabilityDeleteButton\");\n        \n\n        availabilitySelectors.forEach(function(selection){\n            const primaryClass = Array.from(selection.classList)[0];\n            \n            const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);\n            selectionNew.addEventListener(\"change\", publishAvailabilitySelectionChange)\n            \n            const selectedOption = selectionNew.querySelector(`option[value = ${selectionNew.value}]`);\n            selectedOption.selected = true; \n            if(selectedOption.value != \"default\"){\n                selectionNew.firstChild.disabled = true;\n            }\n\n            selection.replaceWith(selectionNew)   \n\n            function publishAvailabilitySelectionChange(){\n                const selector = primaryClass;\n                const value = selectionNew.value\n                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifySelectorValue\", {blockNumber, day, selector, value})\n            }\n        });\n\n        if(timeBlock.admin == \"yes\"){\n            deleteButton.remove()\n        }\n\n        deleteButton.addEventListener(\"click\", deleteTimeBlock); \n\n        return content\n        \n        function deleteTimeBlock(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"deleteTimeBlockClicked\", {day, blockNumber})\n        }\n    }\n})()\n\n\n\n//# sourceURL=webpack://pennschedule/./src/DOMBuilders/availabilityPageDOM.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "availabilityPageDOM": () => (/* binding */ availabilityPageDOM)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+
+/*action: user interface for modifying availability
+
+availability object is modeled as such:
+
+obj = {
+    
+    day: 
+    [
+        {startTime, stopTime, admin}, 
+        {startTime, stopTime, admin}
+    ], 
+    day: 
+    [
+        {etc}, 
+        {etc},
+    ]
+}
+
+publishes:
+    page render requests FOR pageRenderer
+    add/delete/modify/update requests FOR availabilityModel
+
+subscribes to: 
+    userMainPageModel builds FROM mainPageModel
+    userSelectorsBuilt FROM selectorDOMBuilder
+    build requests FROM availabilityModel
+    
+*/
+
+const availabilityPageDOM = (function(){
+    //no obvious issues here
+    let selectorNodes = {
+        startTime:null, 
+        endTime:null
+    };
+
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userSelectorsBuilt", setSelectorNodes);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("availabilityModelModified", buildAvailabilityGrid);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("availabilityDOMPageRequested", publishAvailabilityPageRender);
+
+    function setSelectorNodes(selectorElementObj){
+        for(let selectorElement in selectorElementObj){
+            switch(selectorElement){
+                case `startTime`:
+                case `endTime`:
+                    selectorNodes[selectorElement] = selectorElementObj[selectorElement];
+                    break;
+                default:
+                    break;
+            }  
+        }  
+    }
+
+    function publishAvailabilityPageRender(availability){
+        const availabilityPage = renderAvailabilityDOM(availability);
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("pageRenderRequested", availabilityPage)
+    }
+
+    function renderAvailabilityDOM(availability){
+        const template = document.querySelector("#availabilityDOMTemplate");
+        const content = document.importNode(template.content, true);
+
+        const grid = content.querySelector("#availabilityGrid");
+        const updateButton = content.querySelector("#availabilityUpdateButton");
+        const cancelButton = content.querySelector("#availabilityCancelButton");
+
+        const gridNew = buildAvailabilityGrid(availability);
+
+        grid.replaceWith(gridNew);
+
+        updateButton.addEventListener("click", updateAvailability)
+        cancelButton.addEventListener("click", cancelAvailabilityChanges);
+
+        return content
+        
+        function updateAvailability(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateAvailabilityClicked")
+        }
+
+        function cancelAvailabilityChanges(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("mainPageDOMRequested")
+        }
+    }
+
+    function buildAvailabilityGrid(availability){
+        const gridNew = document.createElement("div");
+        gridNew.id = "availabilityGrid";
+
+        for(let day in availability){
+            const dayDiv = document.createElement("div");
+            dayDiv.classList.add("availabilityDay")
+            
+            const label = document.createElement("h3");
+            const addButton = document.createElement("button");
+
+            label.innerText = `${day}`
+            addButton.innerText = "Add Block"
+
+            dayDiv.appendChild(label);
+            dayDiv.appendChild(addButton);
+
+            availability[day].forEach(function(timeBlock){
+                const blockNumber = availability[day].indexOf(timeBlock);  //this throws -1 ??
+                const row = buildAvailabilityRow(day, timeBlock, blockNumber);
+                dayDiv.appendChild(row)
+            })
+            
+            gridNew.appendChild(dayDiv);
+            
+            addButton.addEventListener("click", function addTimeBlock(){
+                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("addTimeBlockClicked", day)
+            })
+        }
+
+        const grid = document.querySelector("#availabilityGrid");
+        if(grid != null){
+            grid.replaceWith(gridNew)
+        }else{
+            return gridNew
+        }
+        
+        
+    }
+
+    function buildAvailabilityRow(day, timeBlock, blockNumber){
+        const template = document.querySelector("#availabilityGridRowTemplate");
+        const content = document.importNode(template.content, true);
+
+        const availabilitySelectors = content.querySelectorAll(".selector")
+        const deleteButton = content.querySelector(".availabilityDeleteButton");
+        
+
+        availabilitySelectors.forEach(function(selection){
+            const primaryClass = Array.from(selection.classList)[0];
+            
+            const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
+            selectionNew.addEventListener("change", publishAvailabilitySelectionChange)
+            selectionNew.addEventListener("change", disableDefaultOption)
+            if(primaryClass == "startTime"){
+                selectionNew.addEventListener("click", modifyEndTimeDefaultValue)
+            }
+            
+            const selectedOption = selectionNew.querySelector(`option[value = "${timeBlock[primaryClass]}"]`);
+            selectedOption.selected = true; 
+            if(selectedOption.value != "default"){
+                selectionNew.firstChild.disabled = true;
+            }
+
+            selection.replaceWith(selectionNew)   
+
+            function publishAvailabilitySelectionChange(){
+                const selector = primaryClass;
+                const value = selectionNew.value
+                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyAvailabilitySelectorValues", {blockNumber, day, selector, value})
+            }
+
+            function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+                const values = Array.from(this.children);
+                values[0].disabled = true;
+            }
+
+            function modifyEndTimeDefaultValue(){
+                const startTimeSelectedValue = Number(this.value);
+                const endTimeValuesArray = Array.from(this.parentElement.nextElementSibling.lastElementChild.children);
+                endTimeValuesArray.forEach(function(time){
+                    const endTimeValue = Number(time.value);
+                    if(endTimeValue < startTimeSelectedValue + 30 || endTimeValue == "default"){
+                        time.disabled = true;
+                    }else{
+                        time.disabled = false;
+                    }
+                })
+            }
+        });
+
+        if(timeBlock.admin == "yes"){
+            deleteButton.remove()
+        }
+
+        deleteButton.addEventListener("click", deleteTimeBlock); 
+
+        return content
+        
+        function deleteTimeBlock(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteTimeBlockClicked", {day, blockNumber})
+        }
+    }
+})()
+
+
 
 /***/ }),
 
@@ -46,7 +964,296 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"mainPageDOM\": () => (/* binding */ mainPageDOM)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n/* harmony import */ var _timeConverter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../timeConverter */ \"./src/timeConverter.js\");\n\n\n\n/*action: user interface for observing teams and availability\n\nuserMainPageData object is modeled as such:\n\nobj = {\n    name,\n    myTeams: \n        [{ \n            teamName,\n            teamSize, \n            rank:\n                {\n                    myTeams,\n                    allTeams\n                },\n            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],\n            coach,\n        }, {etc}, {etc}]\n\n    availability:\n        {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, all days already input, make sure empties don't screw anything up\n\n    season,\n    lastVerified,\n}\n\npublishes:\n    page render requests FOR pageRenderer\n    season change requests FOR (?)\n    add team requests FOR teamRequestModel\n    edit/delete/modify team order requests FOR myTeamsModel\n    \n\nsubscribes to: \n    userMainPageModel builds FROM mainPageModel\n    \n*/\n\nconst mainPageDOM = (function(){\n    \n    let season; \n    \n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"mainPageModelBuilt\", setSeason)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"mainPageModelBuilt\", publishMainPageRender);\n\n    function setSeason(mainPageData){ //make sure this happens before publishMainPageRender, it should\n        season = mainPageData.season\n    }\n\n    function publishMainPageRender(mainPageData){\n        const mainPageDOM = buildMainPageDOM(mainPageData)\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"pageRenderRequested\", mainPageDOM)\n    }\n    //find database subscribers for changeSeason/verifyUpToDate\n    function buildMainPageDOM(mainPageData){ \n        const template = document.querySelector(\"#mainPageTemplate\");\n        const content = document.importNode(template.content, true);\n\n        const seasonButtons = content.querySelector(\"#seasonButtons\");\n        const mainPageAvailability = content.querySelector(\"#userAvailability\");\n        const mainPageMyTeams = content.querySelector(\"#teamGridContainer\");\n        const verifyInfo = content.querySelector(\"#verifyInfo\");\n        const verifyButton = content.querySelector(\"#verifyButton\");\n\n        const mainPageAvailabilityNew = renderMainPageAvailability(mainPageAvailability, mainPageData.availability);\n        const mainPageMyTeamsNew = renderMainPageMyTeams(mainPageMyTeams, mainPageData.teams); \n        \n        mainPageAvailability.replaceWith(mainPageAvailabilityNew);\n        mainPageMyTeams.replaceWith(mainPageMyTeamsNew);\n        \n        verifyInfo.innerText = `The last time you verified all teams were up-to-date was ${mainPageData.lastVerified}`\n\n        seasonButtons.children.forEach(function(child){\n            if(child.id == `${season}Button`){\n                child.disabled = true;\n            }else{\n                child.addEventListener(\"click\", changeSeason)\n               \n            }\n        })\n\n        verifyButton.addEventListner(\"click\", publishTeamsUpToDateVerification);\n    \n        return content\n    \n        function changeSeason(){\n            let string = \"Button\";\n            const seasonButtonId = this.id;\n            const truncateIndex = seasonButtonId.indexOf(string);\n            const seasonName = seasonButtonId.slice(0, truncateIndex);\n            \n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"userSeasonChangeRequested\", seasonName) \n        }\n\n        function publishTeamsUpToDateVerification(){\n            const date = new Date().toLocaleString();\n            \n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"verifyUpToDateClicked\", date)\n        }\n    }\n    //no obvious issues here or with dataModel or availabilityDOM\n    function renderMainPageAvailability(availabilityDOM, availabilityData){\n        const availabilityDisplay = availabilityDOM.querySelector(\"#availabilityDisplay\");\n        const editAvailability = availabilityDOM.querySelector(\"#editAvailability\");\n\n        const availabilityDisplayNew = buildAvailabilityDisplay(availabilityData);\n        availabilityDisplay.replaceWith(availabilityDisplayNew);\n\n        editAvailability.addEventListener(\"click\", getAvailabilityModel);\n\n        return availabilityDOM\n        \n        function getAvailabilityModel(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"availabilityModelRequested\")\n        }\n    }\n\n    function buildAvailabilityDisplay(availabilityData){\n        const availabilityDisplayNew = document.createElement(\"div\");\n        for(let day in availabilityData){\n            const dayDiv = document.createElement(\"div\");\n            const label = document.createElement(\"h3\");\n\n            label.innerText = `${day}`;\n            day.forEach(function(timeBlock){\n                const timeBlockDiv = document.createElement(\"div\");\n                const startTime = document.createElement(\"p\");\n                const endTime = document.createElement(\"p\");\n\n                startTime.innerText = `Start Time: ${availabilityData[day][timeBlock].startTime}`;\n                endTime.innerText = `End Time: ${availabilityData[day][timeBlock].endTime}`;\n\n                timeBlockDiv.appendChild(startTime);\n                timeBlockDiv.appendChild(endTime);\n                dayDiv.appendChild(timeBlockDiv)\n            })\n            availabilityDisplayNew.appendChild(dayDiv)\n        }\n        return availabilityDisplayNew\n    }\n\n    function renderMainPageMyTeams(teamsDOM, teamArray){\n        \n        const teamGrid = teamsDOM.querySelector(\"#teamGrid\"); \n        const addButton = teamsDOM.querySelector(\"#teamGridAddTeam\");\n    \n        teamArray.forEach(function(team){\n            const teamElement = buildTeam(team, teamArray); \n            teamGrid.appendChild(teamElement)\n        })\n\n        addButton.addEventListener(\"click\", addTeam); //follow this\n        \n        return teamsDOM\n        \n        function addTeam(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"addTeam\")\n        }\n    }\n\n    //set CSS/class values for up/down buttons\n    function buildTeam(team, teamArray){\n        const template = document.querySelector(\"#mainPageTeamTemplate\");\n        const content = document.importNode(template.content, true);\n\n        const teamName = content.querySelector(\".teamGridTeamName\");\n        const teamSize = content.querySelector(\".teamGridTeamSize\");\n        const optionContainer = content.querySelector(\".teamGridTeamOptionContainer\");\n        const editButton = content.querySelector(\".teamGridTeamEditButton\");\n        const deleteButton = content.querySelector(\".teamGridTeamDeleteButton\");\n\n        teamName.innerText = team.teamName;\n        teamSize.innerText = team.teamSize;\n\n        team.allOpts.forEach(function(optionDetails){\n            const optNum = team.allOpts.indexOf(optionDetails)+1;\n            const option = buildTeamOption(optionDetails, optNum);\n            optionContainer.appendChild(option);\n        })\n\n        const upButton = document.createElement(\"button\");\n        const downButton = document.createElement(\"button\");\n\n        if(teamArray.length >1 && team.rank.myTeams != 0 && team.rank.myTeams != teamArray.length -1){\n            upButton.addEventListener(\"click\", moveMyTeamUp);\n            downButton.addEventListener(\"click\", moveMyTeamDown);\n            \n            content.insertBefore(upButton, editButton);\n            content.insertBefore(downButton, editButton);\n        }else if(teamArray.length >1 && team.rank.myTeams == teamArray.length-1){\n            upButton.addEventListener(\"click\", moveMyTeamUp);\n            \n            content.insertBefore(upButton, editButton);\n        }else if(teamArray.length >1 && team.rank.myTeams == 0){\n            downButton.addEventListener(\"click\", moveMyTeamDown);\n            \n            content.insertBefore(downButton, editButton);\n        }\n\n        editButton.addEventListener(\"click\", editTeam);\n        deleteButton.addEventListener(\"click\", deleteTeam);\n\n        return content\n\n        function editTeam(){ \n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"editTeam\", team); //follow these\n        }\n    \n        function deleteTeam(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"deleteTeam\", team);\n        }\n\n        function moveMyTeamUp(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyMyTeamOrder\", {index: team.rank.myTeams, modifier:-1});\n        }\n\n        function moveMyTeamDown(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyMyTeamOrder\", {index: team.rank.myTeams, modifier:1});\n        }\n    }\n\n    function buildTeamOption(optionDetails, optNum){\n        const template = document.querySelector(\"#mainPageTeamOptionTemplate\");\n        const content = document.importNode(template.content, true);\n\n        const option = content.querySelector(\".teamGridTeamOption\");\n        const dayContainer = content.querySelector(\".teamGridTeamDayContainer\");\n\n        option.innerText = `Option ${optNum}`;\n\n        optionDetails.forEach(function(day){\n            const dayDetails = buildTeamDayDetails(day);\n            dayContainer.appendChild(dayDetails);\n        })\n        \n        return content\n    }\n    \n    function buildTeamDayDetails(day){\n        const template = document.querySelector(\"#mainPageTeamDayTemplate\");\n        const content = document.importNode(template.content, true);\n\n        const dayOfWeek = content.querySelector(\".teamGridTeamDayOfWeek\");\n        const startTime = content.querySelector(\".teamGridTeamStartTime\");\n        const endTime = content.querySelector(\".teamGridTeamEndTime\");\n        const inWeiss = content.querySelector(\".teamGridTeamInWeiss\");\n\n        dayOfWeek.innerText = day.dayOfWeek;\n        startTime.innerText = _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(day.startTime).toString();\n        endTime.innerText = _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(day.endTime).toString();\n        inWeiss.innerText = day.inWeiss;\n\n        return content\n    }\n})()\n\n\n\n//# sourceURL=webpack://pennschedule/./src/DOMBuilders/mainPageDOM.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "mainPageDOM": () => (/* binding */ mainPageDOM)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _timeConverter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../timeConverter */ "./src/timeConverter.js");
+
+
+
+/*action: user interface for observing teams and availability
+
+userMainPageData object is modeled as such:
+
+obj = {
+    name,
+    myTeams: 
+        [{ 
+            teamName,
+            teamSize, 
+            rank:
+                {
+                    myTeams,
+                    allTeams
+                },
+            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+            coach,
+        }, {etc}, {etc}]
+
+    availability:
+        {day: [{start, stop}, {start, stop}], day: [{start, stop}, {start, stop}]}, all days already input, make sure empties don't screw anything up
+
+    season,
+    lastVerified,
+}
+
+publishes:
+    page render requests FOR pageRenderer
+    season change requests FOR (?)
+    add team requests FOR teamRequestModel
+    edit/delete/modify team order requests FOR myTeamsModel
+    
+
+subscribes to: 
+    userMainPageModel builds FROM mainPageModel
+    
+*/
+
+const mainPageDOM = (function(){
+    
+    let season; 
+    
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("mainPageModelBuilt", setSeason)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("mainPageModelBuilt", publishMainPageRender);
+
+    function setSeason(mainPageData){ //make sure this happens before publishMainPageRender, it should
+        season = mainPageData.season
+    }
+
+    function publishMainPageRender(mainPageData){
+        const mainPageDOM = buildMainPageDOM(mainPageData)
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("pageRenderRequested", mainPageDOM)
+    }
+    //find database subscribers for changeSeason/verifyUpToDate
+    function buildMainPageDOM(mainPageData){ 
+        const template = document.querySelector("#mainPageTemplate");
+        const content = document.importNode(template.content, true);
+
+        const seasonButtons = content.querySelector("#seasonButtons");
+        const seasonButtonsChildren = Array.from(seasonButtons.children)
+        const mainPageAvailability = content.querySelector("#userAvailability");
+        const mainPageMyTeams = content.querySelector("#teamGridContainer");
+        const verifyInfo = content.querySelector("#verifyInfo");
+        const verifyButton = content.querySelector("#verifyButton");
+
+        const mainPageAvailabilityNew = renderMainPageAvailability(mainPageAvailability, mainPageData.availability);
+        const mainPageMyTeamsNew = renderMainPageMyTeams(mainPageMyTeams, mainPageData.teams); 
+        
+        mainPageAvailability.replaceWith(mainPageAvailabilityNew);
+        mainPageMyTeams.replaceWith(mainPageMyTeamsNew);
+        
+        if(mainPageData.lastVerified != null){
+            verifyInfo.innerText += mainPageData.lastVerified
+        }
+
+        
+        seasonButtonsChildren.forEach(function(child){
+            if(child.id == `${season}Button`){
+                child.disabled = true;
+            }else{
+                child.addEventListener("click", changeSeason)
+               
+            }
+        })
+
+        verifyButton.addEventListener("click", publishTeamsUpToDateVerification);
+    
+        return content
+    
+        function changeSeason(){
+            let string = "Button";
+            const seasonButtonId = this.id;
+            const truncateIndex = seasonButtonId.indexOf(string);
+            const seasonName = seasonButtonId.slice(0, truncateIndex);
+            
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userSeasonChangeRequested", seasonName) 
+        }
+
+        function publishTeamsUpToDateVerification(){
+            const date = new Date().toLocaleString();
+            
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("verifyUpToDateClicked", date)
+        }
+    }
+    //no obvious issues here or with dataModel or availabilityDOM
+    function renderMainPageAvailability(availabilityDOM, availabilityData){
+        const availabilityDisplay = availabilityDOM.querySelector("#availabilityDisplay");
+        const editAvailability = availabilityDOM.querySelector("#editAvailability");
+
+        const availabilityDisplayNew = buildAvailabilityDisplay(availabilityData);
+        availabilityDisplay.replaceWith(availabilityDisplayNew);
+
+        editAvailability.addEventListener("click", getAvailabilityModel);
+
+        return availabilityDOM
+        
+        function getAvailabilityModel(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("availabilityModelRequested")
+        }
+    }
+
+    function buildAvailabilityDisplay(availabilityData){
+        const availabilityDisplayNew = document.createElement("div");
+        availabilityDisplayNew.id = "availabilityDisplay"
+        for(let day in availabilityData){
+            const dayDiv = document.createElement("div");
+            dayDiv.classList.add("userAvailabilityDay");
+
+            const label = document.createElement("p");
+            label.classList.add("userAvailabilityDayLabel");
+
+            label.innerText = `${day}`;
+            dayDiv.appendChild(label)
+
+            availabilityData[day].forEach(function(timeBlock){
+                const blockNumber = availabilityData[day].indexOf(timeBlock);
+                
+                const timeBlockDiv = document.createElement("div");
+                timeBlockDiv.classList.add("userAvailabilityTimeBlock")
+
+                const startTime = document.createElement("p");
+                const endTime = document.createElement("p");
+
+                startTime.innerText = `Start: ${_timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(availabilityData[day][blockNumber].startTime)}`;
+                endTime.innerText = `End: ${_timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(availabilityData[day][blockNumber].endTime)}`;
+
+                timeBlockDiv.appendChild(startTime);
+                timeBlockDiv.appendChild(endTime);
+                dayDiv.appendChild(timeBlockDiv)
+            })
+            availabilityDisplayNew.appendChild(dayDiv)
+        }
+        return availabilityDisplayNew
+    }
+
+    function renderMainPageMyTeams(teamsDOM, teamArray){
+        
+        const teamGrid = teamsDOM.querySelector("#teamGrid"); 
+        const addButton = teamsDOM.querySelector("#teamGridAddTeam");
+    
+        teamArray.forEach(function(team){
+            const teamElement = buildTeam(team, teamArray); 
+            teamGrid.appendChild(teamElement)
+        })
+
+        addButton.addEventListener("click", addTeam); //follow this
+        
+        return teamsDOM
+        
+        function addTeam(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("addTeam")
+        }
+    }
+
+    //set CSS/class values for up/down buttons
+    function buildTeam(team, teamArray){
+        const template = document.querySelector("#mainPageTeamTemplate");
+        const content = document.importNode(template.content, true);
+
+        const teamName = content.querySelector(".teamGridTeamName");
+        const teamSize = content.querySelector(".teamGridTeamSize");
+        const lastVerified = content.querySelector(".teamGridTeamLastVerified");
+        const optionContainer = content.querySelector(".teamGridTeamOptionContainer");
+        const editButton = content.querySelector(".teamGridTeamEditButton");
+        const deleteButton = content.querySelector(".teamGridTeamDeleteButton");
+        const verifyButton = content.querySelector(".teamGridTeamVerifyButton");
+        const upButton = content.querySelector(".moveOptionUpButton");
+        const downButton = content.querySelector(".moveOptionDownButton");
+
+        teamName.innerText = team.name;
+        teamSize.innerText = `${team.size} athletes`;
+        if(team.lastVerified != null){
+            lastVerified.innerText += team.lastVerified
+        }
+
+        team.allOpts.forEach(function(optionDetails){
+            const optNum = team.allOpts.indexOf(optionDetails)+1;
+            const option = buildTeamOption(optionDetails, optNum);
+            optionContainer.appendChild(option);
+        })
+
+        if(teamArray.length >1 && team.rank.myTeams != 0 && team.rank.myTeams != teamArray.length -1){
+            upButton.addEventListener("click", moveMyTeamUp);
+            downButton.addEventListener("click", moveMyTeamDown);
+            
+        }else if(teamArray.length >1 && team.rank.myTeams == teamArray.length-1){
+            upButton.addEventListener("click", moveMyTeamUp);
+            downButton.remove();
+        }else if(teamArray.length >1 && team.rank.myTeams == 0){
+            downButton.addEventListener("click", moveMyTeamDown);
+            upButton.remove();
+        }
+
+        editButton.addEventListener("click", editTeam);
+        deleteButton.addEventListener("click", deleteTeam);
+        verifyButton.addEventListener("click", verifyTeam)
+
+        return content
+
+        function editTeam(){ 
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editTeam", team); //follow these
+        }
+    
+        function deleteTeam(){
+            const confirmation = confirm(`Delete ${team.name}?`);
+            if(confirmation){
+                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteTeam", team);
+            }   
+        }
+
+        function moveMyTeamUp(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyMyTeamOrder", {index: team.rank.myTeams, modifier:-1});
+        }
+
+        function moveMyTeamDown(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyMyTeamOrder", {index: team.rank.myTeams, modifier:1});
+        }
+
+        function verifyTeam(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("setTeamVerification", team)
+        }
+    }
+
+    function buildTeamOption(optionDetails, optNum){
+        const template = document.querySelector("#mainPageTeamOptionTemplate");
+        const content = document.importNode(template.content, true);
+
+        const optionNumDiv = content.querySelector(".teamGridTeamOptionNumber")
+        const dayContainer = content.querySelector(".teamGridTeamDayContainer");
+
+        optionNumDiv.innerText = `Option ${optNum}`;
+
+        optionDetails.forEach(function(day){
+            const dayDetails = buildTeamDayDetails(day);
+            dayContainer.appendChild(dayDetails);
+        })
+        
+        return content
+    }
+    
+    function buildTeamDayDetails(day){
+        const template = document.querySelector("#mainPageTeamDayTemplate");
+        const content = document.importNode(template.content, true);
+
+        const dayOfWeek = content.querySelector(".teamGridTeamDayOfWeek");
+        const startTime = content.querySelector(".teamGridTeamStartTime");
+        const endTime = content.querySelector(".teamGridTeamEndTime");
+        const inWeiss = content.querySelector(".teamGridTeamInWeiss");
+
+        dayOfWeek.innerText = day.dayOfWeek;
+        startTime.innerText = _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(day.startTime).toString();
+        endTime.innerText = _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(day.endTime).toString();
+        inWeiss.innerText = day.inWeiss;
+
+        return content
+    }
+})()
+
+
 
 /***/ }),
 
@@ -56,7 +1263,402 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \*******************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"requestFormDOM\": () => (/* binding */ requestFormDOM)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n/*action: user interface creating/editing team name/size/ schedule requests\n\nteamDataModel object is modeled as such:\n\nobj = \n    { \n        teamName,\n        teamSize, \n        rank:\n            {\n                myTeams,\n                allTeams\n            },\n        allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],\n        coach,\n    }\n\npublishes:\n    requestForm page render requests FOR pageRenderer\n    mainPageDOM requests FOR mainPageData\n    update requests FOR teamRequestModel\n    team name/size, daySelector value changes for teamRequestModel\n    add/delete/reorder options, add/delete days for teamRequest Model\n    \nsubscribes to: \n    allTeamsList FROM mainPageData\n    teamData generation/ teamData option/day additions/removals FROM teamRequestModel\n    selectors nodes FROM selectorDOMBuilder\n    \n*/\nconst requestFormDOM = (function(){\n    \n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"workingModelPopulated\", publishRequestFormRender)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"optionsModified\", renderAllOpts)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"userSelectorsBuilt\", setSelectorNodes)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"mainPageModelBuilt\", setAllTeams);\n\n    \n    let allTeams;\n\n    const selectorNodes = {\n        startTime: null,\n        endTime: null,\n        teamSize: null,\n        dayOfWeek: null,\n        inWeiss: null\n    };\n\n    function setAllTeams(mainPageData){\n       allTeams = mainPageData.allTeams;      \n    }\n\n    function setSelectorNodes(selectorElementObj){\n        for(let selectorElement in selectorElementObj){\n            switch(selectorElement){\n                case `dayOfWeek`:\n                case `startTime`:\n                case `endTime`:\n                case `teamSize`:\n                case `inWeiss`:\n                    selectorNodes[selectorElement] = selectorElementObj[selectorElement];\n                    break;\n                default:\n                    return;\n            }  \n        }  \n    }\n\n    function publishRequestFormRender(workingModel){\n        const requestPage = renderRequestFormPage(workingModel);\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"pageRenderRequested\", requestPage);\n    }\n\n\n    function renderRequestFormPage(workingModel){\n        const template = document.querySelector(\"#requestFormPageTemplate\");\n        const content = document.importNode(template.content, true);\n\n        const teamName = content.querySelector(\"#formTeamName\");\n        const teamSize = content.querySelector(\"#formTeamSize\"); \n        const allOpts = content.querySelector(\"#formAllOpts\");\n        const addButton = content.querySelector(\"#addTrainingOption\");\n        const updateButton = content.querySelector(\"#updateTeamRequest\");\n        const cancelButton = content.querySelector(\"#cancelTeamRequest\");\n\n        const teamNameNew = renderTeamName(teamName, workingModel);\n        const teamSizeNew = renderTeamSizeSelection(teamSize, workingModel);\n        const allOptsNew = renderAllOpts(workingModel);\n\n        teamName.replaceWith(teamNameNew);\n        teamSize.replaceWith(teamSizeNew);\n        allOpts.replaceWith(allOptsNew);\n\n        addButton.addEventListener(\"click\", addOption);\n        updateButton.addEventListener(\"click\", updateTeamRequest);\n        cancelButton.addEventListener(\"click\", cancelTeamRequest);\n\n        return content;\n\n        function addOption(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"addOpt\")\n        }\n        \n        function updateTeamRequest(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"updateTeamRequest\")\n        }\n        \n        function cancelTeamRequest(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"mainPageDOMRequested\")\n        }    \n    }\n    \n\n    function renderTeamName(teamNameDOM, workingModel){\n        \n        teamNameDOM.value = workingModel.teamName;\n\n        teamNameDOM.addEventListener(\"blur\", function modifyTeamNameValue(){ \n            if(workingModel.teamName != teamNameDOM.value && blockTeamDuplication() == true){\n                alert(`Data already exists for ${teamNameDOM.value}. Use another team name or select edit for ${teamNameDOM.value}`);\n                teamNameDOM.value = \"\";\n                teamNameDOM.focus();\n            }else if(teamNameDOM.value == \"\"){\n                alert(\"Team name must have a value.\");\n                teamNameDOM.focus();\n            }else if(workingModel.teamName != \"\" && teamNameDOM.value != workingModel.teamName){\n                const confirmation = confirm(`If you submit changes, this will change team name from ${workingModel.teamName} to ${teamNameDOM.value}. Proceed? `);\n                if(confirmation){\n                    _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyTeamNameValue\", teamNameDOM.value)\n                }else{\n                    teamNameDOM.value = workingModel.teamName;\n                }\n            }else if(workingModel.teamname != teamNameDOM.value){\n                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyTeamNameValue\", teamNameDOM.value)\n            } \n        })\n\n        return teamNameDOM;\n\n        function blockTeamDuplication(){\n            const teamCheck = allTeams.some(function(thisTeam){\n                return thisTeam.teamName.toLowerCase() == teamNameDOM.value.toLowerCase();\n            })\n            return teamCheck;\n        }\n    }\n\n    \n    function renderTeamSizeSelection(teamSizeDOM, workingModel){\n        const primaryClass = Array.from(this.classList)[0];\n        \n        const selection = selectorNodes[`${primaryClass}`].cloneNode(true);  \n        selection.id = \"formTeamSize\";\n\n        const selectedOption= selection.querySelector(`option[value = ${workingModel.teamSize}]`);\n        selectedOption.selected = true;\n        if(selectedOption.value != \"default\"){\n            selection.firstChild.disabled = true;\n        }\n\n        selection.addEventListener(\"blur\", validateTeamSizeValue)\n        \n        teamSizeDOM.replaceWith(selection); //may be able to get rid of this\n\n        return selection\n\n        function validateTeamSizeValue(){\n            if(selection.value == \"default\"){\n                alert(\"Team size must have a value.\");\n                selection.focus();\n            }\n        }\n    }\n\n    \n    function renderAllOpts(workingModel){ \n        const allOptsNew = document.createElement(\"div\");\n        allOptsNew.id = \"formAllOpts\"; \n\n        workingModel.allOpts.forEach(function(optionDetails){\n            const optNum = workingModel.allOpts.indexOf(optionDetails) + 1; \n            const option = buildOption(workingModel.allopts, optionDetails, optNum);\n            allOptsNew.appendChild(option);\n        });\n        \n        const allOpts = document.querySelector(\"#formAllOpts\");\n        if(allOpts != null){\n            allOpts.replaceWith(allOptsNew);\n        }\n        else{\n            return allOptsNew\n        }  \n    }  \n\n\n    function buildOption(allOptsDetails, optionDetails, optNum){     \n        \n        _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"daysModified\", renderModifiedDayDetails)\n        \n        const template = document.querySelector(\"#optionTemplate\");\n        const content = document.importNode(template.content, true);\n\n        const labelButtonDiv = content.querySelector(\".labelDeleteOptButton\");\n        const label = content.querySelector(\".optLabel\");\n        const allDaysDOM = content.querySelector(\".formAllDays\"); \n        const addDayButton = content.querySelector(\".addTrainingDay\");\n\n        label.innerHTML = `Option ${optNum}`;\n\n        if(allOptsDetails.length >1){\n            const deleteButton = document.createElement(\"button\");\n            const upButton = document.createElement(\"button\"); //both need class and css\n            const downButton = document.createElement(\"button\");\n            \n            deleteButton.classList.add(\"deleteOpt\");\n            upButton.classList.add(\"myTeamsMoveUpButton\");\n            downButton.classList.add(\"myTeamsMoveDownButton\");\n\n            deleteButton.addEventListener(\"click\", deleteOpt)\n            upButton.addEventListener(\"click\", moveOptionUp);\n            downButton.addEventListener(\"click\", moveOptionDown);\n\n            labelButtonDiv.appendChild(deleteButton)\n\n            if(optNum != 1 && optNum != allOptsDetails.length){\n                labelButtonDiv.appendChild(upButton)\n                labelButtonDiv.appendChild(downButton)\n            }\n            if(optNum == allOptsDetails.length){\n                labelButtonDiv.appendChild(upButton)\n            }\n            if(optNum == 1){\n                labelButtonDiv.appendChild(downButton)\n            }\n        }\n\n        addDayButton.addEventListener(\"click\", addDay);\n        \n        renderAllDaysDetails(optionDetails, optNum, allDaysDOM); \n\n        return content\n        \n        function addDay(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"addDay\", optNum)\n        }\n\n        function deleteOpt(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"deleteOpt\", optNum)\n        }\n\n        function moveOptionUp(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyOptOrder\", {optNum, modifier:-1}) \n        }\n\n        function moveOptionDown(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyOptOrder\", {optNum, modifier:1})\n        }\n\n        function renderModifiedDayDetails(dayDetailsObj){\n            if(dayDetailsObj.publishedOptNum == optNum){\n                const allOpts = document.querySelector(\"#formAllOpts\");\n                const thisOption = Array.from(allOpts.children)[optNum-1];\n                const allDaysDOM = thisOption.querySelector(\".formAllDays\");\n\n                renderAllDaysDetails(dayDetailsObj.publishedOptionDetails, dayDetailsObj.publishedOptNum, allDaysDOM)\n            }\n        }\n    }\n\n\n    function renderAllDaysDetails(optionDetails, optNum, allDaysDOM){\n        const allDaysDOMNew = document.createElement(\"div\");  \n        allDaysDOMNew.classList.add(\"formAllDays\")\n\n        optionDetails.forEach(function(dayDetails){\n            const dayNum = optionDetails.indexOf(dayDetails) +1; \n            const day = buildDay(optionDetails, dayDetails, optNum, dayNum);\n            allDaysDOMNew.appendChild(day);\n        })\n        allDaysDOM.replaceWith(allDaysDOMNew);\n        \n    }\n\n\n    function buildDay(optionDetails, dayDetails, optNum, dayNum){     \n        const template = document.querySelector(\"#dayTemplate\");\n        const content = document.importNode(template.content, true);\n\n        const labelButtonDiv = content.querySelector(\".labelDeleteDayButton\");\n        const label = content.querySelector(\".dayLabel\");\n        const allDaysDetails = content.querySelector(\".formAllDayDetails\");\n        \n        label.innerHTML = `Day ${dayNum}`;\n        \n        if(optionDetails.length>1){\n            const deleteButton = document.createElement(\"button\");\n            deleteButton.classList.add(\"deleteDay\");\n            \n            deleteButton.addEventListener(\"click\", deleteDay);\n            labelButtonDiv.appendChild(deleteButton)\n        }\n        \n        renderDayDetails();\n\n        return content\n        \n        function renderDayDetails(){\n            const allDayDetailsNew = buildDayDetails(dayDetails, optNum, dayNum);\n            allDayDetailsNew.classList.add(\"formAllDayDetails\")\n\n            allDaysDetails.replaceWith(allDayDetailsNew);   \n        }\n\n        function deleteDay(){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"deleteDay\", {optNum, dayNum})\n        } \n    }\n    \n\n    function buildDayDetails(dayDetails, optNum, dayNum){        \n        const template = document.querySelector(\"#dayDetailsTemplate\");\n        const content = document.importNode(template.content, true);\n\n        const selectors = content.querySelectorAll(\".selector\")\n\n        selectors.forEach(function(selection){\n            const primaryClass = Array.from(selection.classList)[0];\n            \n            const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);\n            selectionNew.addEventListener(\"change\", publishSelectionValueChange)\n\n            const selectedOption = selectionNew.querySelector(`option[value = ${dayDetails[primaryClass]}]`);\n            selectedOption.selected = true;\n            if(selectedOption.value != \"default\"){\n                selectionNew.firstChild.disabled = true;\n            }\n        \n            selection.replaceWith(selectionNew);\n\n            function publishSelectionValueChange(){\n                const selector = primaryClass;\n                const value = selectionNew.value\n                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyTeamSelectorValue\", {optNum, dayNum, selector, value})\n            }\n        });\n\n        return content\n\n       \n    }\n\n})();\n\n\n\n//# sourceURL=webpack://pennschedule/./src/DOMBuilders/requestFormDOM.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "requestFormDOM": () => (/* binding */ requestFormDOM)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/*action: user interface creating/editing team name/size/ schedule requests
+
+teamDataModel object is modeled as such:
+
+obj = 
+    { 
+        teamName,
+        teamSize, 
+        rank:
+            {
+                myTeams,
+                allTeams
+            },
+        allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+        coach,
+    }
+
+publishes:
+    requestForm page render requests FOR pageRenderer
+    mainPageDOM requests FOR mainPageData
+    update requests FOR teamRequestModel
+    team name/size, daySelector value changes for teamRequestModel
+    add/delete/reorder options, add/delete days for teamRequest Model
+    
+subscribes to: 
+    allTeamsList FROM mainPageData
+    teamData generation/ teamData option/day additions/removals FROM teamRequestModel
+    selectors nodes FROM selectorDOMBuilder
+    
+*/
+const requestFormDOM = (function(){
+    
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("workingModelPopulated", publishRequestFormRender)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("optionsModified", renderAllOpts)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userSelectorsBuilt", setSelectorNodes)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("mainPageModelBuilt", setAllTeams);
+
+    
+    let allTeams;
+
+    const selectorNodes = {
+        startTime: null,
+        endTime: null,
+        teamSize: null,
+        dayOfWeek: null,
+        inWeiss: null
+    };
+
+    function setAllTeams(mainPageData){
+       allTeams = mainPageData.allTeams;      
+    }
+
+    function setSelectorNodes(selectorElementObj){
+        for(let selectorElement in selectorElementObj){
+            switch(selectorElement){
+                case `dayOfWeek`:
+                case `startTime`:
+                case `endTime`:
+                case `teamSize`:
+                case `inWeiss`:
+                    selectorNodes[selectorElement] = selectorElementObj[selectorElement];
+                    break;
+                default:
+                    break;
+            }  
+        }  
+    }
+
+    function publishRequestFormRender(workingModel){
+        const requestPage = renderRequestFormPage(workingModel);
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("pageRenderRequested", requestPage);
+    }
+
+
+    function renderRequestFormPage(workingModel){
+        const template = document.querySelector("#requestFormPageTemplate");
+        const content = document.importNode(template.content, true);
+
+        const teamName = content.querySelector("#formTeamName");
+        const teamSize = content.querySelector("#formTeamSize"); 
+        const allOpts = content.querySelector("#formAllOpts");
+        const addButton = content.querySelector("#addTrainingOption");
+        const updateButton = content.querySelector("#updateTeamRequest");
+        const cancelButton = content.querySelector("#cancelTeamRequest");
+
+        const teamNameNew = renderTeamName(teamName, workingModel);
+        const teamSizeNew = renderTeamSizeSelection(teamSize, workingModel);
+        const allOptsNew = renderAllOpts(workingModel);
+
+        teamName.replaceWith(teamNameNew);
+        teamSize.replaceWith(teamSizeNew);
+        allOpts.replaceWith(allOptsNew);
+
+        addButton.addEventListener("click", addOption);
+        updateButton.addEventListener("click", updateTeamRequest);
+        cancelButton.addEventListener("click", cancelTeamRequest);
+
+        return content;
+
+        function addOption(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("addOpt")
+        }
+        
+        function updateTeamRequest(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateTeamRequest")
+        }
+        
+        function cancelTeamRequest(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("mainPageDOMRequested")
+        }    
+    }
+    
+
+    function renderTeamName(teamNameDOM, workingModel){
+        
+        teamNameDOM.value = workingModel.name;
+
+        teamNameDOM.addEventListener("blur", function modifyTeamNameValue(){ 
+            if(workingModel.name != teamNameDOM.value && blockTeamDuplication() == true){
+                alert(`Data already exists for ${teamNameDOM.value}. Use another team name or select edit for ${teamNameDOM.value}`);
+                teamNameDOM.value = workingModel.name;
+                teamNameDOM.focus();
+            }else if(workingModel.name != "" && teamNameDOM.value != workingModel.name){
+                const confirmation = confirm(`If you submit changes, this will change team name from ${workingModel.name} to ${teamNameDOM.value}. Proceed? `);
+                if(confirmation){
+                    _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyTeamNameValue", teamNameDOM.value)
+                }else{
+                    teamNameDOM.value = workingModel.name;
+                }
+            }else if(workingModel.name != teamNameDOM.value){
+                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyTeamNameValue", teamNameDOM.value)
+            } 
+        })
+
+        return teamNameDOM;
+
+        function blockTeamDuplication(){
+            const teamCheck = allTeams.some(function(thisTeam){
+                return thisTeam.name.toLowerCase() == teamNameDOM.value.toLowerCase();
+            })
+            return teamCheck;
+        }
+    }
+
+    
+    function renderTeamSizeSelection(teamSizeDOM, workingModel){
+        const primaryClass = Array.from(teamSizeDOM.classList)[0];
+        
+        const selection = selectorNodes[`${primaryClass}`].cloneNode(true);  
+        selection.id = "formTeamSize";
+
+        const selectedOption= selection.querySelector(`option[value = "${workingModel.size}"]`);
+        selectedOption.selected = true;
+        if(selectedOption.value != "default"){
+            selection.firstChild.disabled = true;
+        }
+
+
+        selection.addEventListener("change", modifyTeamSizeValue)
+        selection.addEventListener("change", disableDefaultOption)
+        
+        teamSizeDOM.replaceWith(selection); //may be able to get rid of this
+
+        return selection
+
+        function modifyTeamSizeValue(){
+            const value = selection.value 
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyTeamSizeValue", value)
+        }
+
+        function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+            const values = Array.from(this.children);
+            values[0].disabled = true;
+        }
+    }
+
+    
+    function renderAllOpts(workingModel){ 
+        const allOptsNew = document.createElement("div");
+        allOptsNew.id = "formAllOpts"; 
+
+        workingModel.allOpts.forEach(function(optionDetails){
+            const optNum = workingModel.allOpts.indexOf(optionDetails) + 1; 
+            const option = buildOption(workingModel.allOpts, optionDetails, optNum);
+            allOptsNew.appendChild(option);
+        });
+        
+        const allOpts = document.querySelector("#formAllOpts");
+        if(allOpts != null){
+            allOpts.replaceWith(allOptsNew);
+        }
+        else{
+            return allOptsNew
+        }  
+    }  
+
+
+    function buildOption(allOptsDetails, optionDetails, optNum){     
+        
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("daysModified", renderModifiedDayDetails)
+        
+        const template = document.querySelector("#optionTemplate");
+        const content = document.importNode(template.content, true);
+
+        const arrowButtonsDiv = content.querySelector(".arrowButtonsDiv")
+        const label = content.querySelector(".optLabel");
+        const allDaysDOM = content.querySelector(".formAllDays"); 
+        const addDayButton = content.querySelector(".addTrainingDay");
+
+        label.innerHTML = `Option ${optNum}`;
+
+        if(allOptsDetails.length >1){
+            const deleteButton = document.createElement("button");
+            const upButton = document.createElement("button");
+            const upImage = document.createElement("i");
+            const downButton = document.createElement("button");
+            const downImage = document.createElement("i")
+            
+            
+            deleteButton.classList.add("deleteOpt");
+
+            upButton.classList.add("myTeamsMoveUpButton");
+            upImage.classList.add("arrow", "up")
+            upButton.appendChild(upImage)
+
+            downButton.classList.add("myTeamsMoveDownButton");
+            downImage.classList.add("arrow", "down")
+            downButton.appendChild(downImage)
+
+
+            deleteButton.addEventListener("click", deleteOpt)
+            upButton.addEventListener("click", moveOptionUp);
+            downButton.addEventListener("click", moveOptionDown);
+
+            deleteButton.innerText = "X"
+
+            arrowButtonsDiv.after(deleteButton)
+
+            if(optNum != 1 && optNum != allOptsDetails.length){
+                arrowButtonsDiv.appendChild(upButton)
+                arrowButtonsDiv.appendChild(downButton)
+            }
+            if(optNum == allOptsDetails.length){
+                arrowButtonsDiv.appendChild(upButton)
+            }
+            if(optNum == 1){
+                arrowButtonsDiv.appendChild(downButton)
+            }
+        }
+
+        addDayButton.addEventListener("click", addDay);
+        
+        renderAllDaysDetails(optionDetails, optNum, allDaysDOM); 
+
+        return content
+        
+        function addDay(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("addDay", optNum)
+        }
+
+        function deleteOpt(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteOpt", optNum)
+        }
+
+        function moveOptionUp(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyOptOrder", {optNum, modifier:-1}) 
+        }
+
+        function moveOptionDown(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyOptOrder", {optNum, modifier:1})
+        }
+
+        function renderModifiedDayDetails(dayDetailsObj){
+            if(dayDetailsObj.publishedOptNum == optNum){
+                const allOpts = document.querySelector("#formAllOpts");
+                const thisOption = Array.from(allOpts.children)[optNum-1];
+                const allDaysDOM = thisOption.querySelector(".formAllDays");
+
+                renderAllDaysDetails(dayDetailsObj.publishedOptionDetails, dayDetailsObj.publishedOptNum, allDaysDOM)
+            }
+        }
+    }
+
+
+    function renderAllDaysDetails(optionDetails, optNum, allDaysDOM){
+        const allDaysDOMNew = document.createElement("div");  
+        allDaysDOMNew.classList.add("formAllDays")
+
+        optionDetails.forEach(function(dayDetails){
+            const dayNum = optionDetails.indexOf(dayDetails) +1; 
+            const day = buildDay(optionDetails, dayDetails, optNum, dayNum);
+            allDaysDOMNew.appendChild(day);
+        })
+        allDaysDOM.replaceWith(allDaysDOMNew);
+        
+    }
+
+
+    function buildDay(optionDetails, dayDetails, optNum, dayNum){     
+        const template = document.querySelector("#dayTemplate");
+        const content = document.importNode(template.content, true);
+
+        const labelButtonDiv = content.querySelector(".labelDeleteDayButton");
+        const label = content.querySelector(".dayLabel");
+        const allDaysDetails = content.querySelector(".formAllDayDetails");
+        
+        label.innerHTML = `Day ${dayNum}`;
+        
+        if(optionDetails.length>1){
+            const deleteButton = document.createElement("button");
+            deleteButton.classList.add("deleteDay");
+            deleteButton.innerText = "X"
+            
+            deleteButton.addEventListener("click", deleteDay);
+            labelButtonDiv.insertBefore(deleteButton, label)
+        }
+        
+        const allDaysDetailsNew = buildDayDetails(dayDetails, optNum, dayNum);
+
+        allDaysDetails.replaceWith(allDaysDetailsNew)
+
+        return content
+
+        function deleteDay(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteDay", {optNum, dayNum})
+        } 
+    }
+    
+
+    function buildDayDetails(dayDetails, optNum, dayNum){        
+        const template = document.querySelector("#dayDetailsTemplate");
+        const content = document.importNode(template.content, true);
+
+        const selectors = content.querySelectorAll(".selector")
+
+        selectors.forEach(function(selection){
+            const primaryClass = Array.from(selection.classList)[0];
+            
+            const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
+            selectionNew.addEventListener("change", publishSelectionValueChange);
+            selectionNew.addEventListener("change", disableDefaultOption);
+            if(primaryClass == "startTime"){
+                selectionNew.addEventListener("click", modifyEndTimeDefaultValue)
+            }
+
+            const selectedOption = selectionNew.querySelector(`option[value = "${dayDetails[primaryClass]}"]`);
+            selectedOption.selected = true;
+            if(selectedOption.value != "default"){
+                selectionNew.firstChild.disabled = true;
+            }
+        
+            selection.replaceWith(selectionNew);
+
+            function publishSelectionValueChange(){
+                const selector = primaryClass;
+                const value = selectionNew.value
+                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyTeamSelectorValue", {optNum, dayNum, selector, value})
+            }
+
+            function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+                const values = Array.from(this.children);
+                values[0].disabled = true;
+            }
+
+
+            function modifyEndTimeDefaultValue(){
+                const startTimeSelectedValue = Number(this.value);
+                const endTimeValuesArray = Array.from(this.parentElement.nextElementSibling.lastElementChild.children);
+                endTimeValuesArray.forEach(function(time){
+                    const endTimeValue = Number(time.value);
+                    if(endTimeValue < startTimeSelectedValue + 30 || endTimeValue == "default"){
+                        time.disabled = true;
+                    }else{
+                        time.disabled = false;
+                    }
+                })
+            }
+        });
+
+        return content
+
+       
+    }
+
+})();
+
+
 
 /***/ }),
 
@@ -66,7 +1668,185 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \***********************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"selectorBuilder\": () => (/* binding */ selectorBuilder)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n/* harmony import */ var _timeConverter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../timeConverter */ \"./src/timeConverter.js\");\n\n\n/*\n\npurpose: creates and populates reusable select DOM elements for various pages\n\nfacilitySelector object format is as such:\n\nobj = {\n    facilityOpen,\n    facilityClose,\n    facilityMaxCapacity\n}\n\npublishes:\n    selection DOM elements FOR multiple DOM modules\n\nsubscribes:\n    admin facilitySelector data FROM mainPageModel\n    user facilitySelector data FROM mainPageModel\n\n*/\n\nconst selectorBuilder = (function(){ \n\n    //default values must be input (into database?) for facilityOpen/Close/MaxCapacity BEFORE first time running, or startTime/endTime/teamSize will have errors!\n    const selectionOptions = { \n        startTime: {\n            start: null,\n            end: null,\n            increment: 15\n        },\n        endTime: {\n            start: null,\n            end: null,\n            increment: 15\n        },\n        teamSize: {\n            start: 5,\n            end: null,\n            increment: 5\n        },\n        facilityOpen:{ //4am to 8pm, default value 6am (360)?\n            start: 240,\n            end: 1200,\n            increment: 15\n        },\n        facilityClose:{ //5am to 9pm, default value 8pm (1200)?\n            start: 300,\n            end: 1260,\n            increment: 15\n        },\n        facilityMaxCapacity:{//range 10-150, default value 120?\n            start: 10,\n            end: 150,\n            increment: 5\n        },\n        dayOfWeek: [\"Sun\", \"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", \"Sat\"], \n        inWeiss: [\"yes\", \"no\"],\n    };\n\n    const selectors = {}\n    \n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminSelectorsRequested\", setAdminSelectionOptions);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"userSelectorsRequested\", setUserSelectionOptions); \n\n    function setAdminSelectionOptions(selectorsModel){\n        setSelectionOptions(selectorsModel);\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminSelectorsBuilt\", selectors) \n    }\n\n    function setUserSelectionOptions(selectorsModel){\n        setSelectionOptions(selectorsModel);\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"userSelectorsBuilt\", selectors) \n    }\n\n    function setSelectionOptions(selectorsModel){\n        selectionOptions.startTime.start = selectorsModel.facilityOpen;\n        selectionOptions.endTime.start = selectorsModel.facilityOpen + 30;\n        selectionOptions.startTime.end = selectorsModel.facilityClose - 30;\n        selectionOptions.endTime.end = selectorsModel.facilityClose;\n        selectionOptions.teamSize.end = selectorsModel.facilityMaxCapacity;\n        \n        for(let option in selectionOptions){\n            selectors[option] = buildSelector(option);\n        }\n    }\n\n    function buildSelector(primaryClass){\n        const selection = document.createElement(\"select\");\n        selection.classList.add(primaryClass);\n        selection.classList.add(\"selector\");\n            const defaultOption = document.createElement(\"option\");\n            defaultOption.value = \"default\";\n            defaultOption.innerHTML = \"--\";\n        selection.appendChild(defaultOption);\n\n        switch(primaryClass){\n            case \"dayOfWeek\":\n            case \"inWeiss\": \n                buildArraySelectorOptions(primaryClass, selection);\n                break;\n            \n            case \"teamSize\":\n                buildRangeSelectorOptions(primaryClass, selection);\n                selection.addEventListener(\"change\", function modifyTeamSizeValue(){\n                    const value = selection.value \n                    _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"modifyTeamSizeValue\", value)\n                });\n                break;   \n            case \"endTime\":\n            case \"facilityClose\":\n            case \"facilityMaxCapacity\":\n                buildRangeSelectorOptions(primaryClass, selection);\n                break;\n            \n            case \"startTime\":\n            case \"facilityOpen\":\n                buildRangeSelectorOptions(primaryClass, selection);\n                selection.addEventListener(\"change\", modifyEndTimeDefaultValue);\n                break;\n        }\n\n        selection.addEventListener(\"change\", disableDefaultOption) \n        selection.addEventListener(\"blur\", preventEmptySelectors)\n    }\n\n    function buildArraySelectorOptions(primaryClass, selector){\n        const optionValues = selectionOptions[primaryClass];\n        optionValues.forEach(function(optionValue){\n            const option = document.createElement(\"option\");\n            option.value = optionValue;\n            option.innerHTML = optionValue;\n            selector.appendChild(option); \n        })\n    }\n\n    function buildRangeSelectorOptions(primaryClass, selector){\n        const optionValues = selectionOptions[primaryClass];\n        for(let i = optionValues.start; i<optionValues.end; i += optionValues.increment){\n            const option = document.createElement(\"option\");\n            option.value = i;\n            if(primaryClass == \"teamSize\" || primaryClass == \"facilityMaxCapacity\"){\n                option.innerHTML = i;\n            }else{\n                option.innerHTML = _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(i); //toString() should not be necessary\n            }selector.appendChild(option);\n        }\n    }\n\n    function disableDefaultOption(){\n        const values = Array.from(this.children);\n        values[0].disabled = true;\n    }\n\n    function modifyEndTimeDefaultValue(){\n        const startTimeSelectedValue = Number(this.value);\n        const endTimeValuesArray = Array.from(this.parentElement.nextElementSibling.lastElementChild.children);\n        endTimeValuesArray.forEach(function(time){\n            const endTimeValue = Number(time.value);\n            if(endTimeValue < startTimeSelectedValue + 30 || endTimeValue == \"default\"){\n                time.disabled = true;\n            }else{\n                time.disabled = false;\n            }\n            if(endTimeValue == startTimeSelectedValue + 60){\n                time.selected = true;\n            }else{\n                time.selected = false;\n            }\n        })\n    }\n\n    function preventEmptySelectors(){\n        if(this.value == \"default\"){\n            const className = Array.from(this.classList)[0];\n            alert(`A non-default value must be selected for ${className}`);\n            this.focus();\n        }\n    }\n\n})();\n\n\n\n\n//# sourceURL=webpack://pennschedule/./src/DOMBuilders/selectorDOMBuilder.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "selectorBuilder": () => (/* binding */ selectorBuilder)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _timeConverter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../timeConverter */ "./src/timeConverter.js");
+
+
+/*
+
+purpose: creates and populates reusable select DOM elements for various pages
+
+facilitySelector object format is as such:
+
+obj = {
+    facilityOpen,
+    facilityClose,
+    facilityMaxCapacity
+}
+
+publishes:
+    selection DOM elements FOR multiple DOM modules
+
+subscribes:
+    admin facilitySelector data FROM mainPageModel
+    user facilitySelector data FROM mainPageModel
+
+*/
+
+const selectorBuilder = (function(){ 
+
+    //default values must be input (into database?) for facilityOpen/Close/MaxCapacity BEFORE first time running, or startTime/endTime/teamSize will have errors!
+    const selectionOptions = { 
+        startTime: {
+            start: null,
+            end: null,
+            increment: 15
+        },
+        endTime: {
+            start: null,
+            end: null,
+            increment: 15
+        },
+        teamSize: {
+            start: 5,
+            end: null,
+            increment: 5
+        },
+        facilityOpen:{ //4am to 8pm, default value 6am (360)?
+            start: 240,
+            end: 1200,
+            increment: 15
+        },
+        facilityClose:{ //5am to 9pm, default value 8pm (1200)?
+            start: 300,
+            end: 1260,
+            increment: 15
+        },
+        facilityMaxCapacity:{//range 10-150, default value 120?
+            start: 10,
+            end: 150,
+            increment: 5
+        },
+        dayOfWeek: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], 
+        inWeiss: ["yes", "no"],
+    };
+
+    const selectors = {}
+    
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminSelectorsRequested", setAdminSelectionOptions);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userSelectorsRequested", setUserSelectionOptions); 
+
+    function setAdminSelectionOptions(selectorsModel){
+        setSelectionOptions(selectorsModel);
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminSelectorsBuilt", selectors) 
+    }
+
+    function setUserSelectionOptions(selectorsModel){
+        setSelectionOptions(selectorsModel);
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userSelectorsBuilt", selectors) 
+    }
+
+    function setSelectionOptions(selectorsModel){
+        selectionOptions.startTime.start = selectorsModel.facilityOpen;
+        selectionOptions.endTime.start = selectorsModel.facilityOpen + 30;
+        selectionOptions.startTime.end = selectorsModel.facilityClose - 30;
+        selectionOptions.endTime.end = selectorsModel.facilityClose;
+        selectionOptions.teamSize.end = selectorsModel.facilityMaxCapacity;
+        
+        for(let option in selectionOptions){
+            selectors[option] = buildSelector(option);
+        }
+    }
+
+    function buildSelector(primaryClass){
+        const selection = document.createElement("select");
+        selection.classList.add(primaryClass);
+        selection.classList.add("selector");
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "default";
+            defaultOption.innerText = "--";
+        selection.appendChild(defaultOption);
+
+        switch(primaryClass){
+            case "dayOfWeek":
+            case "inWeiss": 
+                buildArraySelectorOptions(primaryClass, selection);
+                break;
+            
+            case "teamSize":
+                buildRangeSelectorOptions(primaryClass, selection);
+                break;   
+            case "endTime":
+            case "facilityClose":
+            case "facilityMaxCapacity":
+                buildRangeSelectorOptions(primaryClass, selection);
+                break;
+            
+            case "startTime":
+            case "facilityOpen":
+                buildRangeSelectorOptions(primaryClass, selection);
+                selection.addEventListener("change", modifyEndTimeDefaultValue);
+                break;
+        }
+
+        return selection
+    }
+
+    function buildArraySelectorOptions(primaryClass, selector){
+        const optionValues = selectionOptions[primaryClass];
+        optionValues.forEach(function(optionValue){
+            const option = document.createElement("option");
+            option.value = optionValue;
+            option.innerText = optionValue;
+            selector.appendChild(option); 
+        })
+    }
+
+    function buildRangeSelectorOptions(primaryClass, selector){
+        const optionValues = selectionOptions[primaryClass];
+        for(let i = optionValues.start; i<=optionValues.end; i += optionValues.increment){
+            const option = document.createElement("option");
+            option.value = i;
+            if(primaryClass == "teamSize" || primaryClass == "facilityMaxCapacity"){
+                option.innerText = i;
+            }else{
+                option.innerText = _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(i); //toString() should not be necessary
+            }selector.appendChild(option);
+        }
+    }
+
+        //these are all not working, may need to use event delegation within the modules themselves
+
+    function modifyEndTimeDefaultValue(){
+        const startTimeSelectedValue = Number(this.value);
+        const endTimeValuesArray = Array.from(this.parentElement.nextElementSibling.lastElementChild.children);
+        endTimeValuesArray.forEach(function(time){
+            const endTimeValue = Number(time.value);
+            if(endTimeValue < startTimeSelectedValue + 30 || endTimeValue == "default"){
+                time.disabled = true;
+            }else{
+                time.disabled = false;
+            }
+            if(endTimeValue == startTimeSelectedValue + 60){
+                time.selected = true;
+            }else{
+                time.selected = false;
+            }
+        })
+    }
+
+    
+
+})();
+
+
+
 
 /***/ }),
 
@@ -76,7 +1856,116 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \**************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"adminAllUsersDataModel\": () => (/* binding */ adminAllUsersDataModel)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n/*purpose: dataModel for selecting individual user from allUsers to add/edit/delete\n\nadminAllUsers array is modeled as such:\n\nallUsers = \n\t[\n\t\t{\n            name,\n            color,\n            privilegeLevel,\n            teams:{},\n            availability:{},\n            lastVerified,\n\t\t\tadminPageSet,\n            season\n        }, \n\t\t{etc}, {etc}\n\t]\n\n\tteamOrderObj obj is modeled as follows: {index, modifier}\n\npublishes:\n    user data FOR adminUserDataModel edits /adminUserGenerator DOM display\n\tverified user addition/edits or deletions FOR database\n\nsubscribes to: \n    adminMainPageModel builds FROM adminMainPageModel\n    userData change validations FROM userValidator\n\trequests to edit/delete a user FROM adminMainPageDOM\n*/\n\nconst adminAllUsersDataModel = (function(){ //continue REVIEW HERE\n\t//no obvious issues, find database update listeners for delete/modify/add allUsers, make sure password does not get passed to front-end\n\tlet allUsers;\n\n\t_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminMainPageModelBuilt\", populateAllUsers)\n\t_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"editUser\", editUser);\n\t_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"deleteUser\", deleteUserForDatabaseUpdate);\n\t_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"userDataValidated\", addEditUserForDatabaseUpdate)\n\n\tfunction populateAllUsers(adminAllUsers){\n\t\tallUsers = adminAllUsers.allUsers.concat(); //should not need deeper recursive copying\n\t}\n\n\tfunction editUser(userData){\n\t\tconst thisUser = allUsers.filter(function(user){\n\t\t\treturn userData.userName = user.userName\n\t\t})[0];\n\n\t\t_events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"userEditDataLoaded\", thisUser);\n\t}\n\n\tfunction deleteUserForDatabaseUpdate(userData){\n\t\tconst allUsersSlice = allUsers.concat();\n\t\tconst existingUserIndex = allUsersSlice.findIndex(function(users){\n\t\t\treturn users.userName = userData.userName\n\t\t})\n\n\t\tallUsersSlice.splice(existingUserIndex, 1);\n\n\t\t_events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"allUsersDataUpdated\", allUsersSlice); //find database listener for this\n\t}\n\n\tfunction addEditUserForDatabaseUpdate(validatedUserData){\n\t\tconst allUsersSlice = allUsers.concat();\n\t\tconst existingUserIndex = findExistingUser()\n\n\t\tif(existingUserIndex != -1){\n\t\t\tallUsersSlice.splice(existingUserIndex, 1, validatedUserData.newData)\n\t\t}else{\n\t\t\tallUsersSlice.push(validatedUserData.newData)\n\t\t}\n\t\t\n\t\t_events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"allUsersDataUpdated\", allUsersSlice) //find database listener for this\n\n\t\tfunction findExistingUser(){\n\t\t\tconst existingUser = allUsersSlice.findIndex(function(users){\n\t\t\t\treturn validatedUserData.existingData.name == users.name\n\t\t\t})\n\t\t\treturn existingUser;\n\t\t}\n\t}\n\n\n})()\n\n\n\n//# sourceURL=webpack://pennschedule/./src/dataModels/adminAllUsersDataModel.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "adminAllUsersDataModel": () => (/* binding */ adminAllUsersDataModel)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/*purpose: dataModel for selecting individual user from allUsers to add/edit/delete
+
+adminAllUsers array is modeled as such:
+
+allUsers = 
+	[
+		{
+            name,
+            color,
+            privilegeLevel,
+            teams:{},
+            availability:{},
+            lastVerified,
+			adminPageSet,
+            season
+        }, 
+		{etc}, {etc}
+	]
+
+	teamOrderObj obj is modeled as follows: {index, modifier}
+
+publishes:
+    user data FOR adminUserDataModel edits /adminUserGenerator DOM display
+	verified user addition/edits or deletions FOR database
+
+subscribes to: 
+    adminMainPageModel builds FROM adminMainPageModel
+    userData change validations FROM userValidator
+	requests to edit/delete a user FROM adminMainPageDOM
+*/
+
+const adminAllUsersDataModel = (function(){ //continue REVIEW HERE
+	//no obvious issues, find database update listeners for delete/modify/add allUsers, make sure password does not get passed to front-end
+	let allUsers;
+
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminMainPageModelBuilt", populateAllUsers)
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editUser", editUser);
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteUser", deleteUserForDatabaseUpdate);
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataValidated", addEditUserForDatabaseUpdate)
+
+	function populateAllUsers(adminAllUsers){
+		allUsers = adminAllUsers.allUsers.concat(); //should not need deeper recursive copying
+	}
+
+	function editUser(userData){
+		const thisUser = allUsers.filter(function(user){
+			return userData.name == user.name
+		})[0];
+
+		_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userEditDataLoaded", thisUser);
+	}
+
+	function deleteUserForDatabaseUpdate(userData){
+		const allUsersSlice = allUsers.concat();
+		
+		if(userData.privilegeLevel == true && !checkForLastAdmin()){
+			alert("Cannot demote last admin. Create new admin users before deleting this admin.")
+		}else{
+			
+			const existingUserIndex = allUsersSlice.findIndex(function(users){
+				return users.name ==userData.name
+			})
+
+			allUsersSlice.splice(existingUserIndex, 1);
+	
+			_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("allUsersDataUpdated", allUsersSlice); //find database listener for this
+		} 	
+
+		function checkForLastAdmin(){
+			const adminUsers = allUsersSlice.filter(function(user){
+				return user.privilegeLevel == true
+			})
+
+			return adminUsers.length >1
+		}
+	}
+
+	function addEditUserForDatabaseUpdate(validatedUserData){
+		const allUsersSlice = allUsers.concat();
+		const existingUserIndex = findExistingUser()
+
+		if(existingUserIndex != -1){
+			allUsersSlice.splice(existingUserIndex, 1, validatedUserData.newData)
+		}else{
+			allUsersSlice.push(validatedUserData.newData)
+		}
+		
+		_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("allUsersDataUpdated", allUsersSlice) //find database listener for this
+
+		function findExistingUser(){
+			const existingUser = allUsersSlice.findIndex(function(users){
+				return validatedUserData.existingData.name == users.name
+			})
+			return existingUser;
+		}
+	}
+
+
+})()
+
+
 
 /***/ }),
 
@@ -86,7 +1975,105 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \************************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"adminMainPageAdminTimeBlockModel\": () => (/* binding */ adminMainPageAdminTimeBlockModel)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n/*purpose: dataModel for modifying/saving adminTimeBlock content for adminMainPage\n\ndatabase object is modeled as such:\n\nobj = {\n    day: [\n        {startTime, stopTime, admin}, {startTime, stopTime, admin}\n    ],\n    day: [\n        {startTime, stopTime, admin}, {startTime, stopTime, admin}\n    ]\n}\n\npublishes:\n    adminTimeBlockDOM renders FOR adminMainPageDOM\n    save requests FOR database\n   \nsubscribes to: \n    adminMainPageModel builds FROM adminMainPageModel\n    add timeBlock, deleteTimeBlock, and time modification changes FROM adminMainPageDOM\n    save change and cancel change requests FROM adminMainPageDOM\n*/\n\nconst adminMainPageAdminTimeBlockModel = (function(){\n    //find subscriber to databse update\n    //updates here would need to pushed to all users, should this publish to allUsers here, or do this on backEnd before DB save? Look at Node/Mongo scripts to determine how viable this is one way or another\n    let adminAvailabilityModel;\n    let adminAvailabilityModelCopy;\n    let timeBlockDefault = {\n        startTime:\"default\",\n        endTime:\"default\",\n        admin:\"yes\"\n    };\n\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminMainPageModelBuilt\", setAdminAvailabilityModel);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"deleteAdminTimeBlockClicked\", deleteAdminAvailabilityRow);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"addAdminTimeBlockClicked\", addAdminAvailabilityRow);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"modifyAdminTimeBlockSelectorValue\", modifyAdminAvailabilityValue);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"updateAdminAvailabilityClicked\", validateAdminAvailability);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminAvailabilityDataValidated\", updateAdminAvailability)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"cancelAdminAvailabilityChangesClicked\", cancelAdminAvailabilityChanges)\n\n    function setAdminAvailabilityModel(adminData){\n        adminAvailabilityModel = adminData.adminTimeBlocks;\n        setAdminAvailabilityModelCopy()\n    }\n\n    function setAdminAvailabilityModelCopy(){\n        adminAvailabilityModelCopy = Object.assign({}, adminAvailabilityModel);\n        for(let day in adminAvailabilityModelCopy){\n            adminAvailabilityModelCopy[day] = adminAvailabilityModel[day].concat();\n            day.forEach(function(timeBlock){\n                adminAvailabilityModelCopy[day][timeBlock] = Object.assign({}, adminAvailabilityModel[day][timeBlock])\n            });\n        }\n    }\n\n    function addAdminAvailabilityRow(obj){\n        adminAvailabilityModelCopy[obj.day].push(Object.assign({}, timeBlockDefault));\n\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminAvailabilityModelModified\", {adminTimeBlockDiv : obj.adminTimeBlockDiv, adminMainPageData: adminAvailabilityModelCopy});\n    }\n\n    function deleteAdminAvailabilityRow(rowObj){\n        const blockIndex = rowObj.blockNumber;\n        adminAvailabilityModelCopy[rowObj.day].splice(blockIndex, 1);\n\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminAvailabilityModelModified\", {adminTimeBlockDiv: rowObj.adminTimeBlockDiv, adminMainPageData: adminAvailabilityModelCopy});\n    }\n\n    function modifyAdminAvailabilityValue(rowObj){\n        const blockIndex = rowObj.blockNumber;\n        adminAvailabilityModelCopy[rowObj.day][blockIndex][rowObj.selector] = rowObj.value\n    }\n\n    function validateAdminAvailability(){\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminAvailabilityValidationRequested\", adminAvailabilityModelCopy)\n    }\n\n    function updateAdminAvailability(){\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminAvailabilityDataUpdated\", adminAvailabilityModelCopy) //find subscriber \n    }\n\n    function cancelAdminAvailabilityChanges(adminTimeBlockDiv){\n        setAdminAvailabilityModelCopy();\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminAvailabilityModelModified\", {adminTimeBlockDiv, adminMainPageData: adminAvailabilityModel})\n    }\n})()\n\n\n\n//# sourceURL=webpack://pennschedule/./src/dataModels/adminMainPageAdminTimeBlockModel.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "adminMainPageAdminTimeBlockModel": () => (/* binding */ adminMainPageAdminTimeBlockModel)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/*purpose: dataModel for modifying/saving adminTimeBlock content for adminMainPage
+
+database object is modeled as such:
+
+obj = {
+    day: [
+        {startTime, stopTime, admin}, {startTime, stopTime, admin}
+    ],
+    day: [
+        {startTime, stopTime, admin}, {startTime, stopTime, admin}
+    ]
+}
+
+publishes:
+    adminTimeBlockDOM renders FOR adminMainPageDOM
+    save requests FOR database
+   
+subscribes to: 
+    adminMainPageModel builds FROM adminMainPageModel
+    add timeBlock, deleteTimeBlock, and time modification changes FROM adminMainPageDOM
+    save change and cancel change requests FROM adminMainPageDOM
+*/
+
+const adminMainPageAdminTimeBlockModel = (function(){
+    //find subscriber to databse update
+    //updates here would need to pushed to all users, should this publish to allUsers here, or do this on backEnd before DB save? Look at Node/Mongo scripts to determine how viable this is one way or another
+    let adminAvailabilityModel;
+    let adminAvailabilityModelCopy;
+    let timeBlockDefault = {
+        startTime:"default",
+        endTime:"default",
+        admin:"yes"
+    };
+
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminMainPageModelBuilt", setAdminAvailabilityModel);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteAdminTimeBlockClicked", deleteAdminAvailabilityRow);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("addAdminTimeBlockClicked", addAdminAvailabilityRow);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyAdminTimeBlockSelectorValue", modifyAdminAvailabilityValue);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateAdminAvailabilityClicked", validateAdminAvailability);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminAvailabilityDataValidated", updateAdminAvailability)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("cancelAdminAvailabilityChangesClicked", cancelAdminAvailabilityChanges)
+
+    function setAdminAvailabilityModel(adminData){
+        adminAvailabilityModel = adminData.adminTimeBlocks;
+        setAdminAvailabilityModelCopy()
+    }
+
+    function setAdminAvailabilityModelCopy(){
+        adminAvailabilityModelCopy = Object.assign({}, adminAvailabilityModel);
+        for(let day in adminAvailabilityModelCopy){
+            adminAvailabilityModelCopy[day] = adminAvailabilityModel[day].concat();
+            adminAvailabilityModel[day].forEach(function(timeBlock){
+                adminAvailabilityModelCopy[day][timeBlock] = Object.assign({}, adminAvailabilityModel[day][timeBlock])
+            });
+        }
+    }
+
+    function addAdminAvailabilityRow(obj){
+        adminAvailabilityModelCopy[obj.day].push(Object.assign({}, timeBlockDefault));
+
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityModelModified", {adminTimeBlockDiv : obj.adminTimeBlockDiv, adminMainPageData: adminAvailabilityModelCopy, pageRenderOrigin: "dataChange"});
+    }
+
+    function deleteAdminAvailabilityRow(rowObj){
+        const blockIndex = rowObj.blockNumber;
+        adminAvailabilityModelCopy[rowObj.day].splice(blockIndex, 1);
+
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityModelModified", {adminTimeBlockDiv: rowObj.adminTimeBlockDiv, adminMainPageData: adminAvailabilityModelCopy, pageRenderOrigin: "dataChange"});
+    }
+
+    function modifyAdminAvailabilityValue(rowObj){
+        const blockIndex = rowObj.blockNumber;
+        adminAvailabilityModelCopy[rowObj.day][blockIndex][rowObj.selector] = rowObj.value
+    }
+
+    function validateAdminAvailability(){
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityValidationRequested", adminAvailabilityModelCopy)
+    }
+
+    function updateAdminAvailability(){
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityDataUpdated", adminAvailabilityModelCopy) //find subscriber 
+    }
+
+    function cancelAdminAvailabilityChanges(adminTimeBlockDiv){
+        setAdminAvailabilityModelCopy();
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityModelModified", {adminTimeBlockDiv, adminMainPageData: adminAvailabilityModel, pageRenderOrigin: "dataChange"})
+    }
+})()
+
+
 
 /***/ }),
 
@@ -96,7 +2083,81 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \**********************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"adminMainPageAllTeamsData\": () => (/* binding */ adminMainPageAllTeamsData)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n/*purpose: dataModel for modifying/saving allTeams content for adminMainPage\n\nadminAllTeams array is modeled as such:\n\nallTeams = \n\t[\n\t\t{ \n\t\t\tteamName,\n\t\t\tteamSize, \n\t\t\trank:\n\t\t\t\t{\n\t\t\t\t\tmyTeams,\n\t\t\t\t\tallTeams\n\t\t\t\t},\n\t\t\tallOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],\n\t\t\tcoach\n\t\t}, \n\t\t{etc}, {etc}\n\t]\n\n\tteamOrderObj obj is modeled as follows: {index, modifier}\n\npublishes:\n    allTeams order changes FOR database update\n   \nsubscribes to: \n    adminMainPageModel builds FROM adminMainPageModel\n    allTeams order updates FROM adminMainPageDOM\n*/\n\nconst adminMainPageAllTeamsData = (function(){\n\t//no obvious work to be done here except connect teamOrder change to database, have changes written to EVERY TEAM and ensure recursion is necessary\n\tlet allTeams;\n\n\t_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminMainPageModelBuilt\", populateAllTeams)\n\t_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"modifyAdminTeamOrder\", modifyTeamOrder);\n\n\tfunction populateAllTeams(adminAllTeams){\n\t\tallTeams = adminAllTeams.allTeams.concat(); //does this need recursive copying? depth should be sufficient if so\n\t\tfor(let team in adminAllTeams.allTeams){\n\t\t\tallTeams[team] = Object.assign({}, adminAllTeams.allTeams[team])\n\t\t\tallTeams[team].rank = Object.assign({}, adminAllTeams.allTeams[team].rank)\n\t\t}\n\t}\n\n\tfunction modifyTeamOrder(teamOrderObj){\n\t\tconst {teamIndex, modifier} = teamOrderObj;\n\n\t\tconst allTeamsSlice = allTeams.concat();\n\t\tfor(let team in allTeams){\n\t\t\tallTeamsSlice[team] = Object.assign({}, allTeams[team])\n\t\t\tallTeamsSlice[team].rank = Object.assign({}, allTeams[team].rank)\n\t\t}\n\n\t\tconst team = allTeamsSlice.splice(teamIndex, 1)[0];\n\t\tallTeamsSlice.splice(teamIndex + modifier, 0, team);\n\t\tallTeamsSlice.forEach(function(team){\n\t\t\tteam.rank.allTeams = allTeamsSlice.findIndex(function(thisTeam){\n\t\t\t\treturn thisTeam.teamName == team.teamName\n\t\t\t})\n\t\t})\n\t\t_events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminAllTeamsDataUpdated\", allTeamsSlice); //find listener\n\t}\n})()\n\n\n\n//# sourceURL=webpack://pennschedule/./src/dataModels/adminMainPageAllTeamsDataModel.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "adminMainPageAllTeamsData": () => (/* binding */ adminMainPageAllTeamsData)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/*purpose: dataModel for modifying/saving allTeams content for adminMainPage
+
+adminAllTeams array is modeled as such:
+
+allTeams = 
+	[
+		{ 
+			teamName,
+			teamSize, 
+			rank:
+				{
+					myTeams,
+					allTeams
+				},
+			allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+			coach
+		}, 
+		{etc}, {etc}
+	]
+
+	teamOrderObj obj is modeled as follows: {index, modifier}
+
+publishes:
+    allTeams order changes FOR database update
+   
+subscribes to: 
+    adminMainPageModel builds FROM adminMainPageModel
+    allTeams order updates FROM adminMainPageDOM
+*/
+
+const adminMainPageAllTeamsData = (function(){
+	//no obvious work to be done here except connect teamOrder change to database, have changes written to EVERY TEAM and ensure recursion is necessary
+	let allTeams;
+
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminMainPageModelBuilt", populateAllTeams)
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyAdminTeamOrder", modifyTeamOrder);
+
+	function populateAllTeams(adminAllTeams){
+		allTeams = adminAllTeams.allTeams.concat(); //does this need recursive copying? depth should be sufficient if so
+		for(let team in adminAllTeams.allTeams){
+			allTeams[team] = Object.assign({}, adminAllTeams.allTeams[team])
+			allTeams[team].rank = Object.assign({}, adminAllTeams.allTeams[team].rank)
+		}
+	}
+
+	function modifyTeamOrder(teamOrderObj){
+		const {index, modifier} = teamOrderObj;
+
+		const allTeamsSlice = allTeams.concat();
+		for(let team in allTeams){
+			allTeamsSlice[team] = Object.assign({}, allTeams[team])
+			allTeamsSlice[team].rank = Object.assign({}, allTeams[team].rank)
+		}
+
+		const team = allTeamsSlice.splice(index, 1)[0];
+		allTeamsSlice.splice(index + modifier, 0, team);
+		allTeamsSlice.forEach(function(team){
+			team.rank.allTeams = allTeamsSlice.findIndex(function(thisTeam){
+				return thisTeam.name == team.name
+			})
+		})
+		_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAllTeamsDataUpdated", allTeamsSlice); //find listener
+	}
+})()
+
+
 
 /***/ }),
 
@@ -106,7 +2167,77 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \**********************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"adminMainPageFacilityDataModel\": () => (/* binding */ adminMainPageFacilityDataModel)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n/*purpose: dataModel for modifying/saving facilityData content for adminMainPage\n\ndatabase object is modeled as such:\n\nobj = {\n    facilityOpen, \n    facilityClose, \n    facilityMaxCapacity\n}\n\npublishes:\n    facilityDataDOM renders FOR adminMainPageDOM\n    save requests FOR databse\n   \nsubscribes to: \n    adminMainPageModel builds FROM adminMainPageModel\n    data modification changes FROM adminMainPageDOM\n    save change and cancel change requests FROM adminMainPageDOM\n*/\n\nconst adminMainPageFacilityDataModel = (function(){\n    //no obvious issues, find database listener for data update\n    let adminFacilityDataModel;\n    let adminFacilityDataModelCopy;\n    \n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminMainPageModelBuilt\", setAdminFacilityDataModel);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"modifyFacilitySelectorValue\", modifyFacilitySelectorValue);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"updateFacilityDataClicked\", validateFacilityData);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminFacilityDataValidated\", updateFacilityData);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"cancelFacilityDataChangesClicked\", cancelFacilityDataChanges);\n\n    function setAdminFacilityDataModel(adminData){\n        adminFacilityDataModel = adminData.facilitySelectors\n        setAdminFacilityDataModelCopy()\n    }\n\n    function setAdminFacilityDataModelCopy(){\n        adminFacilityDataModelCopy = Object.assign({}, adminFacilityDataModel);\n        \n    }\n    function modifyFacilitySelectorValue(facilityDataObj){\n        adminFacilityDataModelCopy[facilityDataObj.selector] = facilityDataObj.value;\n    }\n\n    function validateFacilityData(){\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminFacilityDataValidationRequested\", adminFacilityDataModelCopy)\n    }\n\n    function updateFacilityData(){\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminFacilityDataUpdated\", adminFacilityDataModelCopy);\n    }\n    function cancelFacilityDataChanges(adminFacilityDataContainer){\n        setAdminFacilityDataModelCopy();\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminFacilityModelModified\", {adminFacilityDataContainer, adminMainPageData: adminFacilityDataModel})\n    }\n\n\n\n})()\n\n\n\n//# sourceURL=webpack://pennschedule/./src/dataModels/adminMainPageFacilityDataModel.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "adminMainPageFacilityDataModel": () => (/* binding */ adminMainPageFacilityDataModel)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/*purpose: dataModel for modifying/saving facilityData content for adminMainPage
+
+database object is modeled as such:
+
+obj = {
+    facilityOpen, 
+    facilityClose, 
+    facilityMaxCapacity
+}
+
+publishes:
+    facilityDataDOM renders FOR adminMainPageDOM
+    save requests FOR databse
+   
+subscribes to: 
+    adminMainPageModel builds FROM adminMainPageModel
+    data modification changes FROM adminMainPageDOM
+    save change and cancel change requests FROM adminMainPageDOM
+*/
+
+const adminMainPageFacilityDataModel = (function(){
+    //no obvious issues, find database listener for data update
+    let adminFacilityDataModel;
+    let adminFacilityDataModelCopy;
+    
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminMainPageModelBuilt", setAdminFacilityDataModel);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyFacilitySelectorValue", modifyFacilitySelectorValue);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateFacilityDataClicked", validateFacilityData);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataValidated", updateFacilityData);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("cancelFacilityDataChangesClicked", cancelFacilityDataChanges);
+
+    function setAdminFacilityDataModel(adminData){
+        adminFacilityDataModel = adminData.facilitySelectors
+        setAdminFacilityDataModelCopy()
+    }
+
+    function setAdminFacilityDataModelCopy(){
+        adminFacilityDataModelCopy = Object.assign({}, adminFacilityDataModel);
+        
+    }
+    function modifyFacilitySelectorValue(facilityDataObj){
+        adminFacilityDataModelCopy[facilityDataObj.selector] = facilityDataObj.value;
+    }
+
+    function validateFacilityData(){
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminFacilityDataValidationRequested", adminFacilityDataModelCopy)
+    }
+
+    function updateFacilityData(){
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminFacilityDataUpdated", adminFacilityDataModelCopy);
+    }
+    
+    function cancelFacilityDataChanges(adminFacilityDataContainer){
+        setAdminFacilityDataModelCopy();
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminFacilityModelModified", {adminFacilityDataContainer, adminMainPageData: adminFacilityDataModel, pageRenderOrigin: "dataChange"})
+    }
+
+
+
+})()
+
+
 
 /***/ }),
 
@@ -116,7 +2247,102 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \**********************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"adminUserDataModel\": () => (/* binding */ adminUserDataModel)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n/*purpose: dataModel for creating/modifying individual user data \n\nuserObject is modeled as such:\n\n    {\n        name,\n        color,\n        privilegeLevel,\n        teams:{},\n        availability:{},\n        lastVerified,\n        adminPageSet,\n        season\n    }, \n\npublishes:\n    userModel data FOR adminUserGeneratorDOM\n    validation requests to save data FOR userValidator\n   \nsubscribes to: \n    addUser requests FROM adminMainPageModel\n    editUser data FROM adminAllUsersDataModel\n\tuserData save requests FROM adminUserGeneratorDOM\n    data modifications for name/password/color/privelege FROM adminUserGeneratorDOM\n*/\n\nconst adminUserDataModel = (function(){\n    //no obvious issues, ensure that password does not come to front-end\n    let userModel;\n    let userModelCopy;\n\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"modifyUserNameValue\", setName);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"modifyUserPrivilegeLevelValue\", setPrivilegeLevel)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"modifyUserColorValue\", setColor)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"userEditDataLoaded\", populateUserModel);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"addUser\", createNewUser);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"saveUserDataClicked\", validateChanges);\n    \n    \n    function populateUserModel(userData){\n        userModel = Object.assign({}, userData);\n        userModelCopy = Object.assign({}, userModel)\n\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"userModelPopulated\", userModel)\n    }\n    \n    function createNewUser(){\n        userModel = {\n            name: \"\",\n            color: \"#000000\",\n            privilegeLevel: false,\n            teams:[], \n            availability:{Sun:[], Mon:[], Tue: [], Wed: [], Thu: [], Fri: [], Sat: []}, \n            lastVerified: null,\n            adminPageSet: null,\n            season: \"fall\"\n        };\n        userModelCopy = Object.assign({}, userModel);\n\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"userModelPopulated\", userModel)\n    }\n\n    function setName(name){\n        userModelCopy.name = name;\n    }\n\n    function setColor(color){\n        userModelCopy.color = color\n    }\n\n    function setPrivilegeLevel(privilege){\n        userModelCopy.privilege = privilege;\n        if(privilege == false){\n            userModelCopy.adminPageSet = null\n        }else{\n            userModelCopy.adminPageSet = \"admin\"\n        }\n    }\n\n    function validateChanges(){\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"userDataValidationRequested\", {newData: userModelCopy, existingData:userModel})\n    }\n\n})()\n\n\n//# sourceURL=webpack://pennschedule/./src/dataModels/adminUserDataModel.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "adminUserDataModel": () => (/* binding */ adminUserDataModel)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/*purpose: dataModel for creating/modifying individual user data 
+
+userObject is modeled as such:
+
+    {
+        name,
+        color,
+        privilegeLevel,
+        teams:{},
+        availability:{},
+        lastVerified,
+        adminPageSet,
+        season
+    }, 
+
+publishes:
+    userModel data FOR adminUserGeneratorDOM
+    validation requests to save data FOR userValidator
+   
+subscribes to: 
+    addUser requests FROM adminMainPageModel
+    editUser data FROM adminAllUsersDataModel
+	userData save requests FROM adminUserGeneratorDOM
+    data modifications for name/password/color/privelege FROM adminUserGeneratorDOM
+*/
+
+const adminUserDataModel = (function(){
+    //no obvious issues, ensure that password does not come to front-end
+    let userModel;
+    let userModelCopy;
+
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyUserNameValue", setName);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyUserPrivilegeLevelValue", setPrivilegeLevel)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyUserColorValue", setColor)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userEditDataLoaded", populateUserModel);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("addUser", createNewUser);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("saveUserDataClicked", validateChanges);
+    
+    
+    function populateUserModel(userData){
+        userModel = Object.assign({}, userData);
+        userModelCopy = Object.assign({}, userModel)
+
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userModelPopulated", userModel)
+    }
+    
+    function createNewUser(){
+        userModel = {
+            name: "",
+            color: "#000000",
+            privilegeLevel: false,
+            teams:[], 
+            availability:{Sun:[], Mon:[], Tue: [], Wed: [], Thu: [], Fri: [], Sat: []}, 
+            lastVerified: null,
+            adminPageSet: null,
+            season: "fall"
+        };
+        userModelCopy = Object.assign({}, userModel);
+
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userModelPopulated", userModel)
+    }
+
+    function setName(name){
+        userModelCopy.name = name;
+    }
+
+    function setColor(color){
+        userModelCopy.color = color
+    }
+
+    function setPrivilegeLevel(privilege){
+        userModelCopy.privilegeLevel = privilege;
+        if(privilege == false){
+            userModelCopy.adminPageSet = null
+        }else{
+            userModelCopy.adminPageSet = "admin"
+        }
+    }
+
+    function validateChanges(){
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataValidationRequested", {newData: userModelCopy, existingData:userModel})
+    }
+
+})()
+
+
+
 
 /***/ }),
 
@@ -126,7 +2352,112 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \*********************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"availabilityModel\": () => (/* binding */ availabilityModel)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n\n/*purpose: dataModel for displaying availabilityDOM and modifying userAvailability content \n\navailability object is modeled as such:\n\nobj = {\n    \n    day: \n    [\n        {start, stop, admin}, \n        {start, stop, admin}\n    ], \n    day: \n    [\n        {etc}, \n        {etc},\n    ]\n\n}\n\npublishes:\n    availabilityModel FOR availabilityPageDOM, availabilityValidator, and database updates\n\nsubscribes to: \n    edit availabilityData requests FROM mainPageDOM\n    add/delete/update availabilityData requests FROM availabilityPageDOM\n    successful validations from availabilityValidator\n*/\n\nconst availabilityModel = (function(){\n    //no obvious issues, find subscriber for database updates\n    let availabilityModel;\n    let availabilityModelCopy;\n    let timeBlockDefault = {\n        startTime:\"default\",\n        endTime:\"default\",\n        admin: \"no\"\n    };\n\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"mainPageModelBuilt\", setAvailabilityModel); \n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"availabilityModelRequested\", publishAvailabilityModel)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"deleteTimeBlockClicked\", deleteAvailabilityRow);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"addTimeBlockClicked\", addAvailabilityRow);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"modifyAvailabilitySelectorValues\", modifyAvailabilityValue);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"updateAvailabilityClicked\", validateAvailability);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"userAvailabilityDataValidated\", updateAvailability)\n\n    \n    function setAvailabilityModel(userAvailability){\n        availabilityModel = userAvailability.availability\n    }\n\n    function setAvailabilityModelCopy(){\n        availabilityModelCopy = Object.assign({}, availabilityModel);\n        for(let day in availabilityModel){\n            availabilityModelCopy[day] = availabilityModel[day].concat();\n            day.forEach(function(timeBlock){\n                availabilityModelCopy[day][timeBlock] = Object.assign({}, availabilityModel[day][timeBlock])\n            });\n        }\n    }\n\n    function publishAvailabilityModel(){\n        setAvailabilityModelCopy();\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"availabilityDOMPageRequested\", availabilityModelCopy)\n    }\n\n\n    function addAvailabilityRow(day){\n        availabilityModelCopy[day].push(Object.assign({}, timeBlockDefault));\n\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"availabilityModelModified\", availabilityModelCopy);\n    }\n\n    function deleteAvailabilityRow(rowObj){\n        const blockIndex = rowObj.blockNumber;\n        availabilityModelCopy[rowObj.day].splice(blockIndex, 1);\n\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"availabilityModelModified\", availabilityModelCopy);\n    }\n\n    function modifyAvailabilityValue(rowObj){\n        const blockIndex = rowObj.blockNumber;\n        availabilityModelCopy[rowObj.day][blockIndex][rowObj.selector] = rowObj.value\n    }\n\n    function validateAvailability(){\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"userAvailabilityValidationRequested\", availabilityModelCopy)\n    }\n\n    function updateAvailability(){\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"availabilityDataUpdated\", availabilityModelCopy)\n    }\n\n})()\n\n\n\n//# sourceURL=webpack://pennschedule/./src/dataModels/availabilityModel.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "availabilityModel": () => (/* binding */ availabilityModel)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+
+/*purpose: dataModel for displaying availabilityDOM and modifying userAvailability content 
+
+availability object is modeled as such:
+
+obj = {
+    
+    day: 
+    [
+        {start, stop, admin}, 
+        {start, stop, admin}
+    ], 
+    day: 
+    [
+        {etc}, 
+        {etc},
+    ]
+
+}
+
+publishes:
+    availabilityModel FOR availabilityPageDOM, availabilityValidator, and database updates
+
+subscribes to: 
+    edit availabilityData requests FROM mainPageDOM
+    add/delete/update availabilityData requests FROM availabilityPageDOM
+    successful validations from availabilityValidator
+*/
+
+const availabilityModel = (function(){
+    //no obvious issues, find subscriber for database updates
+    let availabilityModel;
+    let availabilityModelCopy;
+    let timeBlockDefault = {
+        startTime:"default",
+        endTime:"default",
+        admin: "no"
+    };
+
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("mainPageModelBuilt", setAvailabilityModel); 
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("availabilityModelRequested", publishAvailabilityModel)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteTimeBlockClicked", deleteAvailabilityRow);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("addTimeBlockClicked", addAvailabilityRow);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyAvailabilitySelectorValues", modifyAvailabilityValue);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateAvailabilityClicked", validateAvailability);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userAvailabilityDataValidated", updateAvailability)
+
+    
+    function setAvailabilityModel(userAvailability){
+        availabilityModel = userAvailability.availability
+    }
+
+    function setAvailabilityModelCopy(){
+        availabilityModelCopy = Object.assign({}, availabilityModel);
+        for(let day in availabilityModel){
+            availabilityModelCopy[day] = availabilityModel[day].concat();
+            availabilityModel[day].forEach(function(timeBlock){
+                availabilityModelCopy[day][timeBlock] = Object.assign({}, availabilityModel[day][timeBlock])
+            });
+        }
+    }
+
+    function publishAvailabilityModel(){
+        setAvailabilityModelCopy();
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("availabilityDOMPageRequested", availabilityModelCopy)
+    }
+
+
+    function addAvailabilityRow(day){
+        availabilityModelCopy[day].push(Object.assign({}, timeBlockDefault));
+
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("availabilityModelModified", availabilityModelCopy);
+    }
+
+    function deleteAvailabilityRow(rowObj){
+        const blockIndex = rowObj.blockNumber;
+        availabilityModelCopy[rowObj.day].splice(blockIndex, 1);
+
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("availabilityModelModified", availabilityModelCopy);
+    }
+
+    function modifyAvailabilityValue(rowObj){
+        const blockIndex = rowObj.blockNumber;
+        availabilityModelCopy[rowObj.day][blockIndex][rowObj.selector] = rowObj.value
+    }
+
+    function validateAvailability(){
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userAvailabilityValidationRequested", availabilityModelCopy)
+    }
+
+    function updateAvailability(){
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("availabilityDataUpdated", availabilityModelCopy)
+    }
+
+})()
+
+
 
 /***/ }),
 
@@ -136,7 +2467,290 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \*****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"mainPageModel\": () => (/* binding */ mainPageModel)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n/*purpose: dataModel from database for loading content for user and adminPages\n\ndatabase object is modeled as such:\n\nobj = {\n    myteams/allTeams: \n        [{ \n            teamName,\n            teamSize, \n            rank:\n                {\n                    myTeams,\n                    allTeams\n                },\n            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],\n            coach,\n        }, {etc}, {etc}]\n    \n    allUsers: [user, user, user]\n\n    user:\n        {\n            name,\n            color, //for ADMIN LEVEL ONLY\n            privilegeLevel,\n            teams:{},\n            availability:{},\n            lastVerified,\n            adminPageSet,\n            season\n        }\n\n    facilitySelectors:\n        {facilityOpen, facilityClose, facilityMaxCapacity}\n\n    adminTimeBlocks:\n        {day: [{start, stop, admin}, {start, stop, admin}], day: [{start, stop, admin}, {start, stop, admin}]}  //for ADMIN LEVEL ONLY\n}\n\npublishes:\n    admin/userSelector build requests FOR selectorDOMBuilder\n    admin/userMainPageData model builds FOR admin/userMainPage DOM and all necessary dataModels\n\nsubscribes to: \n    data load FROM database\n    admin level pageChange requests from pageRenderer\n    adminMainPageDOM requests FROM adminUserGenerator cancellation AND ...\n*/\n\nconst mainPageModel = (function(){\n    //facilitySelectors/adminPageSet/season all have to have a default value in databse to start\n    //ensure proper database connection\n    //determine if recursive copying for immutability is necessary directly off database\n    //check lastVerified and season for proper execution\n\n    let userPageModel = {\n        name: null,\n        privilegeLevel: null,\n        availability: null,\n        myTeams: null,\n        lastVerified:null,\n        adminPageSet: null,\n        season: null,\n        allTeams: null,\n        facilitySelectors:null,\n    }\n\n    \n    /*{\n        name: \"Brindle\",\n        privilegeLevel:\"user\",\n        availability:{\n            Sun:[],\n            Mon:[],\n            Tue:[],\n            Wed:[],\n            Thu:[],\n            Fri:[],\n            Sat:[]\n        },\n        myTeams:\n        [\n            {\n            name:\"basketballWomen\",\n            coach: \"Brindle\",\n            rank:{\n                myTeams: 2,\n                allTeams:6\n            },\n            size: 15,\n            allOpts:\n                \n                [\n                    [\n                        {dayOfWeek:\"Tue\", startTime: 420, endTime:495, inWeiss:\"yes\"},\n                        {dayOfWeek:\"Thu\", startTime: 420, endTime:495, inWeiss:\"yes\"},\n                        {dayOfWeek:\"Fri\", startTime: 420, endTime:495, inWeiss:\"yes\"},\n                    ],\n                ]\n            },\n            \n            {\n                name:\"basketballMen\",\n                coach: \"Brindle\",\n                rank:{\n                    myTeams: 1,\n                    allTeams:5\n                },\n                size: 25,\n                allOpts:\n                \n                    [\n                        [\n                            {dayOfWeek:\"Tue\", startTime: 930, endTime:990, inWeiss:\"yes\"},\n                            {dayOfWeek:\"Thu\", startTime: 915, endTime:975, inWeiss:\"yes\"},\n                            {dayOfWeek:\"Fri\", startTime: 870, endTime:930, inWeiss:\"yes\"},\n                        ],\n                    ]\n            },\n        ],\n        lastVerified: null,\n        adminPageSet:null,\n        season:\"fall\",\n        allTeams:\n        [\n            {\n            name: \"football\",\n            coach:\"Rivera\",\n            rank:{\n                myTeams: 1,\n                allTeams:1\n            },\n            size: 110,\n            allOpts:\n                [\n                    [\n                        {dayOfWeek:\"Tue\", startTime: 870, endTime:915, inWeiss:\"yes\"},\n                        {dayOfWeek:\"Thu\", startTime: 870, endTime:915, inWeiss:\"yes\"},\n                        {dayOfWeek:\"Fri\", startTime: 945, endTime:975, inWeiss:\"yes\"},\n                    ],\n                ]\n            \n        \n        \n        },\n    \n        {\n            name:\"basketballWomen\",\n            coach: \"Brindle\",\n            rank:{\n                myTeams: 2,\n                allTeams:6\n            },\n            size: 15,\n            allOpts:\n                \n                [\n                    [\n                        {dayOfWeek:\"Tue\", startTime: 420, endTime:495, inWeiss:\"yes\"},\n                        {dayOfWeek:\"Thu\", startTime: 420, endTime:495, inWeiss:\"yes\"},\n                        {dayOfWeek:\"Fri\", startTime: 420, endTime:495, inWeiss:\"yes\"},\n                    ],\n                ]\n            },\n            \n            {\n                name:\"basketballMen\",\n                coach: \"Brindle\",\n                rank:{\n                    myTeams: 1,\n                    allTeams:5\n                },\n                size: 25,\n                allOpts:\n                \n                    [\n                        [\n                            {dayOfWeek:\"Tue\", startTime: 930, endTime:990, inWeiss:\"yes\"},\n                            {dayOfWeek:\"Thu\", startTime: 915, endTime:975, inWeiss:\"yes\"},\n                            {dayOfWeek:\"Fri\", startTime: 870, endTime:930, inWeiss:\"yes\"},\n                        ],\n                    ]\n            },\n    \n            {\n                name:\"sprintFootball\",\n                coach: \"Dolan\",\n                rank:{\n                    myTeams: 4,\n                    allTeams:4\n                },\n                size: 50,\n                allOpts:\n                \n                    [\n                        [\n                            {dayOfWeek:\"Tue\", startTime: 960, endTime:1020, inWeiss:\"yes\"},\n                            {dayOfWeek:\"Sat\", startTime: 540, endTime:600, inWeiss:\"yes\"},\n                        ],\n                    ]\n            },\n        ],\n        facilitySelectors:{\n            facilityOpen:360,\n            facilityClose: 1200,\n            facilityMaxCapacity:150\n        }\n\n    }*/\n    \n\n    let adminMainPageModel = {\n        name: null,\n        privilegeLevel: null,\n        season: null,\n        allTeams: null,\n        allUsers: null,\n        facilitySelectors:null,\n        adminTimeBlocks: null,\n        \n    }\n\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"dataLoadedFromDatabase\", populateAndDistributeDataModels);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"mainPageDOMRequested\", distributeMainPageModel);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminMainPageDOMRequested\", distributeAdminMainPageModel)\n\n    function populateAndDistributeDataModels(databaseObj){//check these for recursive immutable copying properly/necessary, if not jsut do destructuring assingment\n\n        if(databaseObj.user.adminPageSet == \"admin\"){\n            populateAdminUserModel(databaseObj);\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminSelectorsRequested\", adminMainPageModel.facilitySelectors)\n            distributeAdminMainPageModel()\n        }else{\n            populateGeneralUserModel(databaseObj);\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"userSelectorsRequested\", userPageModel.facilitySelectors)\n            distributeMainPageModel();\n        }\n    }\n\n\n    function populateGeneralUserModel(databaseObj){\n        userPageModel.name = databaseObj.user.name;\n        userPageModel.privilegeLevel = databaseObj.user.privilegeLevel\n        userPageModel.availability = databaseObj.user.availability;\n        userPageModel.teams = databaseObj.user.teams; \n        userPageModel.lastVerified = databaseObj.user.lastVerified;\n        userPageModel.season = databaseObj.user.season;\n        userPageModel.adminPageSet = databaseObj.user.adminPageSet\n        \n        userPageModel.facilitySelectors = databaseObj.facilitySelectors\n        userPageModel.allTeams = databaseObj.allTeams; \n    }\n\n    function populateAdminUserModel(databaseObj){\n        adminMainPageModel.name = databaseObj.user.name\n        adminMainPageModel.privilegeLevel = databaseObj.user.privilegeLevel\n        adminMainPageModel.season = databaseObj.user.season\n\n        adminMainPageModel.allUsers = databaseObj.allUsers;\n        adminMainPageModel.allTeams = databaseObj.allTeams;\n        adminMainPageModel.facilitySelectors = databaseObj.facilitySelectors;\n        adminMainPageModel.adminTimeBlocks = databaseObj.adminTimeBlocks;\n    }\n\n    function distributeMainPageModel(){\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"mainPageModelBuilt\", userPageModel)\n    }\n\n    function distributeAdminMainPageModel(){\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminMainPageModelBuilt\", adminMainPageModel)\n    }\n\n})();\n\n\n\n//# sourceURL=webpack://pennschedule/./src/dataModels/mainPageModel.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "mainPageModel": () => (/* binding */ mainPageModel)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/*purpose: dataModel from database for loading content for user and adminPages
+
+database object is modeled as such:
+
+obj = {
+    myteams/allTeams: 
+        [{ 
+            teamName,
+            teamSize, 
+            rank:
+                {
+                    myTeams,
+                    allTeams
+                },
+            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+            coach,
+        }, {etc}, {etc}]
+    
+    allUsers: [user, user, user]
+
+    user:
+        {
+            name,
+            color, //for ADMIN LEVEL ONLY
+            privilegeLevel,
+            teams:{},
+            availability:{},
+            lastVerified,
+            adminPageSet,
+            season
+        }
+
+    facilitySelectors:
+        {facilityOpen, facilityClose, facilityMaxCapacity}
+
+    adminTimeBlocks:
+        {day: [{start, stop, admin}, {start, stop, admin}], day: [{start, stop, admin}, {start, stop, admin}]}  //for ADMIN LEVEL ONLY
+}
+
+publishes:
+    admin/userSelector build requests FOR selectorDOMBuilder
+    admin/userMainPageData model builds FOR admin/userMainPage DOM and all necessary dataModels
+
+subscribes to: 
+    data load FROM database
+    admin level pageChange requests from pageRenderer
+    adminMainPageDOM requests FROM adminUserGenerator cancellation AND ...
+*/
+
+const mainPageModel = (function(){
+    //facilitySelectors/adminPageSet/season all have to have a default value in databse to start
+    //ensure proper database connection
+    //determine if recursive copying for immutability is necessary directly off database
+    //check lastVerified and season for proper execution
+
+    let userPageModel = {
+        name: null,
+        privilegeLevel: null,
+        availability: null,
+        teams: null,
+        lastVerified:null,
+        adminPageSet: null,
+        season: null,
+        allTeams: null,
+        facilitySelectors:null,
+    }
+
+    
+    /*{
+        name: "Brindle",
+        privilegeLevel:"user",
+        availability:{
+            Sun:[],
+            Mon:[],
+            Tue:[],
+            Wed:[],
+            Thu:[],
+            Fri:[],
+            Sat:[]
+        },
+        teams:
+        [
+            {
+            name:"basketballWomen",
+            coach: "Brindle",
+            rank:{
+                myTeams: 2,
+                allTeams:6
+            },
+            size: 15,
+            allOpts:
+                
+                [
+                    [
+                        {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
+                        {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
+                        {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
+                    ],
+                ]
+            },
+            
+            {
+                name:"basketballMen",
+                coach: "Brindle",
+                rank:{
+                    myTeams: 1,
+                    allTeams:5
+                },
+                size: 25,
+                allOpts:
+                
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
+                            {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
+                            {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
+                        ],
+                    ]
+            },
+        ],
+        lastVerified: null,
+        adminPageSet:null,
+        season:"fall",
+        allTeams:
+        [
+            {
+            name: "football",
+            coach:"Rivera",
+            rank:{
+                myTeams: 1,
+                allTeams:1
+            },
+            size: 110,
+            allOpts:
+                [
+                    [
+                        {dayOfWeek:"Tue", startTime: 870, endTime:915, inWeiss:"yes"},
+                        {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
+                        {dayOfWeek:"Fri", startTime: 945, endTime:975, inWeiss:"yes"},
+                    ],
+                ]
+            
+        
+        
+        },
+    
+        {
+            name:"basketballWomen",
+            coach: "Brindle",
+            rank:{
+                myTeams: 2,
+                allTeams:6
+            },
+            size: 15,
+            allOpts:
+                
+                [
+                    [
+                        {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
+                        {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
+                        {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
+                    ],
+                ]
+            },
+            
+            {
+                name:"basketballMen",
+                coach: "Brindle",
+                rank:{
+                    myTeams: 1,
+                    allTeams:5
+                },
+                size: 25,
+                allOpts:
+                
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
+                            {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
+                            {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
+                        ],
+                    ]
+            },
+    
+            {
+                name:"sprintFootball",
+                coach: "Dolan",
+                rank:{
+                    myTeams: 4,
+                    allTeams:4
+                },
+                size: 50,
+                allOpts:
+                
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 960, endTime:1020, inWeiss:"yes"},
+                            {dayOfWeek:"Sat", startTime: 540, endTime:600, inWeiss:"yes"},
+                        ],
+                    ]
+            },
+        ],
+        facilitySelectors:{
+            facilityOpen:360,
+            facilityClose: 1200,
+            facilityMaxCapacity:150
+        }
+
+    }*/
+    
+
+    let adminMainPageModel = {
+        name: null,
+        privilegeLevel: null,
+        season: null,
+        allTeams: null,
+        allUsers: null,
+        facilitySelectors:null,
+        adminTimeBlocks: null,
+        
+    }
+
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("dataLoadedFromDatabase", populateAndDistributeDataModels);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("mainPageDOMRequested", distributeMainPageModel);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminMainPageDOMRequested", distributeAdminMainPageModel)
+
+    function populateAndDistributeDataModels(databaseObj){//check these for recursive immutable copying properly/necessary, if not jsut do destructuring assingment
+
+        if(databaseObj.adminPageSet == "admin"){
+            populateAdminUserModel(databaseObj);
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminSelectorsRequested", adminMainPageModel.facilitySelectors)
+            distributeAdminMainPageModel()
+        }else{
+            populateGeneralUserModel(databaseObj);
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userSelectorsRequested", userPageModel.facilitySelectors)
+            distributeMainPageModel();
+        }
+    }
+
+
+    function populateGeneralUserModel(databaseObj){
+        userPageModel.name = databaseObj.name;
+        userPageModel.privilegeLevel = databaseObj.privilegeLevel
+        userPageModel.availability = databaseObj.availability;
+        userPageModel.teams = databaseObj.teams; 
+        userPageModel.lastVerified = databaseObj.lastVerified;
+        userPageModel.season = databaseObj.season;
+        userPageModel.adminPageSet = databaseObj.adminPageSet
+        
+        userPageModel.facilitySelectors = databaseObj.facilitySelectors
+        userPageModel.allTeams = databaseObj.allTeams; 
+    }
+
+    function populateAdminUserModel(databaseObj){
+        adminMainPageModel.name = databaseObj.name
+        adminMainPageModel.privilegeLevel = databaseObj.privilegeLevel
+        adminMainPageModel.season = databaseObj.season
+
+        adminMainPageModel.allUsers = databaseObj.allUsers;
+        adminMainPageModel.allTeams = databaseObj.allTeams;
+        adminMainPageModel.facilitySelectors = databaseObj.facilitySelectors;
+        adminMainPageModel.adminTimeBlocks = databaseObj.adminTimeBlocks;
+    }
+
+    function distributeMainPageModel(){
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("mainPageModelBuilt", userPageModel)
+    }
+
+    function distributeAdminMainPageModel(){
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminMainPageModelBuilt", adminMainPageModel)
+    }
+
+})();
+
+
 
 /***/ }),
 
@@ -146,7 +2760,331 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"myTeamsModel\": () => (/* binding */ myTeamsModel)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n/*purpose: dataModel for loading content and editing content for array of all user's teams\n\nmyTeams object is modeled as such:\n\nobj = {\n    myTeams: \n        [\n            { \n            teamName,\n            teamSize, \n            rank:\n                {\n                    myTeams,\n                    allTeams\n                },\n            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],\n            coach\n            }, \n            {etc}, \n            {etc}\n        ]\n}\n\npublishes:\n    singleTeam to-edit data FOR teamRequestModel\n    save change request FOR database\n\nsubscribes to: \n    myTeams data FROM mainPageDataModel\n    myTeams order modifications FROM mainPageDOM\n    requests to edit/delete teams FROM mainPage DOM\n    successful validations from requestValidator\n*/\n\nconst myTeamsModel = (function(){\n    // find subscribers for database updates (teamOrder, validatedTeamDataChanges, deletions)\n    let myTeams;\n\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"editTeam\", editTeam)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"modifyMyTeamOrder\", modifyTeamOrder) \n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"mainPageModelBuilt\", populateMyTeams)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"workingModelValidated\", addEditTeamForDatabaseUpdate)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"deleteTeam\", deleteTeamForDatabaseUpdate)\n\n     function populateMyTeams(userMyTeams){ \n         myTeams = userMyTeams.teams.concat();\n         for(let team in userMyTeams.team){\n\t\t\tmyTeams[team] = Object.assign({}, userMyTeams.teams[team])\n\t\t\tmyTeams[team].rank = Object.assign({}, userMyTeams.teams[team].rank)\n\t\t} \n    }\n\n    function editTeam(teamRequest){ \n        const thisTeam = myTeams.filter(function(team){\n            teamRequest.teamName == team.teamName\n        })[0];\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"teamEditDataLoaded\", thisTeam); //follow this\n    }\n\n    function modifyTeamOrder(teamInfoObj){\n        const myTeamsSlice = myTeams.concat();\n        const team = myTeamsSlice.splice(teamInfoObj.teamIndex, 1)[0];\n        myTeamsSlice.splice(teamInfoObj.teamIndex + teamInfoObj.modifier, 0, team);\n        myTeamsSlice.forEach(function(thisTeam){\n            thisTeam.rank.myTeams = myTeamsSlice.findIndex(function(teams){\n                return teams.teamName == thisTeam.teamName\n            })\n        })     \n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"myTeamsDataUpdated\", myTeamsSlice); //send to DB for save\n    }\n\n    function addEditTeamForDatabaseUpdate(teamObject){\n        const myTeamsSlice = myTeams.concat();\n        const existingTeamIndex = findExistingTeam()\n        \n       if(existingTeamIndex != -1){\n            myTeamsSlice.splice(existingTeamIndex, 1, teamObject.workingModel)\n       }else{\n            myTeamsSlice.push(teamObject.workingModel)\n       }\n       myTeamsSlice.forEach(function(thisTeam){\n        thisTeam.rank.myTeams = myTeamsSlice.findIndex(function(teams){\n                return teams.teamName == thisTeam.teamName\n            })\n        })\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"myTeamsDataUpdated\", myTeamsSlice) //send to DB for save\n\n        function findExistingTeam(){\n            const existingTeam = myTeamsSlice.findIndex(function(teams){\n                return teamObject.teamRequest.teamName == teams.teamName\n            })\n            return existingTeam\n            \n        }\n    }\n\n    function deleteTeamForDatabaseUpdate(thisTeam){\n        const myTeamsSlice = myTeams.concat();\n        const existingTeamIndex = myTeamsSlice.findIndex(function(teams){ \n            return teams.teamName == thisTeam.teamName\n        })\n\n        myTeamsSlice.splice(existingTeamIndex, 1)\n        myTeamsSlice.forEach(function(thisTeam){\n            thisTeam.rank.myTeams = myTeamsSlice.findIndex(function(teams){ \n                return teams.teamName == thisTeam.teamName\n            })\n        })\n        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"myTeamsDataUpdated\", myTeamsSlice) //send to DB for save\n    }\n\n\n})();\n\n\n\n\n\n\n\n//# sourceURL=webpack://pennschedule/./src/dataModels/myTeamsModel.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "myTeamsModel": () => (/* binding */ myTeamsModel)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/*purpose: dataModel for loading content and editing content for array of all user's teams
+
+myTeams object is modeled as such:
+
+obj = {
+    myTeams: 
+        [
+            { 
+            teamName,
+            teamSize, 
+            rank:
+                {
+                    myTeams,
+                    allTeams
+                },
+            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+            coach
+            }, 
+            {etc}, 
+            {etc}
+        ]
+}
+
+publishes:
+    singleTeam to-edit data FOR teamRequestModel
+    save change request FOR database
+
+subscribes to: 
+    myTeams data FROM mainPageDataModel
+    myTeams order modifications FROM mainPageDOM
+    requests to edit/delete teams FROM mainPage DOM
+    successful validations from requestValidator
+*/
+
+const myTeamsModel = (function(){
+    // find subscribers for database updates (teamOrder, validatedTeamDataChanges, deletions)
+    let myTeams;
+
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editTeam", editTeam)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyMyTeamOrder", modifyTeamOrder) 
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("mainPageModelBuilt", populateMyTeams)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("workingModelValidated", addEditTeamForDatabaseUpdate)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteTeam", deleteTeamForDatabaseUpdate)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("setTeamVerification", verifyTeam)
+
+     function populateMyTeams(userMyTeams){ 
+         myTeams = userMyTeams.teams.concat();
+         for(let team in userMyTeams.teams){
+			myTeams[team] = Object.assign({}, userMyTeams.teams[team])
+			myTeams[team].rank = Object.assign({}, userMyTeams.teams[team].rank)
+		} 
+    }
+
+    function editTeam(teamRequest){ 
+        const thisTeam = myTeams.filter(function(team){
+            return teamRequest.name == team.name
+        })[0];
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamEditDataLoaded", thisTeam); //follow this
+    }
+
+    function modifyTeamOrder(teamInfoObj){
+        const myTeamsSlice = myTeams.concat();
+        const team = myTeamsSlice.splice(teamInfoObj.index, 1)[0];
+        myTeamsSlice.splice(teamInfoObj.index + teamInfoObj.modifier, 0, team);
+        myTeamsSlice.forEach(function(thisTeam){
+            thisTeam.rank.myTeams = myTeamsSlice.findIndex(function(teams){
+                return teams.name == thisTeam.name
+            })
+        })     
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("myTeamsDataUpdated", myTeamsSlice); //send to DB for save
+    }
+
+    function addEditTeamForDatabaseUpdate(teamObject){
+        const myTeamsSlice = myTeams.concat();
+        const existingTeamIndex = findExistingTeam()
+        
+       if(existingTeamIndex != -1){
+            myTeamsSlice.splice(existingTeamIndex, 1, teamObject.workingModel)
+       }else{
+            myTeamsSlice.push(teamObject.workingModel)
+       }
+       myTeamsSlice.forEach(function(thisTeam){
+        thisTeam.rank.myTeams = myTeamsSlice.findIndex(function(teams){
+                return teams.name == thisTeam.name
+            })
+        })
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("myTeamsDataUpdated", myTeamsSlice) //send to DB for save
+
+        function findExistingTeam(){
+            const existingTeam = myTeamsSlice.findIndex(function(teams){
+                return teamObject.teamRequest.name == teams.name
+            })
+            return existingTeam
+            
+        }
+    }
+
+    function deleteTeamForDatabaseUpdate(thisTeam){
+        const myTeamsSlice = myTeams.concat();
+        const existingTeamIndex = myTeamsSlice.findIndex(function(teams){ 
+            return teams.name == thisTeam.name
+        })
+
+        myTeamsSlice.splice(existingTeamIndex, 1)
+        myTeamsSlice.forEach(function(thisTeam){
+            thisTeam.rank.myTeams = myTeamsSlice.findIndex(function(teams){ 
+                return teams.name == thisTeam.name
+            })
+        })
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("myTeamsDataUpdated", myTeamsSlice) //send to DB for save
+    }
+
+    function verifyTeam(thisTeam){
+        const myTeamsSlice = myTeams.concat();
+        const existingTeamIndex = myTeamsSlice.findIndex(function(teams){ 
+            return teams.name == thisTeam.name
+        })
+        
+        const now = new Date();
+        const nowParsed = `${now.getMonth()+1}-${now.getDate()}-${now.getFullYear()}`
+
+        myTeamsSlice[existingTeamIndex].lastVerified = nowParsed;
+
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("myTeamsDataUpdated", myTeamsSlice) //send to DB for save
+    }
+
+
+})();
+
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./src/dataModels/teamRequestModel.js":
+/*!********************************************!*\
+  !*** ./src/dataModels/teamRequestModel.js ***!
+  \********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "teamRequestModel": () => (/* binding */ teamRequestModel)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/*purpose: dataModel for loading content and editing content for requestFormDOM
+
+team object is modeled as such:
+
+obj = { 
+    teamName,
+    teamSize, 
+    rank:
+        {
+            myTeams,
+            allTeams
+        },
+    allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+    coach           
+}
+
+publishes:
+    dataModel generation/ allOpts, allDays, and value modifications FOR requestFormDOM build
+    validation requests for requestValidator
+
+subscribes to: 
+    coachName from mainPageDataModel
+    team addition requests FROM mainPageDOM
+    team editData loads FROM myTeamsModel
+    update requests FROM requestFormDOM
+    modifications to add/delete/change option order, add/delete/change values for days, modify name, size FROM requestFormDOM
+*/
+
+const teamRequestModel = (function(){
+    
+    let coach
+    
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("mainPageModelBuilt", setCoach)
+
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("addTeam", createWorkingModel);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("teamEditDataLoaded", populateWorkingModel); 
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateTeamRequest", validateTeamUpdate);
+   
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("addOpt", addOption);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteOpt", deleteOption);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyOptOrder", modifyOptionsOrder);
+   
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("addDay", addDay);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyTeamSelectorValue", modifySelectorValue);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteDay", deleteDay);
+    
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyTeamSizeValue", modifyTeamSizeValue);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyTeamNameValue", modifyTeamNameValue);
+    
+    let workingModel; 
+    let teamRequest;
+
+    function setCoach(mainPageData){
+        coach = mainPageData.name
+    }
+    
+    function createWorkingModel(){
+        teamRequest = {
+            name: "",
+            size: "default", 
+            rank: {
+                myTeams: null,
+                allTeams: null
+            },
+            allOpts: [[createDefaultDayDetails()]],
+           coach:coach,
+           lastVerified: null
+        };
+
+        workingModel = buildWorkingModelDeepCopy(teamRequest)
+        
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("workingModelPopulated", workingModel)
+    }
+
+    function populateWorkingModel(thisTeamRequest){
+        teamRequest = thisTeamRequest
+        workingModel = buildWorkingModelDeepCopy(thisTeamRequest)
+
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("workingModelPopulated", workingModel) //follow this
+    }
+
+    function buildWorkingModelDeepCopy(thisTeamRequest){
+        const workingModel = Object.assign({}, thisTeamRequest);
+        workingModel.rank = Object.assign({}, thisTeamRequest.rank);
+
+        workingModel.allOpts = thisTeamRequest.allOpts.concat();
+        thisTeamRequest.allOpts.forEach(function(option){
+
+            const optIndex = thisTeamRequest.allOpts.indexOf(option);
+            workingModel.allOpts[optIndex] = thisTeamRequest.allOpts[optIndex].concat();
+            option.forEach(function(day){
+
+                const dayIndex = option.indexOf(day);
+                workingModel.allOpts[optIndex][dayIndex] = Object.assign({}, thisTeamRequest.allOpts[optIndex][dayIndex])
+            })
+        })
+        return workingModel;
+    }
+
+    function createDefaultDayDetails(){
+        const defaultDayDetails = {
+            dayOfWeek: "default",
+            startTime: "default",
+            endTime: "default",
+            inWeiss: "default"
+        };
+        return defaultDayDetails
+    }
+
+    function validateTeamUpdate(){ //follow this
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("validateTeamRequest", {workingModel, teamRequest}) 
+    }
+
+    function addOption(){
+        workingModel.allOpts.push([createDefaultDayDetails()]);
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("optionsModified", workingModel);
+    }
+
+    function deleteOption(optNum){
+        const index = optNum - 1;
+        workingModel.allOpts.splice(index, 1);
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("optionsModified", workingModel);
+    }
+
+    function modifyOptionsOrder(optionDetailsObj){
+        const index = optionDetailsObj.optNum - 1;
+        const option = workingModel.allOpts.splice(index, 1)[0];
+        workingModel.allOpts.splice(index + optionDetailsObj.modifier, 0, option);
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("optionsModified", workingModel);
+    }
+
+    function addDay(optNum){
+        const optIndex = optNum - 1;
+        const optionDetails = workingModel.allOpts[optIndex];
+        optionDetails.push(createDefaultDayDetails());
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("daysModified", {publishedOptionDetails: optionDetails, publishedOptNum: optNum})
+    }
+
+    function deleteDay(dayDetailsObj){
+        const optIndex = dayDetailsObj.optNum - 1;
+        const dayIndex = dayDetailsObj.dayNum - 1;
+        const optionDetails = workingModel.allOpts[optIndex];
+        optionDetails.splice(dayIndex, 1);
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("daysModified", {publishedOptionDetails: optionDetails, publishedOptNum:dayDetailsObj.optNum})
+    }
+
+    function modifySelectorValue(dayDetailsObj){
+        const optIndex = dayDetailsObj.optNum - 1;
+        const dayIndex = dayDetailsObj.dayNum - 1;
+        workingModel.allOpts[optIndex][dayIndex][dayDetailsObj.selector] = dayDetailsObj.value
+    }
+
+    function modifyTeamSizeValue(size){
+        workingModel.size = size;
+    }
+
+    function modifyTeamNameValue(name){
+        workingModel.name = name
+    }   
+
+})();
+
+
+
 
 /***/ }),
 
@@ -156,17 +3094,44 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \***********************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"events\": () => (/* binding */ events)\n/* harmony export */ });\n\n\nconst events = {\n    events: {},\n    \n    subscribe: function(eventName, fn){\n        this.events[eventName] = this.events[eventName] || [];\n        this.events[eventName].push(fn);\n    },\n\n    unsubscribe: function (eventName, fn){\n        if(this.events[eventName]){\n            for(let i = 0; i< this.events[eventName].length; i++){\n                if(this.events[eventName][i] === fn){\n                    this.events[eventName].splice(i, 1);\n                    break;\n                }\n            }\n        }\n    },\n\n    publish: function (eventName, data){\n        if(this.events[eventName]){\n            this.events[eventName].forEach(function(fn){\n                fn(data);\n            })\n        }\n    }\n}\n\n\n\n//# sourceURL=webpack://pennschedule/./src/events.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "events": () => (/* binding */ events)
+/* harmony export */ });
 
-/***/ }),
 
-/***/ "./src/index.js":
-/*!**********************!*\
-  !*** ./src/index.js ***!
-  \**********************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+const events = {
+    events: {},
+    
+    subscribe: function(eventName, fn){
+        this.events[eventName] = this.events[eventName] || [];
+        this.events[eventName].push(fn);
+    },
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./events */ \"./src/events.js\");\n/* harmony import */ var _dataModels_adminAllUsersDataModel__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dataModels/adminAllUsersDataModel */ \"./src/dataModels/adminAllUsersDataModel.js\");\n/* harmony import */ var _dataModels_adminMainPageAdminTimeBlockModel__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dataModels/adminMainPageAdminTimeBlockModel */ \"./src/dataModels/adminMainPageAdminTimeBlockModel.js\");\n/* harmony import */ var _dataModels_adminMainPageAllTeamsDataModel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./dataModels/adminMainPageAllTeamsDataModel */ \"./src/dataModels/adminMainPageAllTeamsDataModel.js\");\n/* harmony import */ var _dataModels_adminMainPageFacilityDataModel__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./dataModels/adminMainPageFacilityDataModel */ \"./src/dataModels/adminMainPageFacilityDataModel.js\");\n/* harmony import */ var _dataModels_adminUserDataModel__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./dataModels/adminUserDataModel */ \"./src/dataModels/adminUserDataModel.js\");\n/* harmony import */ var _dataModels_availabilityModel__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./dataModels/availabilityModel */ \"./src/dataModels/availabilityModel.js\");\n/* harmony import */ var _dataModels_mainPageModel__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./dataModels/mainPageModel */ \"./src/dataModels/mainPageModel.js\");\n/* harmony import */ var _dataModels_myTeamsModel__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./dataModels/myTeamsModel */ \"./src/dataModels/myTeamsModel.js\");\n/* harmony import */ var _DOMBuilders_adminMainPageDOM__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./DOMBuilders/adminMainPageDOM */ \"./src/DOMBuilders/adminMainPageDOM.js\");\n/* harmony import */ var _DOMBuilders_adminUserGeneratorDOM__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./DOMBuilders/adminUserGeneratorDOM */ \"./src/DOMBuilders/adminUserGeneratorDOM.js\");\n/* harmony import */ var _DOMBuilders_availabilityPageDOM__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./DOMBuilders/availabilityPageDOM */ \"./src/DOMBuilders/availabilityPageDOM.js\");\n/* harmony import */ var _DOMBuilders_mainPageDOM__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./DOMBuilders/mainPageDOM */ \"./src/DOMBuilders/mainPageDOM.js\");\n/* harmony import */ var _DOMBuilders_requestFormDOM__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./DOMBuilders/requestFormDOM */ \"./src/DOMBuilders/requestFormDOM.js\");\n/* harmony import */ var _DOMBuilders_selectorDOMBuilder__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./DOMBuilders/selectorDOMBuilder */ \"./src/DOMBuilders/selectorDOMBuilder.js\");\n/* harmony import */ var _validators_availabilityValidator__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./validators/availabilityValidator */ \"./src/validators/availabilityValidator.js\");\n/* harmony import */ var _validators_facilityDataValidator__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./validators/facilityDataValidator */ \"./src/validators/facilityDataValidator.js\");\n/* harmony import */ var _validators_requestValidator__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./validators/requestValidator */ \"./src/validators/requestValidator.js\");\n/* harmony import */ var _validators_userValidator__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./validators/userValidator */ \"./src/validators/userValidator.js\");\n/* harmony import */ var _pageRenderer__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./pageRenderer */ \"./src/pageRenderer.js\");\n/* harmony import */ var _temporaryDatabasePostSimulator__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./temporaryDatabasePostSimulator */ \"./src/temporaryDatabasePostSimulator.js\");\n/* harmony import */ var _timeConverter__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./timeConverter */ \"./src/timeConverter.js\");\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n//# sourceURL=webpack://pennschedule/./src/index.js?");
+    unsubscribe: function (eventName, fn){
+        if(this.events[eventName]){
+            for(let i = 0; i< this.events[eventName].length; i++){
+                if(this.events[eventName][i] === fn){
+                    this.events[eventName].splice(i, 1);
+                    break;
+                }
+            }
+        }
+    },
+
+    publish: function (eventName, data){
+        if(this.events[eventName]){
+            this.events[eventName].forEach(function(fn){
+                fn(data);
+            })
+        }
+    }
+}
+
+
+
+
 
 /***/ }),
 
@@ -176,7 +3141,95 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _eve
   \*****************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"pageRenderer\": () => (/* binding */ pageRenderer)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./events */ \"./src/events.js\");\n\n/* \npurpose: renders full page contents\n\npublishes: \n\nsubscribes to: \n    pageRenderRequests FROM mainPageDOM, availabilityDOM, adminMainPageDOM, adminUserGeneratorDOM, requestFormDOM\n    mainPage/adminMainPage model builds\n*/\n\nconst pageRenderer = (function(){\n    \n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"mainPageModelBuilt\", copyNameAndAdminAccess)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminMainPageModelBuilt\",copyNameAndAdminAccess)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"pageRenderRequested\", renderPageContent);\n    \n    let name;\n    let adminAccess;\n   \n    const dropdownContent = document.querySelector(\"#dropdownContent\");\n    const logOutButton = document.querySelector(\"#logOut\");\n\n    dropdownContent.id = \"dropdownContent\";\n    logOutButton.id = \"logOutButton\";\n\n    //logOut add eventListener\n\n    function renderPageContent(page){\n        const mainContent = document.getElementsByTagName(\"main\")[0];\n        const newMainContent = document.createElement(\"main\");\n\n        newMainContent.appendChild(page);\n        mainContent.replaceWith(newMainContent);\n\n        setName();\n        setDropdownPrivilegeAccess()\n    }\n\n    function copyNameAndAdminAccess(userData){\n        name = userData.name;\n        adminAccess = userData.privilegeLevel\n    }\n\n    function setName(){\n        const nameContent = document.querySelector(\"#userNameLabel\")\n        nameContent.innerText = name;\n    }\n\n    function setDropdownPrivilegeAccess(){\n        if(adminAccess == true){\n            const userPageButton = document.createElement(\"p\");\n            const adminPageButton = document.createElement(\"p\");\n\n            userPageButton.id = \"userPageButton\";\n            adminPageButton.id = \"adminPageButton\"\n        \n            userPageButton.addEventListener(\"click\", publishPageChangeRequest);\n            adminPageButton.addEventListener(\"click\", publishPageChangeRequest);\n\n            dropdownContent.insertBefore(userPageButton,logOutButton);\n            dropdownContent.insertBefore(adminPageButton,logOutButton);\n        }\n\n        function publishPageChangeRequest(){\n            const string = \"PageButton\"\n            const truncateIndex = this.id.indexOf(string);\n            const pageIdentifier = this.id.slice(0, truncateIndex);\n            \n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"pageChangeRequested\", {name, pageIdentifier})\n        }  \n    }\n\n    return {renderPageContent}\n\n})();\n\n\n\n//# sourceURL=webpack://pennschedule/./src/pageRenderer.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "pageRenderer": () => (/* binding */ pageRenderer)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+/* 
+purpose: renders full page contents
+
+publishes: 
+
+subscribes to: 
+    pageRenderRequests FROM mainPageDOM, availabilityDOM, adminMainPageDOM, adminUserGeneratorDOM, requestFormDOM
+    mainPage/adminMainPage model builds
+*/
+
+const pageRenderer = (function(){
+    
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("mainPageModelBuilt", setNameAndAdminAccess)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminMainPageModelBuilt",setNameAndAdminAccess)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("pageRenderRequested", renderPageContent);
+    
+    let name;
+    let adminAccess;
+
+    let userPageLink;
+    let adminPageLink;
+
+    const nav = document.querySelector("#nav")
+    const logOutLink = document.querySelector("#logOutLink");
+
+    logOutLink.addEventListener("click", doTheThing);
+
+    function doTheThing(){} //make this a logOut Function
+
+
+    function renderPageContent(page){
+        const mainContent = document.getElementsByTagName("main")[0];
+        const newMainContent = document.createElement("main");
+
+        newMainContent.appendChild(page);
+        mainContent.replaceWith(newMainContent);
+
+    }
+
+    function setNameAndAdminAccess(userData){
+        name = userData.name;
+        adminAccess = userData.privilegeLevel;
+
+        setDropdownPrivilegeAccess();
+    }
+
+    function setDropdownPrivilegeAccess(){
+        if(adminAccess == true && userPageLink == null && adminPageLink == null){
+            userPageLink = document.createElement("h3");
+            adminPageLink = document.createElement("h3");
+
+            userPageLink.id = "userPageLink";
+            userPageLink.classList.add("navLink");
+            userPageLink.innerText = "User Page"
+
+            adminPageLink.id = "adminPageLink";
+            adminPageLink.classList.add("navLink");
+            adminPageLink.innerText = "Admin Page"
+        
+            userPageLink.addEventListener("click", publishPageChangeRequest);
+            adminPageLink.addEventListener("click", publishPageChangeRequest);
+
+            nav.insertBefore(userPageLink,logOutLink);
+            nav.insertBefore(adminPageLink,logOutLink);
+        }
+
+        function publishPageChangeRequest(){
+            const string = "PageButton"
+            const truncateIndex = this.id.indexOf(string);
+            const pageIdentifier = this.id.slice(0, truncateIndex);
+            
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("pageChangeRequested", {name, pageIdentifier})
+        }  
+    }
+
+    return {renderPageContent}
+
+
+})();
+
+
 
 /***/ }),
 
@@ -186,7 +3239,556 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \***********************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"temporaryDatabasePostSimulator\": () => (/* binding */ temporaryDatabasePostSimulator)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./events */ \"./src/events.js\");\n\n\nconst temporaryDatabasePostSimulator = (function(){\n\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"allUsersDataUpdated\", alertAndLogCurrentObject);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminAvailabilityDataUpdated\", alertAndLogCurrentObject)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminAllTeamsDataUpdated\", alertAndLogCurrentObject)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminFacilityDataUpdated\", alertAndLogCurrentObject)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"availabilityDataUpdated\", alertAndLogCurrentObject)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"myTeamsDataUpdated\", alertAndLogCurrentObject)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"verifyUpToDateClicked\", alertAndLogCurrentObject)\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"pageChangeRequested\", alertAndLogCurrentObject);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"userSeasonChangeRequested\", alertAndLogCurrentObject);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminSeasonChangeRequested\", alertAndLogCurrentObject);\n    \n    function alertAndLogCurrentObject(databaseBoundObject){\n        alert(databaseBoundObject);\n        console.log(databaseBoundObject)\n    }\n\n})();\n\n\n\n//# sourceURL=webpack://pennschedule/./src/temporaryDatabasePostSimulator.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "temporaryDatabasePostSimulator": () => (/* binding */ temporaryDatabasePostSimulator)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+const temporaryDatabasePostSimulator = (function(){
+
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("allUsersDataUpdated", changeAllUsersArray);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminAvailabilityDataUpdated", alertAndLogCurrentObject)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminAllTeamsDataUpdated", changeAllTeamsData)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataUpdated", changeFacilityData)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("availabilityDataUpdated", changeAvailabilityData)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("myTeamsDataUpdated", changeMyTeamsData)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("verifyUpToDateClicked", changeVerificationData)//
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("pageChangeRequested", alertAndLogCurrentObject);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userSeasonChangeRequested", changeUserSeason); //
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminSeasonChangeRequested", changeAdminSeason);
+    
+
+    function alertAndLogCurrentObject(databaseBoundObject){
+        console.log(databaseBoundObject)
+        alert(databaseBoundObject)
+    }
+
+    function changeFacilityData(databaseBoundObject){
+        alertAndLogCurrentObject(databaseBoundObject);
+        adminTestObj.facilitySelectors = databaseBoundObject;
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", adminTestObj)
+    }
+
+    function changeAllTeamsData(databaseBoundObject){
+        alertAndLogCurrentObject(databaseBoundObject)
+        const sortedTeams = databaseBoundObject.sort(function(a,b){
+            return a.rank.allTeams - b.rank.allTeams
+        })
+        adminTestObj.allTeams = sortedTeams
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", adminTestObj)
+    }
+
+    function changeAllUsersArray(databaseBoundObject){
+        alertAndLogCurrentObject(databaseBoundObject)
+        adminTestObj.allUsers = databaseBoundObject;
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", adminTestObj)
+    }
+
+    function changeAdminSeason(databaseBoundObject){
+        alertAndLogCurrentObject(databaseBoundObject)
+        adminTestObj.season = databaseBoundObject
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", adminTestObj)
+    }
+
+    function changeUserSeason(databaseBoundObject){
+        alertAndLogCurrentObject(databaseBoundObject)
+        userTestObj.season = databaseBoundObject
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", userTestObj)
+    }
+
+
+    function changeVerificationData(databaseBoundObject){
+        alertAndLogCurrentObject(databaseBoundObject)
+        userTestObj.lastVerified = databaseBoundObject
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", userTestObj)
+    }
+
+    function changeAvailabilityData(databaseBoundObject){
+        alertAndLogCurrentObject(databaseBoundObject)
+        userTestObj.availability = databaseBoundObject
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", userTestObj)
+    }
+
+    function changeMyTeamsData(databaseBoundObject){
+        alertAndLogCurrentObject(databaseBoundObject)
+        const sortedTeams = databaseBoundObject.sort(function(a,b){
+            return a.rank.myTeams - b.rank.myTeams
+        })
+        userTestObj.teams = sortedTeams
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", userTestObj)
+    }
+
+    let userTestObj = {
+        name: "Brindle",
+        privilegeLevel:false,
+        availability:{
+            Sun:[{startTime: "420", endTime: "540", admin: "no"}],
+            Mon:[],
+            Tue:[],
+            Wed:[],
+            Thu:[],
+            Fri:[],
+            Sat:[]
+        },
+        teams:
+        [
+            {
+            name:"basketballWomen",
+            coach: "Brindle",
+            rank:
+                {
+                    myTeams: 0,
+                    allTeams:6
+                },
+            size: 15,
+            allOpts:
+                [
+                    [
+                        {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
+                        {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
+                        {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
+                    ],
+                ]
+            },
+            
+            {
+                name:"basketballMen",
+                coach: "Brindle",
+                rank:
+                    {
+                        myTeams: 1,
+                        allTeams:5
+                    },
+                size: 25,
+                allOpts:
+                
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
+                            {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
+                            {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
+                        ],
+                    ]
+            },
+    
+            {
+            name: "football",
+            coach:"Brindle",
+            rank:
+                {
+                    myTeams: 2,
+                    allTeams:1
+                },
+            size: 110,
+            allOpts:
+                [
+                    [
+                        {dayOfWeek:"Tue", startTime: 870, endTime:915, inWeiss:"yes"},
+                        {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
+                        {dayOfWeek:"Fri", startTime: 945, endTime:975, inWeiss:"yes"},
+                    ],
+    
+                    [
+                        {dayOfWeek:"Wed", startTime: 870, endTime:915, inWeiss:"yes"},
+                        {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
+                        {dayOfWeek:"Sat", startTime: 945, endTime:975, inWeiss:"yes"},
+                    ],
+                ]
+            },
+        ],
+        lastVerified: null,
+        adminPageSet:null,
+        season:"fall",
+        allTeams:
+            [
+                {
+                name: "football",
+                coach:"Brindle",
+                rank:
+                    {
+                        myTeams: 2,
+                        allTeams:1
+                    },
+                size: 110,
+                allOpts:
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 870, endTime:915, inWeiss:"yes"},
+                            {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
+                            {dayOfWeek:"Fri", startTime: 945, endTime:975, inWeiss:"yes"},
+                        ],
+                    ]
+                },
+    
+                {
+                name:"basketballWomen",
+                coach: "Brindle",
+                rank:
+                    {
+                        myTeams: 2,
+                        allTeams:6
+                    },
+                size: 15,
+                allOpts:
+                    
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
+                            {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
+                            {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
+                        ],
+                    ]
+                },
+                
+                {
+                    name:"basketballMen",
+                    coach: "Brindle",
+                    rank:
+                        {
+                            myTeams: 1,
+                            allTeams:5
+                        },
+                    size: 25,
+                    allOpts:
+                    
+                        [
+                            [
+                                {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
+                                {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
+                                {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
+                            ],
+                        ]
+                    },
+    
+                    {
+                    name:"sprintFootball",
+                    coach: "Dolan",
+                    rank:
+                        {
+                            myTeams: 4,
+                            allTeams:4
+                        },
+                    size: 50,
+                    allOpts:
+                    
+                        [
+                            [
+                                {dayOfWeek:"Tue", startTime: 960, endTime:1020, inWeiss:"yes"},
+                                {dayOfWeek:"Sat", startTime: 540, endTime:600, inWeiss:"yes"},
+                            ],
+                        ]
+                    },
+            ],
+        facilitySelectors:{
+            facilityOpen:360,
+            facilityClose: 1200,
+            facilityMaxCapacity:150
+        }
+    
+    }
+    
+    let adminTestObj = {
+        name: "Brindle",
+        privilegeLevel:true,
+        availability:{
+            Sun:[{startTime: "420", endTime: "540", admin: "no"}],
+            Mon:[],
+            Tue:[],
+            Wed:[],
+            Thu:[],
+            Fri:[],
+            Sat:[]
+        },
+        teams:
+            [
+                {
+                name:"basketballWomen",
+                coach: "Brindle",
+                rank:
+                    {
+                        myTeams: 0,
+                        allTeams:0
+                    },
+                size: 15,
+                allOpts:
+                    
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
+                            {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
+                            {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
+                        ],
+                    ]
+                },
+                
+                {
+                name:"basketballMen",
+                coach: "Brindle",
+                rank:
+                    {
+                        myTeams: 1,
+                        allTeams:1
+                    },
+                size: 25,
+                allOpts:
+                
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
+                            {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
+                            {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
+                        ],
+                    ]
+                },
+            ],
+        lastVerified: null,
+        adminPageSet:"admin",
+        season:"fall",
+    
+        allTeams:
+            [
+                {
+                name:"basketballWomen",
+                coach: "Brindle",
+                rank:
+                    {
+                        myTeams: 0,
+                        allTeams:0
+                    },
+                size: 15,
+                allOpts:
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
+                            {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
+                            {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
+                        ],
+                    ]
+                },
+            
+                {
+                name:"basketballMen",
+                coach: "Brindle",
+                rank:
+                    {
+                        myTeams: 1,
+                        allTeams:1
+                    },
+                size: 25,
+                allOpts:
+                
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
+                            {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
+                            {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
+                        ],
+                    ]
+                },
+    
+                {
+                name: "football",
+                coach:"Rivera",
+                rank:
+                    {
+                        myTeams: 0,
+                        allTeams:2
+                    },
+                size: 110,
+                allOpts:
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 870, endTime:915, inWeiss:"yes"},
+                            {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
+                            {dayOfWeek:"Fri", startTime: 945, endTime:975, inWeiss:"yes"},
+                        ],
+                    ]
+                },
+    
+                {
+                name:"sprintFootball",
+                coach: "Dolan",
+                rank:
+                    {
+                        myTeams: 0,
+                        allTeams:3
+                    },
+                size: 50,
+                allOpts:
+                
+                    [
+                        [
+                            {dayOfWeek:"Tue", startTime: 960, endTime:1020, inWeiss:"yes"},
+                            {dayOfWeek:"Sat", startTime: 540, endTime:600, inWeiss:"yes"},
+                        ],
+                    ]
+            },
+        ],
+        facilitySelectors:{
+            facilityOpen:360,
+            facilityClose: 1200,
+            facilityMaxCapacity:120
+        },
+    
+        allUsers:
+        [
+            {
+            name: "Brindle",
+            color: "#00ff00",
+            privilegeLevel:true,
+            availability:{
+                Sun:[{startTime: "420", endTime: "540", admin: "no"}],
+                Mon:[],
+                Tue:[],
+                Wed:[],
+                Thu:[],
+                Fri:[],
+                Sat:[]
+            },
+            teams:
+                [
+                    {
+                    name:"basketballWomen",
+                    coach: "Brindle",
+                    rank:
+                        {
+                        myTeams: 0,
+                        allTeams:0
+                        },
+                    size: 15,
+                    allOpts:
+                        [
+                            [
+                                {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
+                                {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
+                                {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
+                            ],
+                        ]
+                    },
+    
+                    {
+                    name:"basketballMen",
+                    coach: "Brindle",
+                    rank:
+                        {
+                            myTeams: 1,
+                            allTeams:1
+                        },
+                    size: 25,
+                    allOpts:
+    
+                        [
+                            [
+                                {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
+                                {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
+                                {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
+                            ],
+                        ]
+                    },
+                ],
+            lastVerified: null,
+            adminPageSet:"admin",
+            season:"fall"
+            },
+    
+            {    
+            name: "Rivera",
+            color: "#0000ff",
+            privilegeLevel:false,
+            availability:{
+                Sun:[{startTime: "420", endTime: "540", admin: "no"}],
+                Mon:[],
+                Tue:[],
+                Wed:[],
+                Thu:[],
+                Fri:[],
+                Sat:[]
+            },
+            teams:
+                [
+                    {
+                    name: "football",
+                    coach:"Rivera",
+                    rank:
+                        {
+                            myTeams: 0,
+                            allTeams:2
+                        },
+                    size: 110,
+                    allOpts:
+                        [
+                            [
+                                {dayOfWeek:"Tue", startTime: 870, endTime:915, inWeiss:"yes"},
+                                {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
+                                {dayOfWeek:"Fri", startTime: 945, endTime:975, inWeiss:"yes"},
+                            ],
+                        ]
+                    },
+                ],
+            lastVerified: null,
+            adminPageSet:null,
+            season:"fall",
+            },
+    
+            {    
+            name: "Dolan",
+            privilegeLevel:false,
+            color: "#ffa500",
+            availability:{
+                Sun:[{startTime: "420", endTime: "540", admin: "no"}],
+                Mon:[],
+                Tue:[],
+                Wed:[],
+                Thu:[],
+                Fri:[],
+                Sat:[]
+            },
+            teams:
+                [
+                    {
+                    name:"sprintFootball",
+                    coach: "Dolan",
+                    rank:
+                        {
+                            myTeams: 0,
+                            allTeams:3
+                        },
+                    size: 50,
+                    allOpts:
+    
+                        [
+                            [
+                                {dayOfWeek:"Tue", startTime: 960, endTime:1020, inWeiss:"yes"},
+                                {dayOfWeek:"Sat", startTime: 540, endTime:600, inWeiss:"yes"},
+                            ],
+                        ]
+                    },
+                ],
+            lastVerified: null,
+            adminPageSet:null,
+            season:"fall"
+            }
+        ],
+    
+        adminTimeBlocks:
+            {
+            Sun:[],
+            Mon:[{startTime: "420", endTime: "540", admin: "yes"}],
+            Tue:[],
+            Wed:[],
+            Thu:[{startTime: "780", endTime: "840", admin: "yes"}],
+            Fri:[],
+            Sat:[]
+            }
+    }
+
+})();
+
+
 
 /***/ }),
 
@@ -196,7 +3798,84 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \******************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"timeValueConverter\": () => (/* binding */ timeValueConverter)\n/* harmony export */ });\n//purpose: convert totalMinutes into clockTime, and clockTime into totalMinutes\n\nconst timeValueConverter = (function(){\n    //no obvious issues here\n    function convertTotalMinutesToTime(totalMins){\n        let standardTime;\n        let hour = Math.floor(totalMins/60)\n        let meridian\n            switch(hour){\n                case 0:\n                    hour += 12\n                    meridian = \"a\"\n                    break;\n                case 1:\n                case 2:\n                case 3:\n                case 4:\n                case 5:\n                case 6:\n                case 7:\n                case 8:\n                case 9:\n                case 10:\n                case 11:\n                    meridian = \"a\"\n                    break;\n                case 12:\n                    meridian = \"p\"\n                    break;\n                default:\n                    hour -=12\n                    meridian = \"p\"\n                    break;\n            }\n            \n        let mins = totalMins%60\n            if(mins == 0){\n                mins = \"00\"\n            }\n        standardTime = `${hour}:${mins}${meridian}`\n        return standardTime\n    }\n\n    function runConvertTotalMinutesToTime(totalMins){\n        convertTotalMinutesToTime(totalMins)\n    }\n\n    function convertTimeToTotalMinutes(time){\n        const colonIndex = time.indexOf(\":\");\n        const meridian = time[time.length-1]\n        const meridianIndex = time.indexOf(meridian);\n        \n        let hour = Number(time.slice(0, colonIndex));\n            if(meridian == \"p\" && hour != 12){\n                hour +=12;\n            }else if(meridian == \"a\" && hour == 12){\n                hour -=12;\n            }\n        const min = Number(time.slice(colonIndex + 1, meridianIndex));\n        const totalMinutes = hour*60 + min;\n\n        return totalMinutes\n    }\n\n    function runConvertTimeToTotalMinutes(time){\n        convertTimeToTotalMinutes(time)\n    }\n\n    return {runConvertTimeToTotalMinutes, runConvertTotalMinutesToTime}\n\n})();\n\n\n\n//# sourceURL=webpack://pennschedule/./src/timeConverter.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "timeValueConverter": () => (/* binding */ timeValueConverter)
+/* harmony export */ });
+//purpose: convert totalMinutes into clockTime, and clockTime into totalMinutes
+
+const timeValueConverter = (function(){
+    //no obvious issues here
+    function convertTotalMinutesToTime(totalMins){
+        let standardTime;
+        let hour = Math.floor(totalMins/60)
+        let meridian
+            switch(hour){
+                case 0:
+                    hour += 12
+                    meridian = "a"
+                    break;
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                case 10:
+                case 11:
+                    meridian = "a"
+                    break;
+                case 12:
+                    meridian = "p"
+                    break;
+                default:
+                    hour -=12
+                    meridian = "p"
+                    break;
+            }
+            
+        let mins = totalMins%60
+            if(mins == 0){
+                mins = "00"
+            }
+        standardTime = `${hour}:${mins}${meridian}`
+        return standardTime
+    }
+
+    function runConvertTotalMinutesToTime(totalMins){
+        return convertTotalMinutesToTime(totalMins)
+    }
+
+    function convertTimeToTotalMinutes(time){
+        const colonIndex = time.indexOf(":");
+        const meridian = time[time.length-1]
+        const meridianIndex = time.indexOf(meridian);
+        
+        let hour = Number(time.slice(0, colonIndex));
+            if(meridian == "p" && hour != 12){
+                hour +=12;
+            }else if(meridian == "a" && hour == 12){
+                hour -=12;
+            }
+        const min = Number(time.slice(colonIndex + 1, meridianIndex));
+        const totalMinutes = hour*60 + min;
+
+        return totalMinutes
+    }
+
+    function runConvertTimeToTotalMinutes(time){
+        return convertTimeToTotalMinutes(time)
+    }
+
+    return {runConvertTimeToTotalMinutes, runConvertTotalMinutesToTime}
+
+})();
+
+
 
 /***/ }),
 
@@ -206,7 +3885,83 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \*************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"availabilityValidator\": () => (/* binding */ availabilityValidator)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n/*purpose: validator for availabiity/adminAvailability updates\n\nadminAvailbilityModel/availabilityModel is modeled as such:\n\n    {\n       day:[\n           {startTime, endTime, admin},\n           {startTime, endTime, admin}\n       ],\n\n       day:[etc]\n    }, \n\npublishes:\n    successful validations FOR adminMainPageAdminTimeBlockModel/availabiltyModel\n   \nsubscribes to: \n    validation requests FROM adminMainPageAdminTimeBlockModel/availabiltyModel\n*/\n\nconst availabilityValidator = (function(){\n    // no obvious issues\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminAvailabilityValidationRequested\", validateAllAdminAvailability);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"userAvailabilityValidationRequested\", validateAllUserAvailability);\n    \n    function validateAllAdminAvailability(availabilityData){\n        if(validateAllInputs(availabilityData) == \"No conflicts\"){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminAvailabilityDataValidated\",availabilityData)\n        }\n    }\n    \n    function validateAllUserAvailability(availabilityData){\n         if(validateAllInputs(availabilityData) == \"No conflicts\"){\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"userAvailabilityDataValidated\",availabilityData);\n        }\n    }\n    \n    function validateAllInputs(availabilityData){\n        const string = \"A non-default value must be selected for the following:\";\n        const emptySelectors = [];\n\n        for(let day in availabilityData){\n            let dayString = `${day}`;\n            const dayEmptySelectors = [];\n            day.ForEach(function(prop){\n                if(prop == \"default\"){\n                    dayEmptySelectors.push(prop);\n                    dayString.concat(\"; \", prop)\n                }\n            })\n\n            if(dayEmptySelectors.length > 0){\n                emptySelectors.push(dayEmptySelectors);\n                string.concat(\", \", dayString);\n            }\n        }\n\n        if(emptySelectors.length > 0){\n            alert(string)\n        }else{\n            return \"No conflicts\"\n        }\n    }\n})()\n\n\n\n//# sourceURL=webpack://pennschedule/./src/validators/availabilityValidator.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "availabilityValidator": () => (/* binding */ availabilityValidator)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/*purpose: validator for availabiity/adminAvailability updates
+
+adminAvailbilityModel/availabilityModel is modeled as such:
+
+    {
+       day:[
+           {startTime, endTime, admin},
+           {startTime, endTime, admin}
+       ],
+
+       day:[etc]
+    }, 
+
+publishes:
+    successful validations FOR adminMainPageAdminTimeBlockModel/availabiltyModel
+   
+subscribes to: 
+    validation requests FROM adminMainPageAdminTimeBlockModel/availabiltyModel
+*/
+
+const availabilityValidator = (function(){
+    // no obvious issues
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminAvailabilityValidationRequested", validateAllAdminAvailability);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userAvailabilityValidationRequested", validateAllUserAvailability);
+    
+    function validateAllAdminAvailability(availabilityData){
+        if(validateAllInputs(availabilityData) == "No conflicts"){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityDataValidated",availabilityData)
+        }
+    }
+    
+    function validateAllUserAvailability(availabilityData){
+         if(validateAllInputs(availabilityData) == "No conflicts"){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userAvailabilityDataValidated",availabilityData);
+        }
+    }
+    
+    function validateAllInputs(availabilityData){
+        let string = "A non-default value must be selected for the following: ";
+        const emptySelectors = [];
+
+        for(let day in availabilityData){
+            let dayString = `${day}--`;
+            const dayEmptySelectors = [];
+            availabilityData[day].forEach(function(block){
+                for(let prop in block){
+                    if(block[prop] == "default"){
+                        dayEmptySelectors.push(prop);
+                        dayString += `${prop}; `;
+                    }
+                }
+            })
+
+            if(dayEmptySelectors.length > 0){
+                emptySelectors.push(dayEmptySelectors);
+                string += `${dayString}` ;
+            }
+        }
+
+        if(emptySelectors.length > 0){
+            alert(string)
+        }else{
+            return "No conflicts"
+        }
+    }
+})()
+
+
 
 /***/ }),
 
@@ -216,7 +3971,56 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \*************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"facilityDataValidator\": () => (/* binding */ facilityDataValidator)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n/*purpose: validator for facilityData updates\n\nfacilityData object is modeled as such:\n\nobj = {\n    facilityOpen, \n    facilityClose, \n    facilityMaxCapacity\n}\n\npublishes:\n    successful validations FOR adminMainPageFacilityDataModel\n   \nsubscribes to: \n    validation requests FROM adminMainPageFacilityDataModel\n*/\n\nconst facilityDataValidator = (function(){\n    //no obvious issues here\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"adminFacilityDataValidationRequested\", validateAdminFacilityData);\n    \n    function validateAdminFacilityData(facilityData){\n        const string = \"A non-default value must be selected for the following:\";\n        const emptySelectors = [];\n  \n        facilityData.ForEach(function(prop){\n            if(prop == \"default\"){\n                emptySelectors.push(prop);\n            string.concat(\", \", prop);\n            }\n        })\n\n        if(emptySelectors.length > 0){\n            alert(string)\n        }else{\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"adminFacilityDataValidated\", facilityData)\n        }\n    }\n})()\n\n\n\n//# sourceURL=webpack://pennschedule/./src/validators/facilityDataValidator.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "facilityDataValidator": () => (/* binding */ facilityDataValidator)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/*purpose: validator for facilityData updates
+
+facilityData object is modeled as such:
+
+obj = {
+    facilityOpen, 
+    facilityClose, 
+    facilityMaxCapacity
+}
+
+publishes:
+    successful validations FOR adminMainPageFacilityDataModel
+   
+subscribes to: 
+    validation requests FROM adminMainPageFacilityDataModel
+*/
+
+const facilityDataValidator = (function(){
+    //no obvious issues here
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataValidationRequested", validateAdminFacilityData);
+    
+    function validateAdminFacilityData(facilityData){
+        const string = "A non-default value must be selected for the following:";
+        const emptySelectors = [];
+  
+        for(let prop in facilityData){
+            if(facilityData[prop] == "default"){
+                emptySelectors.push(prop);
+            string.concat(", ", prop);
+            }
+        }
+
+        if(emptySelectors.length > 0){
+            alert(string)
+        }else{
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminFacilityDataValidated", facilityData)
+        }
+    }
+})()
+
+
 
 /***/ }),
 
@@ -226,7 +4030,141 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \********************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"requestValidator\": () => (/* binding */ requestValidator)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n/*purpose: validator for single team dataModel updates\n\nuserObject is modeled as such:\nobj = { \n    teamName,\n    teamSize, \n    rank:\n        {\n            myTeams,\n            allTeams\n        },\n    allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],\n    coach           \n}\n\npublishes:\n    successful validations FOR myTeamsModel\n   \nsubscribes to: \n    validation requests FROM teamRequestModel\n*/\n\n\nconst requestValidator = (function(){\n\n    let facilityData\n\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"validateTeamRequest\", validateAllInputs);\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"mainPageDataBuilt\", setFacilityData)\n\n    function setFacilityData(mainPageModel){\n        facilityData = mainPageModel.facilitySelectors\n    }\n\n    function validateAllInputs(teamDataObj){\n        const errorArray = [];\n\n        validateName(teamDataObj.workingModel, errorArray);\n        validateSize(teamDataObj.workingModel, errorArray);\n        validateSchedulePreferences(teamDataObj.workingModel, errorArray);\n\n        if(errorArray.length > 0){\n            const errorAlert = errorArray.join(\" \");\n            alert(errorAlert);\n        }else{\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"workingModelValidated\", {workingModel : teamDataObj.workingModel, teamRequest : teamDataObj.teamRequest});\n        }\n    }\n\n    function validateName(workingModel, array){\n        const name = workingModel.teamName;\n        const nameRegex = /[^A-Za-z0-9]/;\n        try{\n            if(nameRegex.test(name)){\n                throw(\"Team names can only include letters and numbers (no spaces or symbols).\");\n            }else if(name == \"\"){\n                throw(\"Team name must have a value.\");\n            }\n        }catch(err){\n            array.push(err)\n        }\n    }\n\n    function validateSize(workingModel,array){\n        const size = workingModel.teamSize;\n        try{\n            if(size == \"default\"){\n                throw(\"Team size must have a value.\")\n            }else if(size > facilityData.facilityMaxCapacity){\n                throw(\"Team size is greater than max size value. Discuss max size value changes with administrator.\")\n            }\n        }catch(err){\n            array.push(err)\n        }\n    }\n\n    function validateSchedulePreferences(workingModel,array){\n        workingModel.allOpts.forEach(function(option){\n            const optNum = workingModel.allOpts.indexOf(option) + 1;\n            const validatedDayArray = [];\n\n            option.forEach(function(day){\n                const dayNum = option.indexOf(day)+1;\n                catchInvalidInputs();\n                catchConflictingDays();\n\n                function catchInvalidInputs(){\n                    for(const prop in day){\n                        try{\n                            if(day[prop] == \"default\"){\n                                throw(`Option${optNum} Day${dayNum} ${prop} must have a value.`);\n                            }else if((prop == \"startTime\" || prop == \"endTime\") && (day[prop] < facilityData.facilityOpen || day[prop] > facilityData.facilityClose)){\n                                throw(`Option${optNum} Day ${dayNum} ${prop} is outside operating hours. Discuss operating hour changes with administrator.`);\n                            }\n                        }catch(err){\n                            array.push(err)\n                        }  \n                    }\n                }\n\n                function catchConflictingDays(){\n                    try{\n                        validatedDayArray.forEach(function(validatedDay){\n                            const validatedNum = validatedDayArray.indexOf(validatedDay) + 1 ;\n                            if(validatedDay.dayOfWeek == day.dayOfWeek && validatedDay.startTime == day.startTime && validatedDay.inWeiss == day.inWeiss){\n                                throw(`Option${optNum} Day${validatedNum} and Day${dayNum} are duplicates.`);\n                            }else if(validatedDay.dayOfWeek == day.dayOfWeek && day.startTime < validatedDay.startTime && day.endTime > validatedDay.endTime){\n                                throw(`Option${optNum} Day${dayNum}'s session runs through Day${validatedDay}'s session.`);\n                            }else if(validatedDay.dayOfWeek == day.dayOfWeek && day.startTime > validatedDay.startTime && day.startTime < validatedDay.endTime){\n                                throw(`Option${optNum} Day${dayNum}'s start time is in the middle of  Day${validatedDay}'s session.`);\n                            }else if(validatedDay.dayOfWeek == day.dayOfWeek && day.endTime < validatedDay.endTime && day.endTime > validatedDay.startTime){\n                                throw(`Option${optNum} Day${dayNum}'s end time is in the middle of  Day${validatedDay}'s session.`);\n                            }   \n                        })\n                        validatedDayArray.push(day)\n                    }catch(err){\n                        array.push(err)\n                    }\n                }\n            })\n        })\n    }\n\n})();\n\n\n\n//# sourceURL=webpack://pennschedule/./src/validators/requestValidator.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "requestValidator": () => (/* binding */ requestValidator)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/*purpose: validator for single team dataModel updates
+
+userObject is modeled as such:
+obj = { 
+    teamName,
+    teamSize, 
+    rank:
+        {
+            myTeams,
+            allTeams
+        },
+    allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
+    coach           
+}
+
+publishes:
+    successful validations FOR myTeamsModel
+   
+subscribes to: 
+    validation requests FROM teamRequestModel
+*/
+
+
+const requestValidator = (function(){
+
+    let facilityData
+
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("validateTeamRequest", validateAllInputs);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("mainPageModelBuilt", setFacilityData)
+
+    function setFacilityData(mainPageModel){
+        facilityData = mainPageModel.facilitySelectors
+    }
+
+    function validateAllInputs(teamDataObj){
+        const errorArray = [];
+
+        validateName(teamDataObj.workingModel, errorArray);
+        validateSize(teamDataObj.workingModel, errorArray);
+        validateSchedulePreferences(teamDataObj.workingModel, errorArray);
+
+        if(errorArray.length > 0){
+            const errorAlert = errorArray.join(" ");
+            alert(errorAlert);
+        }else{
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("workingModelValidated", {workingModel : teamDataObj.workingModel, teamRequest : teamDataObj.teamRequest});
+        }
+    }
+
+    function validateName(workingModel, array){
+        const name = workingModel.name;
+        const nameRegex = /[^A-Za-z0-9]/;
+        try{
+            if(nameRegex.test(name)){
+                throw("Team names can only include letters and numbers (no spaces or symbols).");
+            }else if(name == ""){
+                throw("Team name must have a value.");
+            }
+        }catch(err){
+            array.push(err)
+        }
+    }
+
+    function validateSize(workingModel,array){
+        const size = workingModel.size;
+        try{
+            if(size == "default"){
+                throw("Team size must have a value.")
+            }else if(size > facilityData.facilityMaxCapacity){
+                throw("Team size is greater than max size value. Discuss max size value changes with administrator.")
+            }
+        }catch(err){
+            array.push(err)
+        }
+    }
+
+    function validateSchedulePreferences(workingModel,array){
+        workingModel.allOpts.forEach(function(option){
+            const optNum = workingModel.allOpts.indexOf(option) + 1;
+            const validatedDayArray = [];
+
+            option.forEach(function(day){
+                const dayNum = option.indexOf(day)+1;
+                catchInvalidInputs();
+                catchConflictingDays();
+
+                function catchInvalidInputs(){
+                    for(const prop in day){
+                        try{
+                            if(day[prop] == "default"){
+                                throw(`Option ${optNum}: Day ${dayNum}: ${prop} must have a value.`);
+                            }else if((prop == "startTime" || prop == "endTime") && (day[prop] < facilityData.facilityOpen || day[prop] > facilityData.facilityClose)){
+                                throw(`Option ${optNum}: Day ${dayNum}: ${prop} is outside operating hours. Discuss operating hour changes with administrator.`);
+                            }
+                        }catch(err){
+                            array.push(err)
+                        }  
+                    }
+                }
+
+                function catchConflictingDays(){
+                    try{
+                        validatedDayArray.forEach(function(validatedDay){
+                            const validatedNum = validatedDayArray.indexOf(validatedDay) + 1 ;
+                            if(validatedDay.dayOfWeek == day.dayOfWeek && validatedDay.startTime == day.startTime && validatedDay.inWeiss == day.inWeiss){
+                                throw(`Option ${optNum}: Day ${validatedNum} and Day ${dayNum} are duplicates.`);
+                            }else if(validatedDay.dayOfWeek == day.dayOfWeek && day.startTime < validatedDay.startTime && day.endTime > validatedDay.endTime){
+                                throw(`Option ${optNum}: Day ${dayNum}'s session runs through Day ${validatedNum}'s session.`);
+                            }else if(validatedDay.dayOfWeek == day.dayOfWeek && day.startTime > validatedDay.startTime && day.startTime < validatedDay.endTime){
+                                throw(`Option ${optNum}: Day ${dayNum}'s start time is in the middle of  Day ${validatedNum}'s session.`);
+                            }else if(validatedDay.dayOfWeek == day.dayOfWeek && day.endTime < validatedDay.endTime && day.endTime > validatedDay.startTime){
+                                throw(`Option ${optNum}: Day ${dayNum}'s end time is in the middle of  Day ${validatedNum}'s session.`);
+                            }   
+                        })
+                        validatedDayArray.push(day)
+                    }catch(err){
+                        array.push(err)
+                    }
+                }
+            })
+        })
+    }
+
+})();
+
+
 
 /***/ }),
 
@@ -236,7 +4174,83 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \*****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"userValidator\": () => (/* binding */ userValidator)\n/* harmony export */ });\n/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ \"./src/events.js\");\n\n\n/*purpose: validator for user dataModel updates\n\nuserObject is modeled as such:\n\n    {\n        name,\n        color,\n        privilegeLevel,\n        teams:{},\n        availability:{},\n        lastVerified\n    }, \n\npublishes:\n    successful validations FOR adminAllUsersDataModel\n   \nsubscribes to: \n    validation requests FROM adminUserDataModel\n*/\n\nconst userValidator = (function(){\n    //no obvious issues\n    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe(\"userDataValidationRequested\", validateAllInputs);\n    \n    function validateAllInputs(adminUserData){\n        const errorArray = [];\n\n        validateUserName(adminUserData.newData, errorArray); \n        validateColor(adminUserData.newData, errorArray)\n\n        if(errorArray.length > 0){\n            const errorAlert = errorArray.join(\" \");\n            alert(errorAlert);\n        }else{\n            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish(\"userDataValidated\", adminUserData);\n        }\n    }\n\n    function validateUserName(userModel, array){\n        const userName = userModel.name;\n        const userNameRegex = /[^A-Za-z0-9]/;\n        try{\n            if(userNameRegex.test(userName)){\n                throw(\"User names can only include letters and numbers (no spaces or symbols).\");\n            }else if(userName == \"\"){\n                throw(\"User name must have a value.\");\n            }\n        }catch(err){\n            array.push(err)\n        }\n    }\n\n    function validateColor(userModel, array){\n        const color = userModel.color;\n        try{\n            if(color == \"#000000\"){\n                throw(\"Color must have a value not equal to black. Black is default value, and must be changed.\")\n            }\n        }catch(err){\n            array.push(err)\n        }\n\n    }\n\n\n})()\n\n\n\n//# sourceURL=webpack://pennschedule/./src/validators/userValidator.js?");
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "userValidator": () => (/* binding */ userValidator)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events-exposed.js");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_events__WEBPACK_IMPORTED_MODULE_0__);
+
+
+/*purpose: validator for user dataModel updates
+
+userObject is modeled as such:
+
+    {
+        name,
+        color,
+        privilegeLevel,
+        teams:{},
+        availability:{},
+        lastVerified
+    }, 
+
+publishes:
+    successful validations FOR adminAllUsersDataModel
+   
+subscribes to: 
+    validation requests FROM adminUserDataModel
+*/
+
+const userValidator = (function(){
+    //no obvious issues
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataValidationRequested", validateAllInputs);
+    
+    function validateAllInputs(adminUserData){
+        const errorArray = [];
+
+        validateUserName(adminUserData.newData, errorArray); 
+        validateColor(adminUserData.newData, errorArray)
+
+        if(errorArray.length > 0){
+            const errorAlert = errorArray.join(" ");
+            alert(errorAlert);
+        }else{
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataValidated", adminUserData);
+        }
+    }
+
+    function validateUserName(userModel, array){
+        const userName = userModel.name;
+        const userNameRegex = /[^A-Za-z0-9]/;
+        try{
+            if(userNameRegex.test(userName)){
+                throw("User names can only include letters and numbers (no spaces or symbols).");
+            }else if(userName == ""){
+                throw("User name must have a value.");
+            }
+        }catch(err){
+            array.push(err)
+        }
+    }
+
+    function validateColor(userModel, array){
+        const color = userModel.color;
+        try{
+            if(color == "#000000"){
+                throw("Color must have a value not equal to black. Black is default value, and must be changed.")
+            }
+        }catch(err){
+            array.push(err)
+        }
+
+    }
+
+
+})()
+
+
 
 /***/ })
 
@@ -267,6 +4281,18 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	(() => {
 /******/ 		// define getter functions for harmony exports
@@ -277,6 +4303,18 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /******/ 				}
 /******/ 			}
 /******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/global */
+/******/ 	(() => {
+/******/ 		__webpack_require__.g = (function() {
+/******/ 			if (typeof globalThis === 'object') return globalThis;
+/******/ 			try {
+/******/ 				return this || new Function('return this')();
+/******/ 			} catch (e) {
+/******/ 				if (typeof window === 'object') return window;
+/******/ 			}
+/******/ 		})();
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
@@ -296,11 +4334,62 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /******/ 	})();
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module can't be inlined because the eval devtool is used.
-/******/ 	var __webpack_exports__ = __webpack_require__("./src/index.js");
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+/*!**********************!*\
+  !*** ./src/index.js ***!
+  \**********************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _dataModels_adminAllUsersDataModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./dataModels/adminAllUsersDataModel */ "./src/dataModels/adminAllUsersDataModel.js");
+/* harmony import */ var _dataModels_adminMainPageAdminTimeBlockModel__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dataModels/adminMainPageAdminTimeBlockModel */ "./src/dataModels/adminMainPageAdminTimeBlockModel.js");
+/* harmony import */ var _dataModels_adminMainPageAllTeamsDataModel__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dataModels/adminMainPageAllTeamsDataModel */ "./src/dataModels/adminMainPageAllTeamsDataModel.js");
+/* harmony import */ var _dataModels_adminMainPageFacilityDataModel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./dataModels/adminMainPageFacilityDataModel */ "./src/dataModels/adminMainPageFacilityDataModel.js");
+/* harmony import */ var _dataModels_adminUserDataModel__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./dataModels/adminUserDataModel */ "./src/dataModels/adminUserDataModel.js");
+/* harmony import */ var _dataModels_availabilityModel__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./dataModels/availabilityModel */ "./src/dataModels/availabilityModel.js");
+/* harmony import */ var _dataModels_mainPageModel__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./dataModels/mainPageModel */ "./src/dataModels/mainPageModel.js");
+/* harmony import */ var _dataModels_myTeamsModel__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./dataModels/myTeamsModel */ "./src/dataModels/myTeamsModel.js");
+/* harmony import */ var _dataModels_teamRequestModel__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./dataModels/teamRequestModel */ "./src/dataModels/teamRequestModel.js");
+/* harmony import */ var _DOMBuilders_adminMainPageDOM__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./DOMBuilders/adminMainPageDOM */ "./src/DOMBuilders/adminMainPageDOM.js");
+/* harmony import */ var _DOMBuilders_adminUserGeneratorDOM__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./DOMBuilders/adminUserGeneratorDOM */ "./src/DOMBuilders/adminUserGeneratorDOM.js");
+/* harmony import */ var _DOMBuilders_availabilityPageDOM__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./DOMBuilders/availabilityPageDOM */ "./src/DOMBuilders/availabilityPageDOM.js");
+/* harmony import */ var _DOMBuilders_mainPageDOM__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./DOMBuilders/mainPageDOM */ "./src/DOMBuilders/mainPageDOM.js");
+/* harmony import */ var _DOMBuilders_requestFormDOM__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./DOMBuilders/requestFormDOM */ "./src/DOMBuilders/requestFormDOM.js");
+/* harmony import */ var _DOMBuilders_selectorDOMBuilder__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./DOMBuilders/selectorDOMBuilder */ "./src/DOMBuilders/selectorDOMBuilder.js");
+/* harmony import */ var _validators_availabilityValidator__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./validators/availabilityValidator */ "./src/validators/availabilityValidator.js");
+/* harmony import */ var _validators_facilityDataValidator__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./validators/facilityDataValidator */ "./src/validators/facilityDataValidator.js");
+/* harmony import */ var _validators_requestValidator__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./validators/requestValidator */ "./src/validators/requestValidator.js");
+/* harmony import */ var _validators_userValidator__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./validators/userValidator */ "./src/validators/userValidator.js");
+/* harmony import */ var _pageRenderer__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./pageRenderer */ "./src/pageRenderer.js");
+/* harmony import */ var _temporaryDatabasePostSimulator__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./temporaryDatabasePostSimulator */ "./src/temporaryDatabasePostSimulator.js");
+/* harmony import */ var _timeConverter__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./timeConverter */ "./src/timeConverter.js");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+})();
+
 /******/ })()
 ;
+//# sourceMappingURL=main.js.map
