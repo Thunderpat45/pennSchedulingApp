@@ -1900,6 +1900,8 @@ const adminAllUsersDataModel = (function(){ //continue REVIEW HERE
 	//no obvious issues, find database update listeners for delete/modify/add allUsers, make sure password does not get passed to front-end
 	let allUsers;
 
+	console.log("Webpack does the same thing as Node.")
+
 	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminMainPageModelBuilt", populateAllUsers)
 	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editUser", editUser);
 	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteUser", deleteUserForDatabaseUpdate);
