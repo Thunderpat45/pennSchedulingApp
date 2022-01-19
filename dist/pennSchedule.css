@@ -74,20 +74,20 @@ main, .page{
 
 /*userMainPage elements*/
 
-#mainPage{
+#mainPage, #adminMainPage{
 	display:grid;
 	grid-template-columns: 4fr 1fr;
 	grid-template-areas: 
 	"mainColumn sideColumn";
 }
 
-#seasonButtons{
+#seasonButtons, #adminSeasonButtons{
 	text-align: center;
 	background-color: #9898dd;
 	padding: .7rem;
 }
 
-#seasonButtons button{
+#seasonButtons button, #adminSeasonButtons button{
 	margin-left: 1rem;
 	margin-right: 1rem;
 	height: 2rem;
@@ -96,7 +96,7 @@ main, .page{
 	font-size: 1.2rem;
 }
 
-#teamGridContainer{
+#teamGridContainer, #adminMainPageTeamsGridContainer{
 	display:grid;
 	grid-template-columns: 1fr;
 	width: 85%;
@@ -117,7 +117,9 @@ main, .page{
 	border-bottom: solid .5rem #011F5b;
 }
 
-#teamGrid{
+
+
+#teamGrid, #adminMainPageTeamGrid{
 	display:grid;
 	grid-template-columns: 1fr;
 	width:100%;
@@ -169,7 +171,7 @@ main, .page{
 	align-items: center;
 }
 
-.teamRankButtons, .verifyEditTeamDiv, .deleteTeamDiv{
+.teamRankButtons, .verifyEditTeamDiv, .deleteTeamDiv, .adminMainPageTeamGridTeamButtons{
 	display:flex;
 	flex-direction: column;
 	margin: 0 .5rem;
@@ -200,7 +202,7 @@ main, .page{
 	-webkit-transform: rotate(45deg);
 }
 
-#verifyDiv{
+#verifyDiv, #runScheduleBuilderDiv{
 	width: 85%;
 	background-color:#9898dd;
 	margin: 0 auto 3rem auto;
@@ -211,7 +213,7 @@ main, .page{
 	opacity: .95
 }
 
-#mainPageSideColumn{
+#mainPageSideColumn, #adminMainPageSideColumn{
 	background-color: #990000;
 	color: white;
 	text-align: center;
@@ -219,7 +221,7 @@ main, .page{
 	opacity: .8
 }
 
-#userAvailabilityLabel{
+#userAvailabilityLabel, #adminOptionsLabel{
 	background-color: red;
 	margin: 0px;
 	padding: 1rem;
@@ -264,7 +266,9 @@ main, .page{
 	border-width: 1rem;
 }
 
-#fillformTitle{
+
+
+#fillformTitle, #availabilityTitle{
 	text-align: center;
 	padding: 1rem;
 	border-bottom: #011F5b solid .5rem;
@@ -272,7 +276,7 @@ main, .page{
 	opacity: .8;
 }
 
-#fillformTitle h2{
+#fillformTitle h2, #availabilityTitle h2{
 	margin: 0;
 	color: white;
 }
@@ -292,7 +296,7 @@ main, .page{
 	
 }
 
-#teamGridAddTeam{
+#teamGridAddTeam, #saveAdminRankChangesButton{
 	margin: 30px 30% auto 30%;
 	height: 50px;
 	width: 40%
@@ -317,7 +321,7 @@ main, .page{
 	margin: 2rem 0;
 }
 
-.formOpt{
+.formOpt, .availabilityDay{
 	background-color: white;
 	padding:1rem;
 	display:grid;
@@ -325,6 +329,7 @@ main, .page{
 	grid-auto-rows: minmax(2.5rem, auto);
 	gap:1rem;
 	border: #011F5b solid .5rem;
+	margin: 1rem 0;
 	
 }
 
@@ -428,4 +433,122 @@ main, .page{
 #cancelTeamRequest{
 	grid-area: cancelRequest; 
 	flex-grow: 1;
+}
+
+#availabilityDOM{
+	padding: 5rem 0
+}
+
+#availabilityDOMContainer{
+	width: 80%;
+	border: #011F5b solid;
+	margin: auto;
+	border-width: 1rem;
+}
+
+#availabilityGridContainer{
+	background-color: grey;
+	opacity: .9;
+	padding: 1rem 5rem;
+	border-width: 1rem 1rem .5rem 1rem;
+}
+
+#availabilityGrid{
+	
+	display:grid;
+	grid-template-columns: repeat(2, 1fr);
+
+}
+
+.availabilityDay{
+	text-align: center;
+	gap: 0;
+	margin-right: 1rem;
+	margin-left: 1rem;
+	display:block;
+}
+
+.availabilityDay h3, .availabilityDay p{
+	margin: 0;
+}
+
+.availabilityDayGrid{
+	display:grid;
+	grid-template-columns: repeat(2, 1fr);
+}
+
+.availabilityGridRow{
+	display:grid;
+	grid-template-columns: repeat(3, 1fr);
+	background-color:#9898dd;
+	border: #011F5b solid .125rem;
+	margin: .5rem;
+	align-items:center;
+}
+
+.availabilityGridRow > div, .availabilityGridRow > button{
+	padding: .5rem;
+}
+
+.availabilityDeleteButtonDiv{
+	display:grid;
+	align-items: center;
+	justify-content: center;
+}
+
+.availabilityDeleteButton{
+	background-color: red;
+}
+
+.availabilityDayAddButton{
+	width: 50%;
+	justify-self: center;
+	height: 1rem;
+}
+
+#adminMainPageTeamGridLabels{
+	display:grid;
+	padding: .5rem 0;
+	background-color: #9898dd;
+	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+	border-bottom: solid .5rem #011F5b;
+}
+
+.adminMainPageTeamGridTeam{
+	display:grid;
+	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+	align-items: center;
+	border-bottom:solid .5rem #011F5b;
+	padding: 1.5rem 0;
+}
+
+
+
+.adminUserGridUser{
+	display:grid;
+	grid-template-columns: repeat(2, 1fr);
+	align-items: center;
+	
+}
+
+.adminUserGridUser > *{
+	padding: .5rem 0;
+}
+
+.adminUserGridUserColor{
+	display: flex; 
+}
+
+.adminUserColorLabel, .adminUserColor{
+	flex-grow: 1;
+}
+
+.adminUserColorLabel{
+	margin: 0;
+}
+
+.adminUserColor{
+	height: .5rem;
+	width: .5rem;
+	align-self:center;
 }

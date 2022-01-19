@@ -184,29 +184,22 @@ const adminMainPageDOM = (function(){
         const teamCoach = content.querySelector(".adminMainPageTeamGridTeamCoach");
         const teamSize = content.querySelector(".adminMainPageTeamGridTeamSize");
         const teamRank = content.querySelector(".adminMainPageTeamGridTeamRank");
-        const teamButtons = content.querySelector(".adminMainPageTeamGridTeamButtons");
-        
-        const uprankButton = document.createElement("button");
-        const downrankButton = document.createElement("button");
+        const uprankButton = content.querySelector(".adminMainPageTeamGridTeamUprankButton");
+        const downrankButton = content.querySelector(".adminMainPageTeamGridTeamDownrankButton");
+       
 
         teamName.innerText = teamData.name;
         teamCoach.innerText = teamData.coach;
         teamSize.innerText = `${teamData.size} athletes`;
         teamRank.innerText = teamData.rank.allTeams +1;
-
-        uprankButton.id = "adminMainPageTeamGridTeamUprankButton"
-        downrankButton.id = "adminMainPageTeamGridTeamDownrankButton"
     
         uprankButton.addEventListener("click", moveAdminRankUp);
         downrankButton.addEventListener("click", moveAdminRankDown);
-    
-        if(allTeamsData.length > 1 && teamData.rank.allTeams != 0 && teamData.rank.allTeams != allTeamsData.length - 1){
-            teamButtons.appendChild(uprankButton);
-            teamButtons.appendChild(downrankButton);
-        }else if(allTeamsData.length > 1 && teamData.rank.allTeams == allTeamsData.length - 1){
-            teamButtons.appendChild(uprankButton)
+        
+        if(allTeamsData.length > 1 && teamData.rank.allTeams == allTeamsData.length - 1){
+            downrankButton.remove()
         }else if(allTeamsData.length > 1 && teamData.rank.allTeams == 0){
-            teamButtons.appendChild(downrankButton)
+            uprankButton.remove()
         }   
     
         return content
@@ -263,14 +256,13 @@ const adminMainPageDOM = (function(){
         editButton.addEventListener("click", editUser);
         deleteButton.addEventListener("click", deleteUser);
     
-        userName.innerText = userData.name;
+        userName.innerText = `Name: ${userData.name}`;
         if(userData.privilegeLevel){
-            userPrivilege.innerText = "admin"
+            userPrivilege.innerText = `Privilege: Admin`
         }else{
-            userPrivilege.innerText = "user"
+            userPrivilege.innerText = `Privilege: User`
         }
-        userPrivilege.innerText = userData.privilegeLevel;
-        userLastVerified.innerText = userData.lastVerified;
+        userLastVerified.innerText = `Last Verified: ${userData.lastVerified}`;
         userColorBlock.style.backgroundColor = userData.color
     
         return content

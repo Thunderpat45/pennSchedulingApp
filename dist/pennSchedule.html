@@ -175,11 +175,17 @@
 
 <template id= "availabilityDOMTemplate">
 	<div id = "availabilityDOM">
-		<h1 id= "availabilityTitle">Availability</h1>
-		<div id= "availabilityGrid"></div>
-		<div id = "availabilityButtonsDiv">
-			<button id = "availabilityUpdateButton">Update Availability</button>
-			<button id = "availabilityCancelButton">Cancel Changes</button>
+		<div id = "availabilityDOMContainer">
+			<div id= "availabilityTitle">
+				<h2>Availability</h2>
+			</div>
+			<div id= "availabilityGridContainer">
+				<div id = "availabilityGrid"></div>
+				<div id = "availabilityButtonsDiv">
+					<button id = "availabilityUpdateButton">Update Availability</button>
+					<button id = "availabilityCancelButton">Cancel Changes</button>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -244,40 +250,42 @@
 
 <template id = "adminMainPageTemplate">
 	<div id = "adminMainPage">
-		<div id = "adminSeasonButtons">
-			<button id = "fallButton">Fall</button>
-			<button id = "springButton">Spring</button>
-		</div>
-		<div id = "adminMainPageTeamsGridContainer">
-			<h2>All Teams</h2>
-			<div id = "adminMainPageTeamGridLabels">
-				<div>Name</div>
-				<div>Coach</div>
-				<div>Size</div>
-				<div>Rank</div>
-				<div>Buttons</div>
+		<div id = "adminMainPageMainColumn">
+			<div id = "adminSeasonButtons">
+				<button id = "fallButton">Fall</button>
+				<button id = "springButton">Spring</button>
 			</div>
-			<div id = "adminMainPageTeamGrid"></div>
-		</div>
-		<div id = "adminUsersGridContainer">
-			<h2>Users</h2>
-			<div id = "adminUsersGridLabels">
-				<div>Name</div>
-				<div>Color</div>
-				<div>Privilege</div>
-				<div>Last Verified</div>
+			<div id = "adminMainPageTeamsGridContainer">
+				<div id = "adminMainPageTeamGridLabels">
+					<div>Name</div>
+					<div>Coach</div>
+					<div>Size</div>
+					<div>Rank</div>
+					<div>Buttons</div>
+				</div>
+				<div id = "adminMainPageTeamGrid"></div>
+				<button id ="saveAdminRankChangesButton">Save Rank Changes</button>				
 			</div>
-			<div id = "adminUsersGrid"></div>
-			<button id = "adminUsersGridAddUser">Add User</button>
+			<div id = "runScheduleBuilderDiv">
+				<button id = "runScheduleBuilderButton">Run Schedule Builder</button>
+			</div>
+			
 		</div>
-		<div id = "facilityDataGridContainer"></div>
-		<div id = "setAllUsersAvailabilityGridContainer">
-			<h2>Add Time Block To All Users</h2>
-			<div id = "adminMainPageAddAvailabilityBlockAllUsersGrid"></div>
-			<button id = "adminMainPageAddAvailabilityBlockAllUsersSaveButton">Save Changes</button>
-			<button id = "adminMainPageAddAvailabilityBlockAllUsersCancelButton">Cancel Changes</button>	
+		<div id = "adminMainPageSideColumn">
+			<h3 id = "adminOptionsLabel">Admin Options</h3>
+			<div id = "adminUsersGridContainer">
+				<h2>Users</h2>
+				<div id = "adminUsersGrid"></div>
+				<button id = "adminUsersGridAddUser">Add User</button>
+			</div>
+			<div id = "facilityDataGridContainer"></div>
+			<div id = "setAllUsersAvailabilityGridContainer">
+				<h2>Add Time Block To All Users</h2>
+				<div id = "adminMainPageAddAvailabilityBlockAllUsersGrid"></div>
+				<button id = "adminMainPageAddAvailabilityBlockAllUsersSaveButton">Save Changes</button>
+				<button id = "adminMainPageAddAvailabilityBlockAllUsersCancelButton">Cancel Changes</button>	
+			</div>
 		</div>
-		<button id = "runScheduleBuilderButton">Run Schedule Builder</button>
 	</div>
 </template>
 
@@ -312,7 +320,13 @@
 		<div class = "adminMainPageTeamGridTeamCoach"></div>
 		<div class = "adminMainPageTeamGridTeamSize"></div>
 		<div class = "adminMainPageTeamGridTeamRank"></div>
-		<div class = "adminMainPageTeamGridTeamButtons"></div>
+		<div class = "adminMainPageTeamGridTeamButtons">
+			<button class = "adminMainPageTeamGridTeamUprankButton">
+				<i class = "arrow up"></i>
+			</button>
+			<button class = "adminMainPageTeamGridTeamDownrankButton">
+				<i class = "arrow down"></i>
+		</div>
 	</div>
 </template>
 
@@ -320,7 +334,7 @@
 	<div class = "adminUserGridUser">
 		<div class = "adminUserGridUserName"></div>
 		<div class = "adminUserGridUserColor">
-			<p>Color</p>
+			<p class = "adminUserColorLabel">Color:</p>
 			<div class = "adminUserColor"></div>
 		</div>
 		<div class = "adminUserGridUserPrivilege"></div>

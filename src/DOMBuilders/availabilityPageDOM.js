@@ -62,7 +62,7 @@ const availabilityPageDOM = (function(){
     function renderAvailabilityDOM(availability){
         const template = document.querySelector("#availabilityDOMTemplate");
         const content = document.importNode(template.content, true);
-
+    
         const grid = content.querySelector("#availabilityGrid");
         const updateButton = content.querySelector("#availabilityUpdateButton");
         const cancelButton = content.querySelector("#availabilityCancelButton");
@@ -75,7 +75,7 @@ const availabilityPageDOM = (function(){
         cancelButton.addEventListener("click", cancelAvailabilityChanges);
 
         return content
-        
+
         function updateAvailability(){
             events.publish("updateAvailabilityClicked")
         }
@@ -83,11 +83,14 @@ const availabilityPageDOM = (function(){
         function cancelAvailabilityChanges(){
             events.publish("mainPageDOMRequested")
         }
+        
+       
     }
 
     function buildAvailabilityGrid(availability){
         const gridNew = document.createElement("div");
         gridNew.id = "availabilityGrid";
+
 
         for(let day in availability){
             const dayDiv = document.createElement("div");
@@ -95,19 +98,26 @@ const availabilityPageDOM = (function(){
             
             const label = document.createElement("h3");
             const addButton = document.createElement("button");
+            const availabilityDayGrid = document.createElement("div")
+            
+            availabilityDayGrid.classList.add("availabilityDayGrid")
+            addButton.classList.add("availabilityDayAddButton")
 
             label.innerText = `${day}`
             addButton.innerText = "Add Block"
 
             dayDiv.appendChild(label);
             dayDiv.appendChild(addButton);
+            
 
             availability[day].forEach(function(timeBlock){
                 const blockNumber = availability[day].indexOf(timeBlock);  //this throws -1 ??
                 const row = buildAvailabilityRow(day, timeBlock, blockNumber);
-                dayDiv.appendChild(row)
+                availabilityDayGrid.appendChild(row)
             })
+            dayDiv.appendChild(availabilityDayGrid)
             
+
             gridNew.appendChild(dayDiv);
             
             addButton.addEventListener("click", function addTimeBlock(){
@@ -121,8 +131,6 @@ const availabilityPageDOM = (function(){
         }else{
             return gridNew
         }
-        
-        
     }
 
     function buildAvailabilityRow(day, timeBlock, blockNumber){

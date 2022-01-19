@@ -73,7 +73,7 @@ const mainPageDOM = (function(){
         mainPageMyTeams.replaceWith(mainPageMyTeamsNew);
         
         if(mainPageData.lastVerified != null){
-            verifyInfo.innerText += mainPageData.lastVerified
+            verifyInfo.innerText += ` ${mainPageData.lastVerified}`
         }
 
         
@@ -202,15 +202,12 @@ const mainPageDOM = (function(){
             optionContainer.appendChild(option);
         })
 
-        if(teamArray.length >1 && team.rank.myTeams != 0 && team.rank.myTeams != teamArray.length -1){
-            upButton.addEventListener("click", moveMyTeamUp);
-            downButton.addEventListener("click", moveMyTeamDown);
-            
-        }else if(teamArray.length >1 && team.rank.myTeams == teamArray.length-1){
-            upButton.addEventListener("click", moveMyTeamUp);
+        upButton.addEventListener("click", moveMyTeamUp);
+        downButton.addEventListener("click", moveMyTeamDown);
+
+        if(teamArray.length >1 && team.rank.myTeams == teamArray.length-1){
             downButton.remove();
         }else if(teamArray.length >1 && team.rank.myTeams == 0){
-            downButton.addEventListener("click", moveMyTeamDown);
             upButton.remove();
         }
 

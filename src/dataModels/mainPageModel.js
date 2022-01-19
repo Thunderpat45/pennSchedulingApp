@@ -70,7 +70,7 @@ const mainPageModel = (function(){
     
     /*{
         name: "Brindle",
-        privilegeLevel:"user",
+        privilegeLevel:"admin",
         availability:{
             Sun:[],
             Mon:[],
@@ -121,7 +121,7 @@ const mainPageModel = (function(){
             },
         ],
         lastVerified: null,
-        adminPageSet:null,
+        adminPageSet:"admin",
         season:"fall",
         allTeams:
         [
@@ -202,6 +202,8 @@ const mainPageModel = (function(){
                     ]
             },
         ],
+        allUsers: [],
+        adminTimeBlocks: [],
         facilitySelectors:{
             facilityOpen:360,
             facilityClose: 1200,

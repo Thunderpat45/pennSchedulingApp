@@ -259,29 +259,22 @@ const adminMainPageDOM = (function(){
         const teamCoach = content.querySelector(".adminMainPageTeamGridTeamCoach");
         const teamSize = content.querySelector(".adminMainPageTeamGridTeamSize");
         const teamRank = content.querySelector(".adminMainPageTeamGridTeamRank");
-        const teamButtons = content.querySelector(".adminMainPageTeamGridTeamButtons");
-        
-        const uprankButton = document.createElement("button");
-        const downrankButton = document.createElement("button");
+        const uprankButton = content.querySelector(".adminMainPageTeamGridTeamUprankButton");
+        const downrankButton = content.querySelector(".adminMainPageTeamGridTeamDownrankButton");
+       
 
         teamName.innerText = teamData.name;
         teamCoach.innerText = teamData.coach;
         teamSize.innerText = `${teamData.size} athletes`;
         teamRank.innerText = teamData.rank.allTeams +1;
-
-        uprankButton.id = "adminMainPageTeamGridTeamUprankButton"
-        downrankButton.id = "adminMainPageTeamGridTeamDownrankButton"
     
         uprankButton.addEventListener("click", moveAdminRankUp);
         downrankButton.addEventListener("click", moveAdminRankDown);
-    
-        if(allTeamsData.length > 1 && teamData.rank.allTeams != 0 && teamData.rank.allTeams != allTeamsData.length - 1){
-            teamButtons.appendChild(uprankButton);
-            teamButtons.appendChild(downrankButton);
-        }else if(allTeamsData.length > 1 && teamData.rank.allTeams == allTeamsData.length - 1){
-            teamButtons.appendChild(uprankButton)
+        
+        if(allTeamsData.length > 1 && teamData.rank.allTeams == allTeamsData.length - 1){
+            downrankButton.remove()
         }else if(allTeamsData.length > 1 && teamData.rank.allTeams == 0){
-            teamButtons.appendChild(downrankButton)
+            uprankButton.remove()
         }   
     
         return content
@@ -338,14 +331,13 @@ const adminMainPageDOM = (function(){
         editButton.addEventListener("click", editUser);
         deleteButton.addEventListener("click", deleteUser);
     
-        userName.innerText = userData.name;
+        userName.innerText = `Name: ${userData.name}`;
         if(userData.privilegeLevel){
-            userPrivilege.innerText = "admin"
+            userPrivilege.innerText = `Privilege: Admin`
         }else{
-            userPrivilege.innerText = "user"
+            userPrivilege.innerText = `Privilege: User`
         }
-        userPrivilege.innerText = userData.privilegeLevel;
-        userLastVerified.innerText = userData.lastVerified;
+        userLastVerified.innerText = `Last Verified: ${userData.lastVerified}`;
         userColorBlock.style.backgroundColor = userData.color
     
         return content
@@ -826,7 +818,7 @@ const availabilityPageDOM = (function(){
     function renderAvailabilityDOM(availability){
         const template = document.querySelector("#availabilityDOMTemplate");
         const content = document.importNode(template.content, true);
-
+    
         const grid = content.querySelector("#availabilityGrid");
         const updateButton = content.querySelector("#availabilityUpdateButton");
         const cancelButton = content.querySelector("#availabilityCancelButton");
@@ -839,7 +831,7 @@ const availabilityPageDOM = (function(){
         cancelButton.addEventListener("click", cancelAvailabilityChanges);
 
         return content
-        
+
         function updateAvailability(){
             _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateAvailabilityClicked")
         }
@@ -847,11 +839,14 @@ const availabilityPageDOM = (function(){
         function cancelAvailabilityChanges(){
             _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("mainPageDOMRequested")
         }
+        
+       
     }
 
     function buildAvailabilityGrid(availability){
         const gridNew = document.createElement("div");
         gridNew.id = "availabilityGrid";
+
 
         for(let day in availability){
             const dayDiv = document.createElement("div");
@@ -859,19 +854,26 @@ const availabilityPageDOM = (function(){
             
             const label = document.createElement("h3");
             const addButton = document.createElement("button");
+            const availabilityDayGrid = document.createElement("div")
+            
+            availabilityDayGrid.classList.add("availabilityDayGrid")
+            addButton.classList.add("availabilityDayAddButton")
 
             label.innerText = `${day}`
             addButton.innerText = "Add Block"
 
             dayDiv.appendChild(label);
             dayDiv.appendChild(addButton);
+            
 
             availability[day].forEach(function(timeBlock){
                 const blockNumber = availability[day].indexOf(timeBlock);  //this throws -1 ??
                 const row = buildAvailabilityRow(day, timeBlock, blockNumber);
-                dayDiv.appendChild(row)
+                availabilityDayGrid.appendChild(row)
             })
+            dayDiv.appendChild(availabilityDayGrid)
             
+
             gridNew.appendChild(dayDiv);
             
             addButton.addEventListener("click", function addTimeBlock(){
@@ -885,8 +887,6 @@ const availabilityPageDOM = (function(){
         }else{
             return gridNew
         }
-        
-        
     }
 
     function buildAvailabilityRow(day, timeBlock, blockNumber){
@@ -1047,7 +1047,7 @@ const mainPageDOM = (function(){
         mainPageMyTeams.replaceWith(mainPageMyTeamsNew);
         
         if(mainPageData.lastVerified != null){
-            verifyInfo.innerText += mainPageData.lastVerified
+            verifyInfo.innerText += ` ${mainPageData.lastVerified}`
         }
 
         
@@ -1176,15 +1176,12 @@ const mainPageDOM = (function(){
             optionContainer.appendChild(option);
         })
 
-        if(teamArray.length >1 && team.rank.myTeams != 0 && team.rank.myTeams != teamArray.length -1){
-            upButton.addEventListener("click", moveMyTeamUp);
-            downButton.addEventListener("click", moveMyTeamDown);
-            
-        }else if(teamArray.length >1 && team.rank.myTeams == teamArray.length-1){
-            upButton.addEventListener("click", moveMyTeamUp);
+        upButton.addEventListener("click", moveMyTeamUp);
+        downButton.addEventListener("click", moveMyTeamDown);
+
+        if(teamArray.length >1 && team.rank.myTeams == teamArray.length-1){
             downButton.remove();
         }else if(teamArray.length >1 && team.rank.myTeams == 0){
-            downButton.addEventListener("click", moveMyTeamDown);
             upButton.remove();
         }
 
@@ -1900,8 +1897,6 @@ const adminAllUsersDataModel = (function(){ //continue REVIEW HERE
 	//no obvious issues, find database update listeners for delete/modify/add allUsers, make sure password does not get passed to front-end
 	let allUsers;
 
-	console.log("Webpack does the same thing as Node.")
-
 	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminMainPageModelBuilt", populateAllUsers)
 	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editUser", editUser);
 	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteUser", deleteUserForDatabaseUpdate);
@@ -2548,7 +2543,7 @@ const mainPageModel = (function(){
     
     /*{
         name: "Brindle",
-        privilegeLevel:"user",
+        privilegeLevel:"admin",
         availability:{
             Sun:[],
             Mon:[],
@@ -2599,7 +2594,7 @@ const mainPageModel = (function(){
             },
         ],
         lastVerified: null,
-        adminPageSet:null,
+        adminPageSet:"admin",
         season:"fall",
         allTeams:
         [
@@ -2680,6 +2675,8 @@ const mainPageModel = (function(){
                     ]
             },
         ],
+        allUsers: [],
+        adminTimeBlocks: [],
         facilitySelectors:{
             facilityOpen:360,
             facilityClose: 1200,
