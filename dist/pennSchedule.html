@@ -208,22 +208,24 @@
 
 <template id = "adminUserGeneratorTemplate">
 	<div id = "userGeneratorDiv">
-		<title>Create/Edit User</title>
-		<div id = "userGeneratorNameDiv">
-			<label for = "userGeneratorName">Name</label><br>
-			<input type = "text" id = "userGeneratorName" name ="userGeneratorName" maxlength="25"><br>
-		</div>
-		<div id = "userGeneratorPrivilegeDiv">
-			<label for = "userGeneratorPrivilege">Set to Admin Role</label><br>
-			<input id = "userGeneratorPrivilege" name = "userGeneratorPrivilege" type = "checkbox" value = "true"><br> 
-		</div>
-		<div id = "userGeneratorColorDiv">
-			<label for = "userGeneratorColor">User Schedule Color</label><br>
-			<input type = "color" id = "userGeneratorColor" name = "userGeneratorColor">
-		</div>
-		<div id = "userGeneratorButtonsDiv">
-			<button id = "userGeneratorSaveButton">Save Changes</button>
-			<button id = "userGeneratorCancelButton">Cancel Changes</button>
+		<div id = "userGeneratorForm">
+			<title>Create/Edit User</title>
+			<div id = "userGeneratorNameDiv">
+				<label for = "userGeneratorName">Name</label><br>
+				<input type = "text" id = "userGeneratorName" name ="userGeneratorName" maxlength="25"><br>
+			</div>
+			<div id = "userGeneratorPrivilegeDiv">
+				<label for = "userGeneratorPrivilege">Set to Admin Role</label><br>
+				<input id = "userGeneratorPrivilege" name = "userGeneratorPrivilege" type = "checkbox" value = "true"><br> 
+			</div>
+			<div id = "userGeneratorColorDiv">
+				<label for = "userGeneratorColor">User Schedule Color</label><br>
+				<input type = "color" id = "userGeneratorColor" name = "userGeneratorColor">
+			</div>
+			<div id = "userGeneratorButtonsDiv">
+				<button id = "userGeneratorSaveButton">Save Changes</button>
+				<button id = "userGeneratorCancelButton">Cancel Changes</button>
+			</div>
 		</div>
 	</div>
 </template>
@@ -274,13 +276,13 @@
 		<div id = "adminMainPageSideColumn">
 			<h3 id = "adminOptionsLabel">Admin Options</h3>
 			<div id = "adminUsersGridContainer">
-				<h2>Users</h2>
-				<div id = "adminUsersGrid"></div>
+				<h3>Users</h3>
 				<button id = "adminUsersGridAddUser">Add User</button>
+				<div id = "adminUsersGrid"></div>
 			</div>
 			<div id = "facilityDataGridContainer"></div>
 			<div id = "setAllUsersAvailabilityGridContainer">
-				<h2>Add Time Block To All Users</h2>
+				<h3>Add Time Block To All Users</h3>
 				<div id = "adminMainPageAddAvailabilityBlockAllUsersGrid"></div>
 				<button id = "adminMainPageAddAvailabilityBlockAllUsersSaveButton">Save Changes</button>
 				<button id = "adminMainPageAddAvailabilityBlockAllUsersCancelButton">Cancel Changes</button>	
@@ -291,26 +293,25 @@
 
 <template id = "adminMainPageFacilityDataGridTemplate">
 	<div id = "facilityDataGrid">
-		<div id ="adminMainPageFacilityHoursSelectorsGrid">
-		<h2>Facility Hours</h2>
-			<div id = "adminMainPageFacilityHoursSelectorsOpen">
-				<p>Open</p>
-				<select class = "facilityOpen selector"></select>
+		<h3>Facility Options</h3>
+		<div id = "adminMainPageFacilitySelectorsWrapper">
+			<div id ="adminMainPageFacilitySelectorsGrid">
+				<div id = "adminMainPageFacilityHoursSelectorsOpen">
+					<p>Open</p>
+					<select class = "facilityOpen selector"></select>
+				</div>
+				<div id = "adminMainPageFacilityHoursSelectorsClose">
+					<p>Close</p>
+					<select class = "facilityClose selector"></select>
+				</div>
+				<div id = "adminMainPageFacilityCapacitySelectorsMax">
+					<p>Max Capacity</p>
+					<select class = "facilityMaxCapacity selector"></select>
+				</div>
 			</div>
-			<div id = "adminMainPageFacilityHoursSelectorsClose">
-				<p>Close</p>
-				<select class = "facilityClose selector"></select>
-			</div>
+			<button id = "adminMainPageFacilitySelectorsSaveButton">Save Changes</button>
+			<button id = "adminMainPageFacilitySelectorsCancelButton">Cancel Changes</button>
 		</div>
-		<div id = "adminMainPageFacilityCapacitySelectors">
-		<h2>Facility Capacity</h2>
-			<div id = "adminMainPageFacilityCapacitySelectorsMax">
-				<p>Max</p>
-				<select class = "facilityMaxCapacity selector"></select>
-			</div>
-		</div>
-		<button id = "adminMainPageFacilitySelectorsSaveButton">Save Changes</button>
-		<button id = "adminMainPageFacilitySelectorsCancelButton">Cancel Changes</button>
 	</div>
 </template>
 
@@ -341,7 +342,7 @@
 		<div class = "adminUserGridUserLastVerified"></div>
 		<div class = "adminUserGridUserButtonDiv">
 			<button class = "adminUserGridUserEditButton">Edit User</button>
-			<button class = "adminUserGridUserDeleteButton">X</button>
+			<button class = "adminUserGridUserDeleteButton">Delete User</button>
 		</div>
 	</div>
 </template>

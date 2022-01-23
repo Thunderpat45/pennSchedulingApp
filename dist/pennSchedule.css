@@ -177,11 +177,11 @@ main, .page{
 	margin: 0 .5rem;
 }
 
-.teamGridTeamEditButton{
+.teamGridTeamEditButton, .adminUserGridUserEditButton{
 	background-color: yellow;
 }
 
-.teamGridTeamDeleteButton{
+.teamGridTeamDeleteButton, .adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton{
 	background-color: red;
 }
 
@@ -244,14 +244,22 @@ main, .page{
 	
 }
 
+.userAvailabilityDayBlockWrapper{
+	background-color: white;
+	padding:.5rem;
+	margin: .5rem;
+	border: #011F5b solid .5rem;
+	color:black;
+}
+
 .userAvailabilityTimeBlock{
 	display:flex;
-	margin: .25rem;
+	margin: .5 .25rem;
 }
 
 .userAvailabilityTimeBlock p{
 	flex-grow: 1;
-	margin:0px;
+	margin:.25rem 0;;
 	font-size: 1rem;
 }
 
@@ -496,7 +504,7 @@ main, .page{
 	justify-content: center;
 }
 
-.availabilityDeleteButton{
+.availabilityDeleteButton, .adminUserGridUserDeleteButton{
 	background-color: red;
 }
 
@@ -522,13 +530,62 @@ main, .page{
 	padding: 1.5rem 0;
 }
 
+#adminUsersGridContainer > h3{
+	margin: 10px 0;
+}
 
+#adminUsersGridContainer, #facilityDataGridContainer{
+	margin-bottom: 3rem;
+}
+
+
+#adminUsersGrid{
+	margin: .5rem;
+}
 
 .adminUserGridUser{
 	display:grid;
-	grid-template-columns: repeat(2, 1fr);
-	align-items: center;
+	grid-template-areas: 
+	"adminUserName adminUserColor"
+	"adminUserPrivilege adminUserLastVerified"
+	"adminUserButtons adminUserButtons";
+	text-align: center;
+	gap: 0;
 	
+	background-color: white;
+	padding:.5rem;
+	margin: .5rem 0;
+	border: #011F5b solid .5rem;
+	
+}
+
+.adminUserGridUser>div{
+	align-items: center;
+}
+
+.adminUserGridUserName{
+	grid-area: adminUserName
+}
+
+.adminUserGridUserColor{
+	grid-area: adminUserColor
+}
+
+.adminUserGridUserPrivilege{
+	grid-area: adminUserPrivilege
+}
+
+.adminUserGridUserLastVerified{
+	grid-area: adminUserLastVerified
+}
+
+.adminUserGridUserButtonDiv{
+	grid-area: adminUserButtons;
+	justify-self: center
+}
+
+.adminUserGridUser *{
+	color: black;
 }
 
 .adminUserGridUser > *{
@@ -551,4 +608,100 @@ main, .page{
 	height: .5rem;
 	width: .5rem;
 	align-self:center;
+}
+
+#facilityDataGrid p{
+	margin-top: .25rem;
+	margin-bottom: .25rem;
+	color: black;
+}
+
+#adminMainPageFacilitySelectorsGrid{
+	display:grid; 
+	grid-template-columns: .8fr .8fr 1.4fr;
+	margin-bottom: 1rem;
+}
+
+#adminMainPageFacilitySelectorsWrapper, .adminTimeBlockDay{
+	background-color: white;
+	padding:.5rem;
+	margin: .5rem;
+	border: #011F5b solid .5rem;
+}
+
+.adminMainPageAddAvailabilityBlockAllUsersBlock{
+	display: grid;
+	grid-template-areas: 
+	"adminBlockStart adminBlockEnd"
+	"adminBlockDelete adminBlockDelete";
+	background-color:#9898dd;
+	border: #011F5b solid .125rem;
+	margin: .25rem;
+}
+
+.adminTimeBlockDay p, .adminTimeBlockDay h3{
+	margin: .25rem auto;
+	color: black;
+}
+
+.adminMainPageAddAvailabilityBlockAllUsersBlockStart{
+	grid-area: adminBlockStart
+}
+
+.adminMainPageAddAvailabilityBlockAllUsersBlockEnd{
+	grid-area: adminBlockEnd
+}
+
+.adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton{
+	grid-area: adminBlockDelete;
+	width: 50%;
+	margin: .5rem 0 .25rem 0;
+	justify-self: center;
+}
+
+#userGeneratorDiv{
+	width: 60%;
+	margin:auto;
+	padding-top: 3rem;
+	padding-bottom: 3rem;
+}
+
+#userGeneratorForm{
+	display:grid;
+	grid-template-areas: 
+	"userGeneratorName userGeneratorPrivilege userGeneratorColor"
+	"userGeneratorButtons userGeneratorButtons userGeneratorButtons";
+	background-color:grey;
+	border: #011F5b solid;
+	border-width: 1rem 1rem .5rem 1rem;
+	text-align:center;
+	opacity: .95;
+	padding: .5rem;
+}
+
+#userGeneratorForm > *{
+	margin:.5rem;
+}
+
+#userGeneratorNameDiv{
+	grid-area: userGeneratorName
+}
+
+#userGeneratorPrivilegeDiv{
+	grid-area: userGeneratorPrivilege
+}
+
+#userGeneratorColorDiv{
+	grid-area: userGeneratorColor
+}
+
+#userGeneratorButtonsDiv{
+	grid-area: userGeneratorButtons;
+	display:grid;
+	grid-template-columns: 1fr 1fr;
+}
+
+#userGeneratorButtonsDiv button{
+	width: 50%;
+	justify-self: center;
 }

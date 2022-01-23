@@ -1103,6 +1103,9 @@ const mainPageDOM = (function(){
             const dayDiv = document.createElement("div");
             dayDiv.classList.add("userAvailabilityDay");
 
+            const allBlocksWrapper = document.createElement("div");
+            allBlocksWrapper.classList.add("userAvailabilityDayBlockWrapper")
+
             const label = document.createElement("p");
             label.classList.add("userAvailabilityDayLabel");
 
@@ -1123,8 +1126,9 @@ const mainPageDOM = (function(){
 
                 timeBlockDiv.appendChild(startTime);
                 timeBlockDiv.appendChild(endTime);
-                dayDiv.appendChild(timeBlockDiv)
+                allBlocksWrapper.appendChild(timeBlockDiv)
             })
+            dayDiv.appendChild(allBlocksWrapper)
             availabilityDisplayNew.appendChild(dayDiv)
         }
         return availabilityDisplayNew
