@@ -36,6 +36,7 @@ const adminMainPageAllTeamsData = (function(){
 
 	events.subscribe("adminMainPageModelBuilt", populateAllTeams)
 	events.subscribe("modifyAdminTeamOrder", modifyTeamOrder);
+	events.subscribe("modifyTeamEnabled", toggleTeamEnabled)
 
 	function populateAllTeams(adminAllTeams){
 		allTeams = adminAllTeams.allTeams.concat(); //does this need recursive copying? depth should be sufficient if so
@@ -63,6 +64,15 @@ const adminMainPageAllTeamsData = (function(){
 		})
 		events.publish("adminAllTeamsDataUpdated", allTeamsSlice); //find listener
 	}
+
+	function toggleTeamEnabled(teamIndexObj){
+		const {index} = teamIndexObj
+		const allTeamsSlice = allTeams.concat();
+		allTeamsSlice[index].enabled = !allTeamsSlice[index].enabled;
+		events.publish("adminAllTeamsDataUpdated", allTeamsSlice)
+	}
+
+
 })()
 
 export {adminMainPageAllTeamsData}

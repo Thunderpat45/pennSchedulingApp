@@ -255,13 +255,14 @@ const adminMainPageDOM = (function(){
         const template = document.querySelector("#adminMainPageTeamTemplate");
         const content = document.importNode(template.content, true);
     
+        const teamDiv = content.querySelector(".adminMainPageTeamGridTeam")
         const teamName = content.querySelector(".adminMainPageTeamGridTeamName");
         const teamCoach = content.querySelector(".adminMainPageTeamGridTeamCoach");
         const teamSize = content.querySelector(".adminMainPageTeamGridTeamSize");
         const teamRank = content.querySelector(".adminMainPageTeamGridTeamRank");
         const uprankButton = content.querySelector(".adminMainPageTeamGridTeamUprankButton");
         const downrankButton = content.querySelector(".adminMainPageTeamGridTeamDownrankButton");
-       
+        const disableButton = content.querySelector(".adminMainPageTeamGridTeamDisableButton");
 
         teamName.innerText = teamData.name;
         teamCoach.innerText = teamData.coach;
@@ -270,13 +271,20 @@ const adminMainPageDOM = (function(){
     
         uprankButton.addEventListener("click", moveAdminRankUp);
         downrankButton.addEventListener("click", moveAdminRankDown);
+        disableButton.addEventListener("click", toggleDisable);
+    
         
         if(allTeamsData.length > 1 && teamData.rank.allTeams == allTeamsData.length - 1){
             downrankButton.remove()
         }else if(allTeamsData.length > 1 && teamData.rank.allTeams == 0){
             uprankButton.remove()
         }   
-    
+
+        if(teamData.enabled == false){
+            teamDiv.classList.toggle('toggleDisable');
+            disableButton.innerText = "Enable"      
+        }
+
         return content
     
         function moveAdminRankUp(){ 
@@ -284,6 +292,10 @@ const adminMainPageDOM = (function(){
         }
         function moveAdminRankDown(){
             _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyAdminTeamOrder", {index: teamData.rank.allTeams, modifier: 1})
+        }
+
+        function toggleDisable(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyTeamEnabled", {index: teamData.rank.allTeams})
         }
     }
     //no obvious issues with this or dataModel, display is usersGrid and addUserButton
@@ -2129,6 +2141,7 @@ const adminMainPageAllTeamsData = (function(){
 
 	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminMainPageModelBuilt", populateAllTeams)
 	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyAdminTeamOrder", modifyTeamOrder);
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyTeamEnabled", toggleTeamEnabled)
 
 	function populateAllTeams(adminAllTeams){
 		allTeams = adminAllTeams.allTeams.concat(); //does this need recursive copying? depth should be sufficient if so
@@ -2156,6 +2169,15 @@ const adminMainPageAllTeamsData = (function(){
 		})
 		_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAllTeamsDataUpdated", allTeamsSlice); //find listener
 	}
+
+	function toggleTeamEnabled(teamIndexObj){
+		const {index} = teamIndexObj
+		const allTeamsSlice = allTeams.concat();
+		allTeamsSlice[index].enabled = !allTeamsSlice[index].enabled;
+		_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAllTeamsDataUpdated", allTeamsSlice)
+	}
+
+
 })()
 
 
@@ -3517,6 +3539,7 @@ const temporaryDatabasePostSimulator = (function(){
                         allTeams:0
                     },
                 size: 15,
+                
                 allOpts:
                     
                     [
@@ -3563,6 +3586,7 @@ const temporaryDatabasePostSimulator = (function(){
                         allTeams:0
                     },
                 size: 15,
+                enabled: true,
                 allOpts:
                     [
                         [
@@ -3576,6 +3600,7 @@ const temporaryDatabasePostSimulator = (function(){
                 {
                 name:"basketballMen",
                 coach: "Brindle",
+                enabled: true,
                 rank:
                     {
                         myTeams: 1,
@@ -3596,6 +3621,7 @@ const temporaryDatabasePostSimulator = (function(){
                 {
                 name: "football",
                 coach:"Rivera",
+                enabled: false,
                 rank:
                     {
                         myTeams: 0,
@@ -3621,6 +3647,7 @@ const temporaryDatabasePostSimulator = (function(){
                         allTeams:3
                     },
                 size: 50,
+                enabled: true,
                 allOpts:
                 
                     [

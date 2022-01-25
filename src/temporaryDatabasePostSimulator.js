@@ -266,6 +266,7 @@ const temporaryDatabasePostSimulator = (function(){
                         allTeams:0
                     },
                 size: 15,
+                
                 allOpts:
                     
                     [
@@ -312,6 +313,7 @@ const temporaryDatabasePostSimulator = (function(){
                         allTeams:0
                     },
                 size: 15,
+                enabled: true,
                 allOpts:
                     [
                         [
@@ -325,6 +327,7 @@ const temporaryDatabasePostSimulator = (function(){
                 {
                 name:"basketballMen",
                 coach: "Brindle",
+                enabled: true,
                 rank:
                     {
                         myTeams: 1,
@@ -345,6 +348,7 @@ const temporaryDatabasePostSimulator = (function(){
                 {
                 name: "football",
                 coach:"Rivera",
+                enabled: false,
                 rank:
                     {
                         myTeams: 0,
@@ -370,6 +374,7 @@ const temporaryDatabasePostSimulator = (function(){
                         allTeams:3
                     },
                 size: 50,
+                enabled: true,
                 allOpts:
                 
                     [

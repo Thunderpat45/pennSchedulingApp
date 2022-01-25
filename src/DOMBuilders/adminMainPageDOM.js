@@ -180,13 +180,14 @@ const adminMainPageDOM = (function(){
         const template = document.querySelector("#adminMainPageTeamTemplate");
         const content = document.importNode(template.content, true);
     
+        const teamDiv = content.querySelector(".adminMainPageTeamGridTeam")
         const teamName = content.querySelector(".adminMainPageTeamGridTeamName");
         const teamCoach = content.querySelector(".adminMainPageTeamGridTeamCoach");
         const teamSize = content.querySelector(".adminMainPageTeamGridTeamSize");
         const teamRank = content.querySelector(".adminMainPageTeamGridTeamRank");
         const uprankButton = content.querySelector(".adminMainPageTeamGridTeamUprankButton");
         const downrankButton = content.querySelector(".adminMainPageTeamGridTeamDownrankButton");
-       
+        const disableButton = content.querySelector(".adminMainPageTeamGridTeamDisableButton");
 
         teamName.innerText = teamData.name;
         teamCoach.innerText = teamData.coach;
@@ -195,13 +196,20 @@ const adminMainPageDOM = (function(){
     
         uprankButton.addEventListener("click", moveAdminRankUp);
         downrankButton.addEventListener("click", moveAdminRankDown);
+        disableButton.addEventListener("click", toggleDisable);
+    
         
         if(allTeamsData.length > 1 && teamData.rank.allTeams == allTeamsData.length - 1){
             downrankButton.remove()
         }else if(allTeamsData.length > 1 && teamData.rank.allTeams == 0){
             uprankButton.remove()
         }   
-    
+
+        if(teamData.enabled == false){
+            teamDiv.classList.toggle('toggleDisable');
+            disableButton.innerText = "Enable"      
+        }
+
         return content
     
         function moveAdminRankUp(){ 
@@ -209,6 +217,10 @@ const adminMainPageDOM = (function(){
         }
         function moveAdminRankDown(){
             events.publish("modifyAdminTeamOrder", {index: teamData.rank.allTeams, modifier: 1})
+        }
+
+        function toggleDisable(){
+            events.publish("modifyTeamEnabled", {index: teamData.rank.allTeams})
         }
     }
     //no obvious issues with this or dataModel, display is usersGrid and addUserButton

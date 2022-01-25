@@ -530,6 +530,21 @@ main, .page{
 	padding: 1.5rem 0;
 }
 
+.adminMainPageTeamGridTeamButtons{
+	display:grid;
+	grid-template-columns: 1fr 1fr;
+}
+
+.adminMainPageTeamGridTeamRankButtons{
+	display: flex;
+	flex-direction: column;
+}
+
+.toggleDisable{
+	opacity: .5;
+	background-color: rgb(201, 201, 201);
+}
+
 #adminUsersGridContainer > h3{
 	margin: 10px 0;
 }
