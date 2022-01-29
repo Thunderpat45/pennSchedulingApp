@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='./dist/pennSchedule.css' />
+  </head>
+  <body>
+    <header>
+      <div id = "pageTitleIcon">
+        <img id = "pageIcon" src = "">
+        <div id = "pageTitle">UPenn S&C Facility Scheduling App</div>
+      </div>
+      <nav id = "nav">
+        <h3 id= "logOutLink" class = "navLink">Log Out</h3>
+      </nav>	
+    </header>
+    
+    <main></main>
+    <footer></footer>
+  </body>
+
+  <template id = "mainPageTemplate">
+    <div id = "mainPage" class= "page">
+      <div id = "mainPageMainColumn">
+        <div id = "seasonButtons">
+          <button id = "fallButton">Fall</button>
+          <button id = "springButton">Spring</button>
+        </div>
+        <div id = "teamGridContainer">
+          <div id = "teamGridLabels">
+            <div>Team Details</div>
+            <div>Option #</div>
+            <div>Day Of Week</div>
+            <div>Time</div>
+            <div>In Weiss</div> 
+            <div>Buttons</div>
+          </div>
+          <div id = "teamGrid"></div>
+          <button id = "teamGridAddTeam">Add Team</button>
+        </div>
+        <div id = "verifyDiv">
+          <p id = "verifyInfo">The last time you verified all teams were up-to-date was:</p>
+          <button id = "verifyButton">Verify Teams Up To Date</button>
+        </div>
+      </div>
+      <div id = "mainPageSideColumn">
+        <div id = "userAvailability">
+          <h3 id = "userAvailabilityLabel">Availability</h3>
+          <button id = "editAvailability">Edit Availability</button>
+          <div id = "availabilityDisplay"></div>
+        </div>
+      </div>
+      
+    </div>
+  </template>
+  
+  <template id = "mainPageTeamTemplate">
+    <div class = "teamGridTeam">
+      <div class = "teamGridTeamNameSizeContainer">
+        <div class = "teamGridTeamName"></div>
+        <div class = "teamGridTeamSize"></div>
+        <div class = "teamGridTeamLastVerified">Last Verified: </div>
+      </div>
+      <div class = "teamGridTeamOptionContainer"></div>
+      <div class = "teamGridTeamButtons">
+        <div class = "teamRankButtons">
+          <button class = "moveOptionUpButton">
+            <i class = "arrow up"></i>
+          </button>
+          <button class = "moveOptionDownButton">
+            <i class = "arrow down"></i>
+          </button>
+        </div>
+        <div class = "verifyEditTeamDiv">
+          <button class = "teamGridTeamVerifyButton">Verify</button>
+          <button class = "teamGridTeamEditButton">Edit</button>
+        </div>
+        <div class = "deleteTeamDiv">
+          <button class = "teamGridTeamDeleteButton">X</button>
+        </div>	
+      </div>
+    </div>
+  </template>
+  
+  <template id = "mainPageTeamOptionTemplate">
+    <div class = "teamGridTeamOption">
+      <div class = "teamGridTeamOptionNumber"></div>
+      <div class = "teamGridTeamDayContainer"></div>
+    </div>
+  </template>
+  
+  <template id = "mainPageTeamDayTemplate">
+      <div class = "teamGridTeamDayOfWeek"></div>
+      <div class = "teamGridTeamStartTime"></div>
+      <div class = "teamGridTimeAppender"> - </div>
+      <div class = "teamGridTeamEndTime"></div>
+      <div class = "teamGridTeamInWeiss"></div>
+  </template>
+
+  <script src = "main.js"></script>
+</html>
