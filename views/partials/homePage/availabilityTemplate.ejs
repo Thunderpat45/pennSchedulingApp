@@ -1,0 +1,11 @@
+<div class = "userAvailabilityDay">
+    <p class = "userAvailabilityDayLabel"><%= `${day}`%></p>
+    <div class = "userAvailabilityDayBlockWrapper">
+        <%availability[day].forEach(function(timeBlock, index){%>
+            <div class = "userAvailabilityTimeBlock">
+                <p><%=`Start: ${timeConverter.runConvertTotalMinutesToTime(availability[day][index].startTime)}`%></p>
+                <p><%=`End: ${timeConverter.runConvertTotalMinutesToTime(availability[day][index].endTime)}`%></p>
+            </div>
+        <%})%>
+    </div>
+</div>

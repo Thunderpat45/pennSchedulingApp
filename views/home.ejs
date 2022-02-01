@@ -1,0 +1,51 @@
+
+<div id = "mainPage" class= "page"> <!--is page class still necessary?-->
+
+  <div id = "mainPageMainColumn">
+
+    <%- include('./partials/seasonsButtons', {season: season})%>
+
+    <div id = "teamGridContainer">
+      
+      <div id = "teamGridLabels">
+        <div>Team Details</div>
+        <div>Option #</div>
+        <div>Day Of Week</div>
+        <div>Time</div>
+        <div>In Weiss</div> 
+        <div>Buttons</div>
+      </div>
+      <div id = "teamGrid"></div>
+      <%const allTeamsLength = teams.length%>
+      <%teams.forEach(function(team, index){%>
+        <%- include('./partials/homePage/teamTemplate', {allTeamsLength: allTeamsLength, index: index, team: team, timeConverter:timeConverter})%>
+        
+      <%})%>
+      <button id = "teamGridAddTeam">Add Team</button>
+    </div>
+
+    <div id = "verifyDiv">
+      <%if(lastVerified == null){%>
+        <p id = "verifyInfo">Click below when ready to verify all current team requests are up to date</p>
+      <%}else{%>
+        <p id = "verifyInfo">The last time you verified all teams were up-to-date was: <%=lastVerified%></p>
+      <%}%>
+      <button id = "verifyButton">Verify Teams Up To Date</button>
+    </div>
+  </div>
+
+  <div id = "mainPageSideColumn">
+    <div id = "userAvailability">
+      <h3 id = "userAvailabilityLabel">Availability</h3>
+      <button id = "editAvailability">Edit Availability</button>
+      <div id = "availabilityDisplay">
+        <%for(let day in availability){%>
+          <%- include('./partials/homePage/availabilityTemplate', {availability: availability, day:day, timeConverter: timeConverter})%>
+        <%}%>
+      </div>
+    </div>
+  </div>
+  
+</div>
+  <script src = "../src/timeConverter.js"></script>
+</html>

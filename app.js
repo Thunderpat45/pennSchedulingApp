@@ -3,6 +3,8 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const ejsLayouts = require('express-ejs-layouts')
+
 
 const logInRouter = require('./routes/logIn');
 const usersRouter = require('./routes/users');
@@ -17,15 +19,19 @@ mongoose.connect(mongoDB, {useNewURLParser:true, useUnifiedTopology: true});
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
-
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(ejsLayouts)
+
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('layout', false)
+app.set('view engine', 'ejs');
+
+
 
 app.use('/', logInRouter);
 app.use('/user', usersRouter);
