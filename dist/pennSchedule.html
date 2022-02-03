@@ -29,6 +29,7 @@
 				<button id = "fallButton">Fall</button>
 				<button id = "springButton">Spring</button>
 			</div>
+			<div id = "teamGridMainLabel">My Teams</div>
 			<div id = "teamGridContainer">
 				<div id = "teamGridLabels">
 					<div>Team Details</div>
@@ -59,29 +60,30 @@
 
 <template id = "mainPageTeamTemplate">
 	<div class = "teamGridTeam">
-		<div class = "teamGridTeamNameSizeContainer">
-			<div class = "teamGridTeamName"></div>
-			<div class = "teamGridTeamSize"></div>
-			<div class = "teamGridTeamLastVerified">Last Verified: </div>
-		</div>
-		<div class = "teamGridTeamOptionContainer"></div>
-		<div class = "teamGridTeamButtons">
-			<div class = "teamRankButtons">
-				<button class = "moveOptionUpButton">
-					<i class = "arrow up"></i>
-				</button>
-				<button class = "moveOptionDownButton">
-					<i class = "arrow down"></i>
-				</button>
+		<div class = teamGridTeamDetailsWrapper>
+			<div class = "teamGridTeamNameSizeContainer">
+				<div class = "teamGridTeamName"></div>
+				<div class = "teamGridTeamSize"></div>
+				
 			</div>
-			<div class = "verifyEditTeamDiv">
-				<button class = "teamGridTeamVerifyButton">Verify</button>
-				<button class = "teamGridTeamEditButton">Edit</button>
+			<div class = "teamGridTeamOptionContainer"></div>
+			<div class = "teamGridTeamButtons">
+				<div class = "teamRankButtons">
+					<button class = "moveOptionUpButton">
+						<i class = "arrow up"></i>
+					</button>
+					<button class = "moveOptionDownButton">
+						<i class = "arrow down"></i>
+					</button>
+				</div>
+				<div class = "verifyEditDeleteTeamDiv">
+					<button class = "teamGridTeamVerifyButton">Verify</button>
+					<button class = "teamGridTeamEditButton">Edit</button>
+					<button class = "teamGridTeamDeleteButton">Delete</button>
+				</div>
 			</div>
-			<div class = "deleteTeamDiv">
-				<button class = "teamGridTeamDeleteButton">X</button>
-			</div>	
 		</div>
+		<div class = "teamGridTeamLastVerified">Last Verified: </div>
 	</div>
 </template>
 
@@ -230,26 +232,6 @@
 	</div>
 </template>
 
-<template id = "adminUserListTemplate">
-	<div id = "userListDiv">
-		<title>User List</title>
-		<div id = "userListTableDiv"></div>
-		<button id = "userListAddUserButton">Add User</button>
-	</div>
-</template>
-
-<template id = "adminUserListUserTemplate">
-	<div class = "userListUserDiv">
-		<div class = "userListUserName"></div>
-		<div class = "userListUserColor"></div>\
-		<div class = "userListUserLastVerified"></div>
-		<div class = "userListUserButtons">
-			<button class = "userListEditUserButton">Edit User</button>
-			<button class = "userListDeleteUserButton">X</button>
-		</div>
-	</div>
-</template>
-
 <template id = "adminMainPageTemplate">
 	<div id = "adminMainPage">
 		<div id = "adminMainPageMainColumn">
@@ -257,6 +239,7 @@
 				<button id = "fallButton">Fall</button>
 				<button id = "springButton">Spring</button>
 			</div>
+			<div id = "adminTeamGridMainLabel">All Teams</div>
 			<div id = "adminMainPageTeamsGridContainer">
 				<div id = "adminMainPageTeamGridLabels">
 					<div>Name</div>
@@ -317,19 +300,21 @@
 
 <template id = "adminMainPageTeamTemplate"> 
 	<div class = "adminMainPageTeamGridTeam">
-		<div class = "adminMainPageTeamGridTeamName"></div>
-		<div class = "adminMainPageTeamGridTeamCoach"></div>
-		<div class = "adminMainPageTeamGridTeamSize"></div>
-		<div class = "adminMainPageTeamGridTeamRank"></div>
-		<div class = "adminMainPageTeamGridTeamButtons">
-			<div class = "adminMainPageTeamGridTeamRankButtons">
-				<button class = "adminMainPageTeamGridTeamUprankButton">
-					<i class = "arrow up"></i>
-				</button>
-				<button class = "adminMainPageTeamGridTeamDownrankButton">
-					<i class = "arrow down"></i>
+		<div class = "adminMainPageTeamGridTeamDetailsWrapper">
+			<div class = "adminMainPageTeamGridTeamName"></div>
+			<div class = "adminMainPageTeamGridTeamCoach"></div>
+			<div class = "adminMainPageTeamGridTeamSize"></div>
+			<div class = "adminMainPageTeamGridTeamRank"></div>
+			<div class = "adminMainPageTeamGridTeamButtons">
+				<div class = "adminMainPageTeamGridTeamRankButtons">
+					<button class = "adminMainPageTeamGridTeamUprankButton">
+						<i class = "arrow up"></i>
+					</button>
+					<button class = "adminMainPageTeamGridTeamDownrankButton">
+						<i class = "arrow down"></i>
+				</div>
+				<button class = "adminMainPageTeamGridTeamDisableButton">Disable</button>
 			</div>
-			<button class = "adminMainPageTeamGridTeamDisableButton">Disable</button>
 		</div>
 	</div>
 </template>

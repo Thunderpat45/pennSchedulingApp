@@ -1,0 +1,38 @@
+
+	<%if(!team.enabled){%>
+    <div class = "adminMainPageTeamGridTeam toggleDisable">
+  <%}else{%>
+    <div class = "adminMainPageTeamGridTeam">
+  <%}%>
+		<div class = "adminMainPageTeamGridTeamDetailsWrapper">
+			<div class = "adminMainPageTeamGridTeamName"><%=team.name%></div>
+			<div class = "adminMainPageTeamGridTeamCoach"><%=team.coach%></div> <!--populate?-->
+			<div class = "adminMainPageTeamGridTeamSize"><%=team.size%></div>
+			<div class = "adminMainPageTeamGridTeamRank"><%=team.rank.allTeams +1%></div>
+			<div class = "adminMainPageTeamGridTeamButtons">
+				<div class = "adminMainPageTeamGridTeamRankButtons">
+                    <%if(allTeamsLength >0 && index == 0){%>
+                        <button class = "adminMainPageTeamGridTeamDownrankButton">
+                          <i class = "arrow down"></i>
+                        </button>
+                      <%}else if(allTeamsLength >0 && index == allTeamsLength - 1){%>
+                        <button class = "adminMainPageTeamGridTeamUprankButton">
+                          <i class = "arrow up"></i>
+                        </button>
+                      <%}else if(allTeamsLength >0){%>
+                        <button class = "adminMainPageTeamGridTeamUprankButton">
+                          <i class = "arrow up"></i>
+                        </button>
+                        <button class = "adminMainPageTeamGridTeamDownrankButton">
+                          <i class = "arrow down"></i>
+                        </button>
+                      <%}%>		
+				</div>
+        <%if(!team.enabled){%>
+          <button class = "adminMainPageTeamGridTeamDisableButton">Enable</button>
+        <%}else{%>
+          <button class = "adminMainPageTeamGridTeamDisableButton">Disable</button>
+        <%}%>
+			</div>
+		</div> 
+	</div>

@@ -1,0 +1,19 @@
+
+	<div class = "adminUserGridUser">
+		<div class = "adminUserGridUserName"><%=`Name: ${user.name}`%></div>
+		<div class = "adminUserGridUserColor">
+			<p class = "adminUserColorLabel">Color:</p>
+			<div class = "adminUserColor" style = "background-color: <%=user.color%>">
+            </div>
+		</div>
+        <%if(user.privilege){%>
+            <div class = "adminUserGridUserPrivilege">Privilege: Admin</div>
+        <%}else{%>
+            <div class = "adminUserGridUserPrivilege">Privilege: User</div>
+        <%}%>
+		<div class = "adminUserGridUserLastVerified"><%=`Last Verified: ${user.lastVerified}`%></div>
+		<div class = "adminUserGridUserButtonDiv">
+			<button class = "adminUserGridUserEditButton">Edit User</button>
+			<button class = "adminUserGridUserDeleteButton">Delete User</button>
+		</div>
+	</div>

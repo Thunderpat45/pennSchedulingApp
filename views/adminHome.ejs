@@ -1,0 +1,55 @@
+    <div id = "adminMainPage">
+		<div id = "adminMainPageMainColumn">
+
+			<%- include('./partials/seasonsButtons', {season: season})%>
+			<div id = "adminTeamGridMainLabel">All Teams</div>
+			<div id = "adminMainPageTeamsGridContainer">
+
+				<div id = "adminMainPageTeamGridLabels">
+					<div>Name</div>
+					<div>Coach</div>
+					<div>Size</div>
+					<div>Rank</div>
+					<div>Buttons</div>
+				</div>
+				<div id = "adminMainPageTeamGrid">
+                    <%const allTeamsLength = allTeams.length%>
+                    <%allTeams.forEach(function(team, index){%>
+                        <%- include('./partials/adminHomePage/teamTemplate', {allTeamsLength: allTeamsLength, index: index, team: team})%>
+                        
+                    <%})%>
+                </div>
+
+				<button id ="saveAdminRankChangesButton">Save Rank Changes</button>				
+			</div>
+			<div id = "runScheduleBuilderDiv">
+				<button id = "runScheduleBuilderButton">Run Schedule Builder</button>
+			</div>
+		</div>
+
+		<div id = "adminMainPageSideColumn">
+			<h3 id = "adminOptionsLabel">Admin Options</h3>
+			<div id = "adminUsersGridContainer">
+				<h3>Users</h3>
+				<button id = "adminUsersGridAddUser">Add User</button>
+				<div id = "adminUsersGrid">
+                    <%allUsers.forEach(function(user){%>
+                        <%- include('./partials/adminHomePage/userTemplate', {user: user})%>
+                    <%})%>
+                </div>
+			</div>
+			<div id = "facilityDataGridContainer">
+                <%- include('./partials/adminHomePage/facilityDataTemplate', {facilityRawData, facilityRawData, facilitySelectors:facilitySelectors})%>
+            </div>
+			<div id = "setAllUsersAvailabilityGridContainer">
+				<h3>Add Time Block To All Users</h3>
+				<div id = "adminMainPageAddAvailabilityBlockAllUsersGrid">
+                    <%for(let day in adminTimeBlocks){%>
+                        <%- include('./partials/adminHomePage/adminTimeBlocksTemplate', {day : day, timeBlocks: adminTimeBlocks[day]})%>
+                    <%}%>
+                </div>
+				<button id = "adminMainPageAddAvailabilityBlockAllUsersSaveButton">Save Changes</button>
+				<button id = "adminMainPageAddAvailabilityBlockAllUsersCancelButton">Cancel Changes</button>	
+			</div>
+		</div>
+	</div>

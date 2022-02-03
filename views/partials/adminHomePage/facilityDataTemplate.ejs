@@ -1,0 +1,65 @@
+
+	<div id = "facilityDataGrid">
+		<h3>Facility Options</h3>
+		<div id = "adminMainPageFacilitySelectorsWrapper">
+			<div id ="adminMainPageFacilitySelectorsGrid">
+				<div id = "adminMainPageFacilityHoursSelectorsOpen">
+					<p>Open</p>
+					<select class = "facilityOpen selector">
+                        <%if(facilitySelectors.facilityOpen == "default"){%>
+                            <option value = "default" selected = "true">--</option>
+                        <%}else{%>
+                            <option value = "default">--</option>
+                        <%}%>
+                        <option value = "default">--</option>
+                        <%for(let i = facilityRawData.open.start; i<=facilityRawData.open.end; i+=facilityRawData.open.increment){%>
+                            <%if(i == facilitySelectors.facilityOpen){%>
+                                <option selected = "true" value = <%=`${i}`%>><%=timeConverter.runConvertTotalMinutesToTime(i)%></option>
+                            <%}else{%>
+                                <option value = <%=`${i}`%>><%=timeConverter.runConvertTotalMinutesToTime(i)%></option>
+                            <% }%> 
+                        <%}%>
+                    </select>
+				</div>
+				<div id = "adminMainPageFacilityHoursSelectorsClose">
+					<p>Close</p>
+					<select class = "facilityClose selector">
+                        <%if(facilitySelectors.facilityClose == "default"){%>
+                            <option value = "default" selected = "true">--</option>
+                        <%}else{%>
+                            <option value = "default">--</option>
+                        <%}%>
+                        <%for(let i = facilityRawData.close.start; i<=facilityRawData.close.end; i+=facilityRawData.close.increment){%>
+                            <%if(i == facilitySelectors.facilityClose){%>
+                                <option selected = "true" value = <%=`${i}`%>><%=timeConverter.runConvertTotalMinutesToTime(i)%></option>
+                            <%}else if(i < facilitySelectors.facilityOpen + 30){%>
+                                <option disabled = "true" value = <%=`${i}`%>><%=timeConverter.runConvertTotalMinutesToTime(i)%></option>
+                            <%}else{%>
+                                <option value = <%=`${i}`%>><%=timeConverter.runConvertTotalMinutesToTime(i)%></option>
+                            <% }%> 
+                        <%}%>  
+                    </select>
+				</div>
+				<div id = "adminMainPageFacilityCapacitySelectorsMax">
+					<p>Max Capacity</p>
+					<select class = "facilityMaxCapacity selector">
+                        <%if(facilitySelectors.facilityMaxCapacity == "default"){%>
+                            <option value = "default" selected = "true">--</option>
+                        <%}else{%>
+                            <option value = "default">--</option>
+                        <%}%>
+                        <%for(let i = facilityRawData.maxCapacity.start; i<=facilityRawData.maxCapacity.end; i+=facilityRawData.maxCapacity.increment){%>
+                            <%if(i == facilitySelectors.facilityMaxCapacity){%>
+                                <option selected = "true" value = <%=`${i}`%>><%=i%></option>
+                            <%}else{%>
+                                <option value = <%=`${i}`%>><%=i%></option>
+                            <% }%> 
+                        <%}%>
+                    </select>
+				</div>
+			</div>
+			<button id = "adminMainPageFacilitySelectorsSaveButton">Save Changes</button>
+			<button id = "adminMainPageFacilitySelectorsCancelButton">Cancel Changes</button>
+		</div>
+	</div>
+

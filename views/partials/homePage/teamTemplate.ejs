@@ -1,41 +1,42 @@
 
     <div class = "teamGridTeam">
-      <div class = "teamGridTeamNameSizeContainer">
-        <div class = "teamGridTeamName"><%=team.name%></div>
-        <div class = "teamGridTeamSize"><%=team.size%></div>
-        <div class = "teamGridTeamLastVerified">Last Verified: <%=team.lastVerified%> </div>
-      </div>
-      <div class = "teamGridTeamOptionContainer">
-          <%team.allOpts.forEach(function(option, index){%>
-            <% const optNum = index + 1%>
-            <%- include('./teamOptionTemplate', {optNum: optNum, option: option, timeConverter:timeConverter})%>
-          <%})%>
-      </div>
-      <div class = "teamGridTeamButtons">
-        <div class = "teamRankButtons">
-            <%if(allTeamsLength >0 && index == 0){%>
-              <button class = "moveOptionDownButton">
-                <i class = "arrow down"></i>
-              </button>
-            <%}else if(allTeamsLength >0 && index == allTeamsLength - 1){%>
-              <button class = "moveOptionUpButton">
-                <i class = "arrow up"></i>
-              </button>
-            <%}else if(allTeamsLength >0){%>
-              <button class = "moveOptionUpButton">
-                <i class = "arrow up"></i>
-              </button>
-              <button class = "moveOptionDownButton">
-                <i class = "arrow down"></i>
-              </button>
-            <%}%>
+      <div class = teamGridTeamDetailsWrapper>
+        <div class = "teamGridTeamNameSizeContainer">
+          <div class = "teamGridTeamName"><%=team.name%></div>
+          <div class = "teamGridTeamSize"><%=`${team.size} athletes`%></div>
+          
         </div>
-        <div class = "verifyEditTeamDiv">
-          <button class = "teamGridTeamVerifyButton">Verify</button>
-          <button class = "teamGridTeamEditButton">Edit</button>
+        <div class = "teamGridTeamOptionContainer">
+            <%team.allOpts.forEach(function(option, index){%>
+              <% const optNum = index + 1%>
+              <%- include('./teamOptionTemplate', {optNum: optNum, option: option, timeConverter:timeConverter})%>
+            <%})%>
         </div>
-        <div class = "deleteTeamDiv">
-          <button class = "teamGridTeamDeleteButton">X</button>
-        </div>	
+        <div class = "teamGridTeamButtons">
+          <div class = "teamRankButtons">
+              <%if(allTeamsLength >0 && index == 0){%>
+                <button class = "moveOptionDownButton">
+                  <i class = "arrow down"></i>
+                </button>
+              <%}else if(allTeamsLength >0 && index == allTeamsLength - 1){%>
+                <button class = "moveOptionUpButton">
+                  <i class = "arrow up"></i>
+                </button>
+              <%}else if(allTeamsLength >0){%>
+                <button class = "moveOptionUpButton">
+                  <i class = "arrow up"></i>
+                </button>
+                <button class = "moveOptionDownButton">
+                  <i class = "arrow down"></i>
+                </button>
+              <%}%>
+          </div>
+          <div class = "verifyEditDeleteTeamDiv">
+            <button class = "teamGridTeamVerifyButton">Verify</button>
+            <button class = "teamGridTeamEditButton">Edit</button>
+            <button class = "teamGridTeamDeleteButton">X</button>
+          </div>	
+        </div>
       </div>
+      <div class = "teamGridTeamLastVerified">Last Verified: <%=team.lastVerified%> </div>
     </div>

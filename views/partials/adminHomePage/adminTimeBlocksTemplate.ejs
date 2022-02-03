@@ -1,0 +1,15 @@
+<div class = "adminTimeBlockDay">
+    <h3><%=day%></h3>
+    <%adminTimeBlocks[day].forEach(function(timeBlock){%>
+        <div class = "adminMainPageAddAvailabilityBlockAllUsersBlock">
+            <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockStart">
+                <p><%=`Start Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.startTime)}`%></p>
+            </div>
+            <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockEnd">
+                <p><%=`End Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.endTime)}`%></p>
+        </div>
+    </div>
+    <%})%>
+</div>
+	
+    

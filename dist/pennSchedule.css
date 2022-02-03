@@ -43,7 +43,7 @@ header{
 	justify-content:left;
 	margin-left: 1rem;
 	font-size: 1.5rem;
-	flex-grow: 3;
+	flex-grow: 2;
 }
 
 #nav{
@@ -76,7 +76,7 @@ main, .page{
 
 #mainPage, #adminMainPage{
 	display:grid;
-	grid-template-columns: 4fr 1fr;
+	grid-template-columns: 4fr 1.5fr;
 	grid-template-areas: 
 	"mainColumn sideColumn";
 }
@@ -100,20 +100,24 @@ main, .page{
 	display:grid;
 	grid-template-columns: 1fr;
 	width: 85%;
-	background-color:grey;
-	margin: 3rem auto 0 auto;
+	background-color:#9898dd;
+	margin: 2rem auto 0 auto;
 	border: #011F5b solid;
 	border-width: 1rem 1rem .5rem 1rem;
-	padding: 0 0 .5rem 0;
 	text-align:center;
-	opacity: .95
+	opacity: .9
+}
+#teamGridMainLabel, #adminTeamGridMainLabel{
+	font-size: 3rem;
+	text-align: center;
+	padding-top: 2rem;
 }
 
 #teamGridLabels{
 	display:grid;
 	padding: .5rem 0;
-	background-color: #9898dd;
-	grid-template-columns: 1fr 1fr .625fr 1.25fr .625fr 2fr;
+	background-color: white;
+	grid-template-columns: 1fr 1fr .625fr 1.25fr .625fr 1.5fr;
 	border-bottom: solid .5rem #011F5b;
 }
 
@@ -126,11 +130,15 @@ main, .page{
 }
 
 .teamGridTeam{
-	display:grid;
-	grid-template-columns: 1fr 3.5fr 2fr;
-	align-items: center;
 	border-bottom:solid .5rem #011F5b;
 	padding: 1.5rem 0;
+}
+
+.teamGridTeamDetailsWrapper{
+	display:grid;
+	grid-template-columns: 1fr 3.5fr 1.5fr;
+	align-items: center;
+	margin: 0 0 1rem 0;
 }
 
 .teamGridTeamNameSizeContainer{
@@ -149,7 +157,7 @@ main, .page{
 	border: .1rem solid #011F5b;
 	display:flex;
 	align-items: center;
-	background-color: #ffffffaa;
+	background-color: #ffffffff;
 	
 }
 
@@ -166,15 +174,16 @@ main, .page{
 
 .teamGridTeamButtons{
 	display:grid;
-	grid-template-columns:1fr 1fr 1fr;
+	grid-template-columns:1fr 1fr;
 	padding: 0 1rem;
 	align-items: center;
 }
 
-.teamRankButtons, .verifyEditTeamDiv, .deleteTeamDiv, .adminMainPageTeamGridTeamButtons{
+.teamRankButtons, .verifyEditDeleteTeamDiv, .adminMainPageTeamGridTeamButtons{
 	display:flex;
 	flex-direction: column;
 	margin: 0 .5rem;
+	gap: 15px;
 }
 
 .teamGridTeamEditButton, .adminUserGridUserEditButton{
@@ -305,7 +314,7 @@ main, .page{
 }
 
 #teamGridAddTeam, #saveAdminRankChangesButton{
-	margin: 30px 30% auto 30%;
+	margin: 1.5rem 30%;
 	height: 50px;
 	width: 40%
 }
@@ -516,18 +525,25 @@ main, .page{
 
 #adminMainPageTeamGridLabels{
 	display:grid;
-	padding: .5rem 0;
-	background-color: #9898dd;
+	padding: .5rem 4rem;
+	background-color: white;
 	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 	border-bottom: solid .5rem #011F5b;
 }
 
 .adminMainPageTeamGridTeam{
+	border-bottom:solid .5rem #011F5b;
+	padding: 1.5rem 0;
+}
+
+.adminMainPageTeamGridTeamDetailsWrapper{
 	display:grid;
 	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 	align-items: center;
-	border-bottom:solid .5rem #011F5b;
-	padding: 1.5rem 0;
+	border: 0.1rem solid #011F5b;
+	background-color: white;
+	margin:0 3rem;
+	padding: 1rem;
 }
 
 .adminMainPageTeamGridTeamButtons{
@@ -542,7 +558,7 @@ main, .page{
 
 .toggleDisable{
 	opacity: .5;
-	background-color: rgb(201, 201, 201);
+	background-color: rgb(132, 129, 129);
 }
 
 #adminUsersGridContainer > h3{
@@ -719,4 +735,11 @@ main, .page{
 #userGeneratorButtonsDiv button{
 	width: 50%;
 	justify-self: center;
+}
+
+#logInForm{
+	margin: 5rem;
+	border: #011F5b solid;
+	border-width: 1rem 1rem .5rem 1rem;
+	background-color: grey;
 }
