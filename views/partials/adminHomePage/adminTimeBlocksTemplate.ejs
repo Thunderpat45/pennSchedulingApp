@@ -1,15 +1,20 @@
 <div class = "adminTimeBlockDay">
     <h3><%=day%></h3>
-    <%adminTimeBlocks[day].forEach(function(timeBlock){%>
+    <button class = "adminMainPageAddAvailabilityBlockAllUsersBlockAddButton">Add Block</button>
+    <div class = "adminMainPageAddAvailabilityBlockAllUsersAllBlocks">
+        <%adminTimeBlocks[day].forEach(function(timeBlock){%>
         <div class = "adminMainPageAddAvailabilityBlockAllUsersBlock">
             <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockStart">
                 <p><%=`Start Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.startTime)}`%></p>
             </div>
             <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockEnd">
                 <p><%=`End Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.endTime)}`%></p>
+            </div>
+            <button class = "adminMainPageAddAvailabilityBlockAllUsersBlockEditButton">Edit Block</button>
+			<button class = "adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton">Delete Block</button>
         </div>
+        <%})%>
     </div>
-    <%})%>
 </div>
 	
     

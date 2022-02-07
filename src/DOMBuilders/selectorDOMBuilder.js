@@ -1,30 +1,10 @@
 import {events} from "../events"
 import {timeValueConverter} from "../timeConverter"
-/*
-
-purpose: creates and populates reusable select DOM elements for various pages
-
-facilitySelector object format is as such:
-
-obj = {
-    facilityOpen,
-    facilityClose,
-    facilityMaxCapacity
-}
-
-publishes:
-    selection DOM elements FOR multiple DOM modules
-
-subscribes:
-    admin facilitySelector data FROM mainPageModel
-    user facilitySelector data FROM mainPageModel
-
-*/
 
 const selectorBuilder = (function(){ 
 
     //default values must be input (into database?) for facilityOpen/Close/MaxCapacity BEFORE first time running, or startTime/endTime/teamSize will have errors!
-    const selectionOptions = { 
+    const selectionRanges = { 
         startTime: {
             start: null,
             end: null,
@@ -58,33 +38,24 @@ const selectorBuilder = (function(){
         dayOfWeek: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], 
         inWeiss: ["yes", "no"],
     };
-
-    const selectors = {}
     
-    events.subscribe("adminSelectorsRequested", setAdminSelectionOptions);
-    events.subscribe("userSelectorsRequested", setUserSelectionOptions); 
+    events.subscribe("SOME DATA BASE FETCH FIX THIS FIX THIS", setSelectorRanges);
+    
 
-    function setAdminSelectionOptions(selectorsModel){
-        setSelectionOptions(selectorsModel);
-        events.publish("adminSelectorsBuilt", selectors) 
+    //call this after dbFetch
+    function setSelectorRanges(databaseRanges){
+        selectionRanges.startTime.start = databaseRanges.facilityOpen;
+        selectionRanges.endTime.start = databaseRanges.facilityOpen + 30;
+        selectionRanges.startTime.end = databaseRanges.facilityClose - 30;
+        selectionRanges.endTime.end = databaseRanges.facilityClose;
+        selectionRanges.teamSize.end = databaseRanges.facilityMaxCapacity;
     }
 
-    function setUserSelectionOptions(selectorsModel){
-        setSelectionOptions(selectorsModel);
-        events.publish("userSelectorsBuilt", selectors) 
+    function runBuildSelector(primaryClass){
+        return buildSelector(primaryClass)
     }
 
-    function setSelectionOptions(selectorsModel){
-        selectionOptions.startTime.start = selectorsModel.facilityOpen;
-        selectionOptions.endTime.start = selectorsModel.facilityOpen + 30;
-        selectionOptions.startTime.end = selectorsModel.facilityClose - 30;
-        selectionOptions.endTime.end = selectorsModel.facilityClose;
-        selectionOptions.teamSize.end = selectorsModel.facilityMaxCapacity;
-        
-        for(let option in selectionOptions){
-            selectors[option] = buildSelector(option);
-        }
-    }
+    
 
     function buildSelector(primaryClass){
         const selection = document.createElement("select");
@@ -117,11 +88,13 @@ const selectorBuilder = (function(){
                 break;
         }
 
+        selection.addEventListener("change", disableDefaultOption)
+
         return selection
     }
 
     function buildArraySelectorOptions(primaryClass, selector){
-        const optionValues = selectionOptions[primaryClass];
+        const optionValues = selectionRanges[primaryClass];
         optionValues.forEach(function(optionValue){
             const option = document.createElement("option");
             option.value = optionValue;
@@ -131,7 +104,7 @@ const selectorBuilder = (function(){
     }
 
     function buildRangeSelectorOptions(primaryClass, selector){
-        const optionValues = selectionOptions[primaryClass];
+        const optionValues = selectionRanges[primaryClass];
         for(let i = optionValues.start; i<=optionValues.end; i += optionValues.increment){
             const option = document.createElement("option");
             option.value = i;
@@ -163,7 +136,12 @@ const selectorBuilder = (function(){
         })
     }
 
-    
+    function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+        const values = Array.from(this.children);
+        values[0].disabled = true;
+    }
+
+    return {runBuildSelector}
 
 })();
 
