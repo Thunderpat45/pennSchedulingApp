@@ -24,14 +24,13 @@ function setElements(){
     const content = document.importNode(template.content, true);
 
     const name = content.querySelectorAll("#userGeneratorName");                  
-    const password = content.querySelector("#userGeneratorPassword");
     const privilege = content.querySelector("#userGeneratorPrivilege");
     const color = content.querySelector("#userGeneratorColor");
 
     const saveButton = content.querySelector("#userGeneratorSaveButton");
     const cancelButton = content.querySelector("#userGeneratorCancelButton"); 
 
-    return {content, name, password, privilege, color, saveButton, cancelButton}
+    return {content, name, privilege, color, saveButton, cancelButton}
 }
 
 

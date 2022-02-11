@@ -58,6 +58,7 @@ function setTemplateElements(){
 
 
 function setElementsContent(teamElement, teamData){
+    teamElement.div.setAttribute("data-teamId", teamData._id)
     teamElement.name.innerText = teamData.name;
     teamElement.coach.innerText = teamData.coach;
     teamElement.size.innerText = `${teamData.size} athletes`;
@@ -66,20 +67,24 @@ function setElementsContent(teamElement, teamData){
 
 
 function setEventListeners(teamElement, teamData){
+
+    const index = teamData.rank.allTeams;
+    const {_id} = teamData
+
     teamElement.uprank.addEventListener("click", moveAdminRankUp);
     teamElement.downrankButton.addEventListener("click", moveAdminRankDown);
     teamElement.disableButton.addEventListener("click", toggleDisable);
 
     function moveAdminRankUp(){ 
-        events.publish("modifyAdminTeamOrder", {index: teamData.rank.allTeams, modifier: -1})
+        events.publish("modifyAdminTeamOrder", {index, modifier: -1})
     }
 
     function moveAdminRankDown(){
-        events.publish("modifyAdminTeamOrder", {index: teamData.rank.allTeams, modifier: 1})
+        events.publish("modifyAdminTeamOrder", {index, modifier: 1})
     }
 
     function toggleDisable(){
-        events.publish("modifyTeamEnabled", {index: teamData.rank.allTeams}) //and this
+        events.publish("modifyTeamEnabled", {index, _id})
     }
 }
 

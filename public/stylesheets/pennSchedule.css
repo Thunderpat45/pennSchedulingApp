@@ -752,3 +752,22 @@ main, .page{
 #logInFormWrapper{
 	padding: 5rem;
 }
+
+#entryForm{
+	position: fixed;
+	left: 20%;
+	top: 25%;
+	margin: auto;
+	width: 60%;
+	background: grey;
+
+
+}
+
+.formHidden{
+	display:none;
+}
+
+.toggleScrollBar{
+	overflow: hidden;
+}

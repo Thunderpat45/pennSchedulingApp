@@ -1,5 +1,5 @@
 //ADMIN TEAMS DIV;; CONTINUATION TBD!
-import { events } from "../../events";
+import { events } from "../../../events";
 
 //adminTimeBlocker display is blockGrid (allTimeBlocks), saveChanges, cancelChanges buttons; dataModel issue to determine when to write changes to allUsers (FE or BE)
 function renderAdminTimeBlockDay(adminTimeBlockDayData){
@@ -11,9 +11,9 @@ function renderAdminTimeBlockDay(adminTimeBlockDayData){
     const dayAllBlocksDivNew = document.createElement("div");
     dayAllBlocksDivNew.classList.add("adminMainPageAddAvailabilityBlockAllUsersAllBlocks")
 
-    adminTimeBlockDayData.forEach(function(timeBlock){
-        const blockNumber = blocks.indexOf(timeBlock);
-        const row = buildBlockRow(day, blockNumber, timeBlock);
+    adminTimeBlockDayData.forEach(function(timeBlockData){
+        const blockNumber = blocks.indexOf(timeBlockData);
+        const row = buildBlockRow(day, blockNumber, timeBlockData);
         dayAllBlocksDivNew.appendChild(row)
     })
 
@@ -29,11 +29,11 @@ function renderAdminTimeBlockDay(adminTimeBlockDayData){
 
 
 function buildBlockRow(day, blockNumber, timeBlockData){ 
-    const timeBlockModel = {day, blockNumber, timeBlockData}
+    const timeBlockObj = {day, blockNumber, _id: timeBlockData._id}
 
     const elements = setTemplateElements()
     setElementsContent(elements, timeBlockData);
-    setEventListeners(elements, timeBlockModel);
+    setEventListeners(elements, timeBlockObj);
     
     return elements.content 
 }
@@ -43,31 +43,33 @@ function setTemplateElements(){
     const template = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersBlockTemplate");
     const content = document.importNode(template.content, true);
 
+    const main = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlock");
     const startTimeText = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockStart").firstChild;
     const endTimeText = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEnd").firstChild;
     
     const editButton = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEditButton");
     const deleteButton = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton");
     
-    return {content, startTimeText, endTimeText, editButton, deleteButton}
+    return {main, content, startTimeText, endTimeText, editButton, deleteButton}
 }
 
 
 function setElementsContent(blockElement, blockData){
+    blockElement.main.setAttribute("dataTimeBlockId", blockData._id)
     blockElement.startTimeText.innerText += blockData.startTime;
     blockElement.endTimeText.innerText += blockData.endTime;
 }
 
 
-function setEventListeners(timeBlockElement, timeBlockModel){
+function setEventListeners(timeBlockElement, timeBlockObj){
     timeBlockElement.editButton.addEventListener("click", editAdminTimeBlock);
     timeBlockElement.deleteButton.addEventListener("click", deleteAdminTimeBlock);
 
     function editAdminTimeBlock(){
-        events.publish("editAdminAvailabilityClicked", timeBlockModel)
+        events.publish("editAdminAvailabilityClicked", timeBlockObj)
     }
     function deleteAdminTimeBlock(){
-        events.publish("deleteAdminAvailabilityChangesClicked", timeBlockModel)
+        events.publish("deleteAdminAvailabilityChangesClicked", timeBlockObj)
     }
 }
 

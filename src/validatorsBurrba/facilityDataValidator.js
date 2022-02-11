@@ -22,22 +22,18 @@ const facilityDataValidator = (function(){
     events.subscribe("adminFacilityDataValidationRequested", validateAdminFacilityData);
     
     function validateAdminFacilityData(facilityData){
-        const string = "A non-default value must be selected for the following: ";
+        const string = "A non-default value must be selected for the following:";
         const emptySelectors = [];
   
         for(let prop in facilityData){
             if(facilityData[prop] == "default"){
                 emptySelectors.push(prop);
-                if(emptySelectors.length >1){
-                    string.concat(", ", prop);
-                }else{
-                    string.concat(prop);
-                }
+            string.concat(", ", prop);
             }
         }
 
         if(emptySelectors.length > 0){
-            alert(string) //change this to return errorContent to form
+            alert(string)
         }else{
             events.publish("adminFacilityDataValidated", facilityData)
         }

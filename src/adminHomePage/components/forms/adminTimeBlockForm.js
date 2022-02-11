@@ -9,7 +9,7 @@ function renderTimeBlockDataForm(adminTimeBlockDayData){
 
     const elements = setElements();
     populateSelectors(elements, adminTimeBlockDayData);
-    setEventListeners(elements);
+    setEventListeners(elements, adminTimeBlockDayData);
 
     if(formDiv.firstChild){
         while(formDiv.firstChild){
@@ -59,7 +59,7 @@ function populateSelectors(selectorElements, timeBlockData){
         function publishSelectionValueChange(){
             const modifiedSelector = primaryClass
             const value = selector.value;
-            events.publish("modifyFacilitySelectorValue", {modifiedSelector, value})
+            events.publish("modifyAdminTimeBlockSelectorValue", {day: timeBlockData.day, _id: timeBlockData._id, modifiedSelector, value})
         }
 
         selector.replaceWith(selectorNew)
@@ -67,20 +67,20 @@ function populateSelectors(selectorElements, timeBlockData){
 }
 
 
-function setEventListeners(selectorElements){
+function setEventListeners(selectorElements, timeBlockData){
 
     selectorElements.saveButton.addEventListener("click", updateTimeBlockData);
     selectorElements.cancelButton.addEventListener("click", cancelTimeBlockChanges);
 
     function updateTimeBlockData(){
-        events.publish("updateFacilityDataClicked");
+        events.publish("updateFacilityDataClicked", timeBlockData);
     }
     function cancelTimeBlockChanges(){
         events.publish("cancelFacilityDataChangesClicked") //check this path
     }
 }
 
-function createErrorText(selectorSavedData){
+function createErrorText(selectorSavedData){ //change this to li's appended to ul
     const errorText = document.createElement("p");
     errorText.innerText = `Your selected value of ${timeValueConverter.runConvertTotalMinutesToTime(selectorSavedData)} has been invalidated by a change to the opening/closing times for the facility. Speak with your supervisor to address this or change this value.`
     

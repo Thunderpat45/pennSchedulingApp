@@ -41,6 +41,8 @@ function setTemplateElements(){
     const template = document.querySelector("#adminMainPageUserGridUserTemplate");
     const content = document.importNode(template.content, true);
 
+    const div = content.querySelector(".adminUserGridUser")
+
     const name = content.querySelector(".adminUserGridUserName");
     const privilege = content.querySelector(".adminUserGridUserPrivilege");
     const lastVerified = content.querySelector(".adminUserGridUserLastVerified");
@@ -49,11 +51,12 @@ function setTemplateElements(){
     const editButton = content.querySelector(".adminUserGridUserEditButton");
     const deleteButton = content.querySelector(".adminUserGridUserDeleteButton");
 
-    return {content, name, privilege, lastVerified, colorBlock, editButton, deleteButton}
+    return {content, div, name, privilege, lastVerified, colorBlock, editButton, deleteButton}
 }
 
 
 function setElementsContent(userElement, userData){
+    userElement.div.setAttribute("data-userId", userData._id)
     userElement.name.innerText = `Name: ${userData.name}`;
     if(userData.privilegeLevel){
         userElement.privilege.innerText = `Privilege: Admin`

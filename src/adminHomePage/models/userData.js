@@ -28,8 +28,8 @@ subscribes to:
 
 const adminUserDataModel = (function(){
     //no obvious issues, ensure that password does not come to front-end
-    let userModel;
-    let userModelCopy;
+    let userModelStable;
+    let userModelMutable;
 
     events.subscribe("modifyUserNameValue", setName);
     events.subscribe("modifyUserPrivilegeLevelValue", setPrivilegeLevel)
@@ -40,14 +40,14 @@ const adminUserDataModel = (function(){
     
     
     function populateUserModel(userData){
-        userModel = Object.assign({}, userData);
-        userModelCopy = Object.assign({}, userModel)
+        userModelStable = Object.assign({}, userData);
+        userModelMutable = Object.assign({}, userModelStable)
 
-        events.publish("userModelPopulated", userModel)
+        events.publish("userModelPopulated", userModelMutable)
     }
     
     function createNewUser(){
-        userModel = {
+        userModelStable = {
             name: "",
             color: "#000000",
             privilegeLevel: false,
@@ -57,30 +57,30 @@ const adminUserDataModel = (function(){
             adminPageSet: null,
             season: "fall"
         };
-        userModelCopy = Object.assign({}, userModel);
+        userModelMutable = Object.assign({}, userModelStable);
 
-        events.publish("userModelPopulated", userModel)
+        events.publish("userModelPopulated", userModelMutable)
     }
 
     function setName(name){
-        userModelCopy.name = name;
+        userModelMutable.name = name;
     }
 
     function setColor(color){
-        userModelCopy.color = color
+        userModelMutable.color = color
     }
 
     function setPrivilegeLevel(privilege){
-        userModelCopy.privilegeLevel = privilege;
+        userModelMutable.privilegeLevel = privilege;
         if(privilege == false){
-            userModelCopy.adminPageSet = null
+            userModelMutable.adminPageSet = null
         }else{
-            userModelCopy.adminPageSet = "admin"
+            userModelMutable.adminPageSet = "admin"
         }
     }
 
     function validateChanges(){
-        events.publish("userDataValidationRequested", {newData: userModelCopy, existingData:userModel})
+        events.publish("userDataValidationRequested", {newData: userModelMutable, existingData:userModelStable})
     }
 
 })()
