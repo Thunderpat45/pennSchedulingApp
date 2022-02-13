@@ -1,16 +1,16 @@
 
-	<div id = "facilityDataGrid">
+	<div id = "facilityDataGrid" data-facilitydataid = "<%=facilityData._id%>"> <!--is this attribute real?-->
 		<h3>Facility Options</h3>
 		<div id = "adminMainPageFacilitySelectorsWrapper">
 			<div id ="adminMainPageFacilitySelectorsGrid">
 				<div id = "adminMainPageFacilityHoursSelectorsOpen">
-					<p>Open Time : <%=timeConverter.runConvertTotalMinutesToTime(facilitySelectors.facilityOpen)%></p>
+					<p>Open Time : <%=timeConverter.runConvertTotalMinutesToTime(facilityData.facilityOpen)%></p>
 				</div>
 				<div id = "adminMainPageFacilityHoursSelectorsClose">
-					<p>Close Time : <%=timeConverter.runConvertTotalMinutesToTime(facilitySelectors.facilityClose)%></p>
+					<p>Close Time : <%=timeConverter.runConvertTotalMinutesToTime(facilityData.facilityClose)%></p>
 				</div>
 				<div id = "adminMainPageFacilityCapacitySelectorsMax">
-					<p>Max Capacity : <%=facilitySelectors.facilityMaxCapacity%></p>
+					<p>Max Capacity : <%=facilityData.facilityMaxCapacity%></p>
 				</div>
 			</div>
 			<button id = "adminMainPageFacilitySelectorsEditButton">Edit</button> <!--make this whole thing look nicer-->

@@ -1,8 +1,8 @@
 
 	<%if(!team.enabled){%>
-    <div class = "adminMainPageTeamGridTeam toggleDisable">
+    <div class = "adminMainPageTeamGridTeam toggleDisable" data-teamId = "<%=`${team._id}`%>">
   <%}else{%>
-    <div class = "adminMainPageTeamGridTeam">
+    <div class = "adminMainPageTeamGridTeam" data-teamid = "<%=`${team._id}`%>">
   <%}%>
 		<div class = "adminMainPageTeamGridTeamDetailsWrapper">
 			<div class = "adminMainPageTeamGridTeamName"><%=team.name%></div>

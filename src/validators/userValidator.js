@@ -1,38 +1,20 @@
-import { events } from "../events";
+import { events } from "../../src/events";
 
-/*purpose: validator for user dataModel updates
-
-userObject is modeled as such:
-
-    {
-        name,
-        color,
-        privilegeLevel,
-        teams:{},
-        availability:{},
-        lastVerified
-    }, 
-
-publishes:
-    successful validations FOR adminAllUsersDataModel
-   
-subscribes to: 
-    validation requests FROM adminUserDataModel
-*/
-
-const userValidator = (function(){
-    //no obvious issues
+const userDataValidator = (function(){
+    
     events.subscribe("userDataValidationRequested", validateAllInputs);
     
+    //
     function validateAllInputs(adminUserData){
+        const {userData, origin} = adminUserData
+
         const errorArray = [];
 
-        validateUserName(adminUserData.newData, errorArray); 
-        validateColor(adminUserData.newData, errorArray)
+        validateUserName(userData, errorArray); 
+        validateColor(userData, errorArray)
 
         if(errorArray.length > 0){
-            const errorAlert = errorArray.join(" ");
-            alert(errorAlert);
+            events.publish("userDataValidationFailed", {errors: errorArray, origin});
         }else{
             events.publish("userDataValidated", adminUserData);
         }
@@ -63,8 +45,6 @@ const userValidator = (function(){
         }
 
     }
-
-
 })()
 
-export {userValidator}
+export {userDataValidator}

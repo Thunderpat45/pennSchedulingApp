@@ -20,7 +20,8 @@
                     <%})%>
                 </div>
 
-				<button id ="saveAdminRankChangesButton">Save Rank Changes</button>				
+				<button id ="saveAdminRankChangesButton">Save Rank Changes</button>
+				<button id ="cancelAdminRankChangesButton">Cancel Rank Changes</button>				
 			</div>
 			<div id = "runScheduleBuilderDiv">
 				<button id = "runScheduleBuilderButton">Run Schedule Builder</button>
@@ -33,13 +34,18 @@
 				<h3>Users</h3>
 				<button id = "adminUsersGridAddUser">Add User</button>
 				<div id = "adminUsersGrid">
-                    <%allUsers.forEach(function(user){%>
-                        <%- include('./partials/adminHomePage/userTemplate', {user: user})%>
-                    <%})%>
+					<%if(allUsers.length > 0){%>
+						<%allUsers.forEach(function(user){%>
+							<%- include('./partials/adminHomePage/userTemplate', {user: user})%>
+						<%})%>
+					<%}else{%>
+						<p>No users! This shouldn't be possible, considering you are one of the users!</p>
+					<%}%>
+                   
                 </div>
 			</div>
 			<div id = "facilityDataGridContainer">
-                <%- include('./partials/adminHomePage/facilityDataGrid', {facilityRawData, facilityRawData, facilitySelectors:facilitySelectors})%>
+                <%- include('./partials/adminHomePage/facilityDataGrid', {facilityRawData, facilityRawData, facilityData:facilityData})%>
             </div>
 			<div id = "setAllUsersAvailabilityGridContainer">
 				<h3>Add Time Block To All Users</h3>
@@ -135,7 +141,9 @@
 				</div>
 			<button id = "adminMainPageFacilitySelectorsSaveButton">Save</button>
 			<button id = "adminMainPageFacilitySelectorsCancelButton">Cancel</button>
-			<div id = "adminMainPageFacilityGeneralErrorDiv"></div>
+			<div id = "adminMainPageFacilityGeneralErrorDiv">
+				<ul id = "adminMainPageFacilityGeneralErrorList"></ul>
+			</div>
 		</div>
 	</template>
 
@@ -156,7 +164,9 @@
 				</div>
 			<button id = "adminDayTimeBlockFormSaveButton">Save</button>
 			<button id = "adminDayTimeBlockFormCancelButton">Cancel</button>
-			<div id = "adminDayTimeBlockGeneralErrorDiv"></div>
+			<div id = "adminDayTimeBlockGeneralErrorDiv">
+				<ul id = "adminDayTimeBlockGeneralErrorList"></ul>
+			</div>
 		</div>
 	</template>
 
@@ -183,6 +193,12 @@
 					<button id = "userGeneratorSaveButton">Save Changes</button>
 					<button id = "userGeneratorCancelButton">Cancel Changes</button>
 				</div>
-				<div id = "userGeneratorGeneralErrorDiv"></div>
+				<div id = "userGeneratorGeneralErrorDiv">
+					<ul id = "userGeneratorGeneralErrorList"></ul>
+				</div>
 			</div>
 	</template>
+
+	<%- contentFor('script') %>
+
+	<script src = "/javascripts/adminHomePage.js"></script>

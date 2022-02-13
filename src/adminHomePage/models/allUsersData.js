@@ -1,89 +1,67 @@
-import {events} from "../../events"
+import {events} from "../../../src/events"
 
-/*purpose: dataModel for selecting individual user from allUsers to add/edit/delete
+const allUsersData = (function(){
 
-adminAllUsers array is modeled as such:
-
-allUsers = 
-	[
-		{
-            name,
-            color,
-            privilegeLevel,
-            teams:{},
-            availability:{},
-            lastVerified,
-			adminPageSet,
-            season
-        }, 
-		{etc}, {etc}
-	]
-
-	teamOrderObj obj is modeled as follows: {index, modifier}
-
-publishes:
-    user data FOR adminUserDataModel edits /adminUserGenerator DOM display
-	verified user addition/edits or deletions FOR database
-
-subscribes to: 
-    adminMainPageModel builds FROM adminMainPageModel
-    userData change validations FROM userValidator
-	requests to edit/delete a user FROM adminMainPageDOM
-*/
-
-const adminAllUsersDataModel = (function(){ //continue REVIEW HERE
-	//no obvious issues, find database update listeners for delete/modify/add allUsers, make sure password does not get passed to front-end
 	let allUsersDataStable;
 	let allUsersDataMutable;
 
 	events.subscribe("adminDataFetched", setDataNewPageRender);
-	events.subscribe("", setDataNewDatabasePost) //add prompt for successful save
+	events.subscribe("updateAllUsersModel", setDataNewDatabasePost)
 
-	events.subscribe("editUser", editUser);
-	events.subscribe("deleteUser", deleteUserForDatabaseUpdate);
-	events.subscribe("userDataValidated", postUserForDatabaseUpdate)
+	events.subscribe("editUserClicked", editUser);
+	events.subscribe("deleteUserClicked", deleteUserForDatabaseUpdate); //review/modify this
+	events.subscribe("userDataValidated", updateUserData)
 
 	function setDataNewPageRender(adminAllUsers){
-        allUsersDataStable = adminAllUsers.allUsers; //make sure this is correct property for database initial database fetch
+        allUsersDataStable = adminAllUsers.allUsers;
+		allUsersDataMutable = [];
         createAllUsersDeepCopy(allUsersDataMutable, allUsersDataStable)
     }
 
-    function setDataNewDatabasePost(){
+    function setDataNewDatabasePost(userData){
+		const thisUserIndex = allUsersDataMutable.findIndex(function(user){
+			return user._id == userData._id
+		});
+		if(thisUserIndex != -1){
+			allUsersDataMutable[thisUserIndex] = userData
+		}else{
+			allUsersDataMutable.push(userData);
+		}
+		
         createAllUsersDeepCopy(allUsersDataStable, allUsersDataMutable);
+		events.publish("renderUpdatedUserData", allUsersDataMutable)
     }
 
     function createAllUsersDeepCopy(newArr, copyArr){
-        newArr = copyArr.concat();
+		copyArr.forEach(function(user){
+			const newUserObj = {};
+			for(let prop in user){
+				newUserObj[prop] = user[prop]
+			}
+			newArr.push(newUserObj);
+		})
     }
 
-	function editUser(userData){
+	function editUser(userId){
 		const thisUser = allUsersDataMutable.filter(function(user){
-			return userData._id == user._id
+			return userId == user._id
 		})[0];
-
-		events.publish("userEditDataLoaded", thisUser);
+		
+		events.publish("userDataEditRequested", thisUser);
 	}
 
-	function deleteUserForDatabaseUpdate(userData){
-		if(userData.privilegeLevel == true && !checkForLastAdmin()){
-			const errorString = "Cannot demote last admin. Create new admin users before deleting this admin."
-			events.publish("", errorString); //add prompt about invalidation
+	function deleteUserForDatabaseUpdate(userData){/////review this
+		events.publish("allUsersDataUpdated", {userData}); 
+		
+	}
+
+	function updateUserData(validatedUserData){
+		if(validatedUserData.origin == "edit"){
+			events.publish("userUpdateRequested", validatedUserData.userData) 
 		}else{
-			events.publish("allUsersDataUpdated", {userData}); //find database listener for this, change thsi to deleteRequested?
-		} 	
-	}
-
-	function postUserForDatabaseUpdate(validatedUserData){	
-		events.publish("allUsersDataUpdated", validatedUserData) //find database listener for this, change to postRequested?
-	}
-
-	function checkForLastAdmin(){
-		const adminUsers = allUsersDataMutable.filter(function(user){
-			return user.privilegeLevel == true
-		})
-
-		return adminUsers.length >1
+			events.publish("newUserAdditionRequested", validatedUserData.userData)
+		}
 	}
 })()
 
-export {adminAllUsersDataModel}
+export {allUsersData}

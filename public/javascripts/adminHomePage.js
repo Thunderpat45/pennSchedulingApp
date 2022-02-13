@@ -256,6 +256,7 @@ const adminHomeMain = (function(){
 
     function setAdminEventListeners(){
         setFacilityDataListeners()
+        setUserDataListeners();
     }
 
     function setFacilityDataListeners(){
@@ -265,8 +266,39 @@ const adminHomeMain = (function(){
         function requestAdminDataEdit(){
             _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editFacilityDataClicked");
         }
-    
-    
+    }
+
+    function setUserDataListeners(){
+        const addUserButton = document.querySelector("#adminUsersGridAddUser");
+        
+        const allUsers = Array.from(document.querySelectorAll(".adminUserGridUser"));
+        if(allUsers.length >0){
+            allUsers.forEach(function(user){
+                const _id = user.dataset.userid;
+                const editButton = user.querySelector(".adminUserGridUserEditButton");
+                const deleteButton = user.querySelector(".adminUserGridUserDeleteButton")
+
+                editButton.addEventListener("click", editUser);
+                deleteButton.addEventListener("click", deleteUser);
+
+                function editUser(){
+                    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editUserClicked", _id)
+                }
+                function deleteUser(){
+                    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteUserClicked")	
+                }
+            })
+        }
+
+        //need to add qSAll for edit/delete buttons that listen to appropriate event
+
+
+
+        addUserButton.addEventListener("click", addUser)
+
+        function addUser(){
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("addUserClicked")
+        }
     }
 
 
@@ -467,7 +499,13 @@ const facilityDataFormComponent = (function(){
         selectorElements.cancelButton.addEventListener("click", cancelFacilityDataChanges);
 
         function updateFacilityData(){
-            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateFacilityDataClicked");
+            const confirmation = confirm("Changing facility settings from a longer to a shorter day can create bugs if other users are not informed to adjust. Please speak to other users to notify them of changes before running the schedule builder. Continue?")
+            if(confirmation){
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateFacilityDataClicked");
+            }else{
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("cancelFacilityDataChangesClicked")
+            }
+           
         }
         function cancelFacilityDataChanges(){
             _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("cancelFacilityDataChangesClicked") //check this path
@@ -485,6 +523,168 @@ const facilityDataFormComponent = (function(){
 
 /***/ }),
 
+/***/ "./src/adminHomePage/components/forms/userForm.js":
+/*!********************************************************!*\
+  !*** ./src/adminHomePage/components/forms/userForm.js ***!
+  \********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "userDataFormComponent": () => (/* binding */ userDataFormComponent)
+/* harmony export */ });
+/* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../src/events */ "./src/events.js");
+
+
+const userDataFormComponent = (function(){
+
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataLoaded", renderUserDataForm); 
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("newUserModelBuilt", renderUserDataForm)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataChangesCancelled", unrenderUserDataForm);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editUserDataSaved", unrenderUserDataForm)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("newUserDataSaved", unrenderUserDataForm);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("renderUserValidationErrors", renderUserDataValidationErrors)
+
+    const formDivWrapper = document.querySelector("#entryFormDiv")
+    const formDiv = document.querySelector("#entryForm");
+
+    
+
+    
+
+    function renderUserDataForm(userData){
+
+        const elements = setElements();
+        populateFields(elements, userData.userData);
+        setEventListeners(elements, userData);
+
+        formDiv.appendChild(elements.content);
+        formDivWrapper.classList.toggle("formHidden");
+    } 
+
+    function unrenderUserDataForm(){
+        if(formDiv.firstChild){
+            while(formDiv.firstChild){
+                formDiv.removeChild(formDiv.firstChild)
+            }
+        }
+
+        formDivWrapper.classList.toggle("formHidden");
+    }
+
+
+    function setElements(){
+        const template = document.querySelector("#adminUserGeneratorTemplate");
+        const content = document.importNode(template.content, true);
+
+        const name = content.querySelector("#userGeneratorName");                  
+        const privilege = content.querySelector("#userGeneratorPrivilege");
+        const color = content.querySelector("#userGeneratorColor");
+
+        const saveButton = content.querySelector("#userGeneratorSaveButton");
+        const cancelButton = content.querySelector("#userGeneratorCancelButton"); 
+
+        return {content, name, privilege, color, saveButton, cancelButton}
+    }
+
+
+    function populateFields(userElements, userData){
+        userElements.name.value = userData.name;
+        if(userData.privilegeLevel == true){
+            userElements.privilege.checked = true;
+        }
+        userElements.color.value = userData.color;
+    }
+
+
+    function setEventListeners(userElements, userValues){
+        const userData = userValues.userData;
+        const origin = userValues.origin;
+
+        userElements.name.addEventListener('blur', modifyUserNameValue)
+        userElements.privilege.addEventListener("blur", updateUserPrivilege);
+        userElements.color.addEventListener("blur", verifyColorChange);
+        userElements.saveButton.addEventListener("click", saveUserData);
+        userElements.cancelButton.addEventListener("click", cancelUserChanges);
+
+        function saveUserData(){
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateUserDataClicked", origin)    
+        }
+
+        function cancelUserChanges(){
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("cancelUserDataChangesClicked")
+        }
+
+        function modifyUserNameValue(){ 
+            if(userData.name != "" && userElements.name.value != userData.name){
+                const confirmation = confirm(`If you submit changes, this will change the user name from ${userData.name} to ${userElements.name.value}. Proceed? `);
+                if(confirmation){
+                    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserNameValue", userElements.name.value)
+                }else{
+                    userElements.name.value = userData.name;
+                    return false 
+                }
+            }else if(userData.name != userElements.name.value){
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserNameValue", userElements.name.value)
+            } 
+        }
+
+        function updateUserPrivilege(){
+            
+            if(userElements.privilege.checked != userData.privilegeLevel){
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserPrivilegeLevelValue", userElements.privilege.checked)
+            } 
+
+            // add to server-side validation
+            // if(userData.privilegeLevel == true & !userElements.privilege.checked && !checkForLastAdmin()){
+            //     alert("Cannot demote last admin. Create new admin users before demoting this admin.")
+            //     userElements.privilege.checked = true;
+            // }
+        }
+
+        function verifyColorChange(){
+            if(userData.color != userElements.color.value){
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserColorValue", userElements.color.value)
+            }
+            
+            // add to server-side validation
+            // if(userData.color != userColorDOM.value && blockColorDuplication()){
+            //     alert(`Another user is already using this color. Considering all the possible colors available, the odds are pretty low. Unlucky pick, I guess!`)
+            //     userColorDOM.value = userData.color; 
+            //     userColorDOM.focus();
+            // }
+        }
+    }
+
+    function renderUserDataValidationErrors(userData){
+        const {data, origin} = userData
+        const renderData = {userData: data, origin}
+        
+        unrenderUserDataForm();
+        renderUserDataForm(renderData);
+        
+        const errorList = document.querySelector("#userGeneratorGeneralErrorList");
+
+        if(errorList.firstChild){
+            while(errorList.firstChild){
+                errorList.removeChild(errorList.firstChild)
+            }
+        }
+
+        userData.errors.forEach(function(error){
+            const bullet = document.createElement("li");
+            bullet.innerText = error;
+            errorList.appendChild(bullet);
+        })
+    }
+})()
+
+
+
+
+
+/***/ }),
+
 /***/ "./src/adminHomePage/components/mainModulesRenders/facilityDataGrid.js":
 /*!*****************************************************************************!*\
   !*** ./src/adminHomePage/components/mainModulesRenders/facilityDataGrid.js ***!
@@ -493,14 +693,14 @@ const facilityDataFormComponent = (function(){
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "facilityDataGrid": () => (/* binding */ facilityDataGrid)
+/* harmony export */   "facilityDataGridComponent": () => (/* binding */ facilityDataGridComponent)
 /* harmony export */ });
 /* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../src/events */ "./src/events.js");
 /* harmony import */ var _timeConverter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../timeConverter */ "./src/timeConverter.js");
 
 
 
-const facilityDataGrid = (function(){
+const facilityDataGridComponent = (function(){
 
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("renderUpdatedFacilityData", renderFacilityDataGrid); //add prompt about successful save
 
@@ -520,12 +720,222 @@ const facilityDataGrid = (function(){
 
     function setContent(facilityElements, facilityData){
         facilityElements.main.dataset.facilityDataId = facilityData._id;
-        facilityElements.openTimeText.innerText = `Open Time: ${_timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(facilityData.facilityOpen)}`; //make sure these property names are correct
+        facilityElements.openTimeText.innerText = `Open Time: ${_timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(facilityData.facilityOpen)}`; //adjust the semi-colon distance for these in original render
         facilityElements.closeTimeText.innerText = `Close Time: ${_timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(facilityData.facilityClose)}`
         facilityElements.maxCapacityText.innerText = `Max Capacity: ${facilityData.facilityMaxCapacity}`
     }
 })()
 
+
+
+
+/***/ }),
+
+/***/ "./src/adminHomePage/components/mainModulesRenders/userGrid.js":
+/*!*********************************************************************!*\
+  !*** ./src/adminHomePage/components/mainModulesRenders/userGrid.js ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "userDataGridComponent": () => (/* binding */ userDataGridComponent)
+/* harmony export */ });
+/* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../src/events */ "./src/events.js");
+//ADMIN USERS DIV
+
+
+const userDataGridComponent = (function(){
+
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("renderUpdatedUserData", renderAdminUsers)
+
+    function renderAdminUsers(adminMainPageData){
+
+        const userGrid = document.querySelector("#adminUsersGrid");
+        const userGridNew = document.createElement("div");
+        userGridNew.id = "adminUsersGrid";
+
+        adminMainPageData.forEach(function(user){
+            const userRow = buildUserRow(user);
+            userGridNew.appendChild(userRow);
+        })
+
+        userGrid.replaceWith(userGridNew); 
+    }
+
+
+    //NEED TO GET _id PROP FOR NEW POST, RETURN ID THROUGH JSON AND ASSIGN IN USERDATA MODEL ON RETURN?
+    //USE ARRAY.MAP AND OBJ EQUIVALENT (?) IN DATAMODElS FOR DEEP COPIES
+    //WHAT IS FUNCTIONAL DIFFERENCE BETWEEN HTTP METHODS?
+    function buildUserRow(userData){   
+        const elements = setTemplateElements();
+        setElementsContent(elements, userData);
+        setEventListeners(elements, userData)
+
+        return elements.content  
+    }
+
+
+    function setTemplateElements(){
+        const template = document.querySelector("#adminMainPageUserGridUserTemplate");
+        const content = document.importNode(template.content, true);
+
+        const div = content.querySelector(".adminUserGridUser")
+
+        const name = content.querySelector(".adminUserGridUserName");
+        const privilege = content.querySelector(".adminUserGridUserPrivilege");
+        const lastVerified = content.querySelector(".adminUserGridUserLastVerified");
+        const colorBlock = content.querySelector(".adminUserColor");
+
+        const editButton = content.querySelector(".adminUserGridUserEditButton");
+        const deleteButton = content.querySelector(".adminUserGridUserDeleteButton");
+
+        return {content, div, name, privilege, lastVerified, colorBlock, editButton, deleteButton}
+    }
+
+
+    function setElementsContent(userElement, userData){
+        userElement.div.setAttribute("data-userId", userData._id)
+        userElement.name.innerText = `Name: ${userData.name}`;
+        if(userData.privilegeLevel){
+            userElement.privilege.innerText = `Privilege: Admin`
+        }else{
+            userElement.privilege.innerText = `Privilege: User`
+        }
+        userElement.lastVerified.innerText = `Last Verified: ${userData.lastVerified}`;
+        userElement.colorBlock.style.backgroundColor = userData.color
+    }
+
+
+    function setEventListeners(userElement, userData){
+        userElement.editButton.addEventListener("click", editUser);
+        userElement.deleteButton.addEventListener("click", deleteUser);
+
+        function editUser(){
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editUserClicked", userData._id)
+        }
+        function deleteUser(){
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteUserClicked", userData._id)	
+        }
+    }
+
+})()
+ //no obvious issues with this or dataModel, display is usersGrid and addUserButton
+ 
+
+
+
+
+
+/***/ }),
+
+/***/ "./src/adminHomePage/models/allUsersData.js":
+/*!**************************************************!*\
+  !*** ./src/adminHomePage/models/allUsersData.js ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "allUsersData": () => (/* binding */ allUsersData)
+/* harmony export */ });
+/* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../src/events */ "./src/events.js");
+
+
+/*purpose: dataModel for selecting individual user from allUsers to add/edit/delete
+
+adminAllUsers array is modeled as such:
+
+allUsers = 
+	[
+		{
+            name,
+            color,
+            privilegeLevel,
+            teams:{},
+            availability:{},
+            lastVerified,
+			adminPageSet,
+            season
+        }, 
+		{etc}, {etc}
+	]
+
+	teamOrderObj obj is modeled as follows: {index, modifier}
+
+publishes:
+    user data FOR adminUserDataModel edits /adminUserGenerator DOM display
+	verified user addition/edits or deletions FOR database
+
+subscribes to: 
+    adminMainPageModel builds FROM adminMainPageModel
+    userData change validations FROM userValidator
+	requests to edit/delete a user FROM adminMainPageDOM
+*/
+
+const allUsersData = (function(){ //continue REVIEW HERE
+	//no obvious issues, find database update listeners for delete/modify/add allUsers, make sure password does not get passed to front-end
+	let allUsersDataStable;
+	let allUsersDataMutable;
+
+	_src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminDataFetched", setDataNewPageRender);
+	_src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateAllUsersModel", setDataNewDatabasePost) //add prompt for successful save
+
+	_src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editUserClicked", editUser);
+	_src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteUserClicked", deleteUserForDatabaseUpdate);
+	_src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataValidated", updateUserData)
+
+	function setDataNewPageRender(adminAllUsers){
+        allUsersDataStable = adminAllUsers.allUsers;
+		allUsersDataMutable = [];
+        createAllUsersDeepCopy(allUsersDataMutable, allUsersDataStable)
+    }
+
+    function setDataNewDatabasePost(userData){
+		const thisUserIndex = allUsersDataMutable.findIndex(function(user){
+			return user._id == userData._id
+		});
+		if(thisUserIndex != -1){
+			allUsersDataMutable[thisUserIndex] = userData
+		}else{
+			allUsersDataMutable.push(userData);
+		}
+		
+        createAllUsersDeepCopy(allUsersDataStable, allUsersDataMutable);
+		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedUserData", allUsersDataMutable) //do this
+    }
+
+    function createAllUsersDeepCopy(newArr, copyArr){
+		copyArr.forEach(function(user){
+			const newUserObj = {};
+			for(let prop in user){
+				newUserObj[prop] = user[prop]
+			}
+			newArr.push(newUserObj);
+		})
+    }
+
+	function editUser(userId){
+		const thisUser = allUsersDataMutable.filter(function(user){
+			return userId == user._id
+		})[0];
+		
+		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataEditRequested", thisUser);
+	}
+
+	function deleteUserForDatabaseUpdate(userData){/////revierw this
+		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("allUsersDataUpdated", {userData}); 
+		
+	}
+
+	function updateUserData(validatedUserData){
+		if(validatedUserData.origin == "edit"){
+			_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userUpdateRequested", validatedUserData.userData) 
+		}else{
+			_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newUserAdditionRequested", validatedUserData.userData)
+		}
+	}
+})()
 
 
 
@@ -585,9 +995,7 @@ const adminMainPageFacilityDataModel = (function(){
     function setDataNewPageRender(adminData){
         adminFacilityDataStable = adminData.facilityData; //make sure this is correct property for database initial database fetch
         adminFacilityDataMutable = Object.create({});
-        for(let prop in adminFacilityDataStable){
-            adminFacilityDataMutable[prop] = adminFacilityDataStable[prop]
-        }
+        createFacilityDataDeepCopy(adminFacilityDataMutable, adminFacilityDataStable);
     }
 
     function setDataNewDatabasePost(){
@@ -631,6 +1039,135 @@ const adminMainPageFacilityDataModel = (function(){
 
 /***/ }),
 
+/***/ "./src/adminHomePage/models/userData.js":
+/*!**********************************************!*\
+  !*** ./src/adminHomePage/models/userData.js ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "userData": () => (/* binding */ userData)
+/* harmony export */ });
+/* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../src/events */ "./src/events.js");
+
+
+/*purpose: dataModel for creating/modifying individual user data 
+
+userObject is modeled as such:
+
+    {
+        name,
+        color,
+        privilegeLevel,
+        teams:{},
+        availability:{},
+        lastVerified,
+        adminPageSet,
+        season
+    }, 
+
+publishes:
+    userModel data FOR adminUserGeneratorDOM
+    validation requests to save data FOR userValidator
+   
+subscribes to: 
+    addUser requests FROM adminMainPageModel
+    editUser data FROM adminAllUsersDataModel
+	userData save requests FROM adminUserGeneratorDOM
+    data modifications for name/password/color/privelege FROM adminUserGeneratorDOM
+*/
+
+const userData = (function(){
+    //no obvious issues, ensure that password does not come to front-end
+    let userModelStable;
+    let userModelMutable;
+
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyUserNameValue", setName);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyUserPrivilegeLevelValue", setPrivilegeLevel)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyUserColorValue", setColor)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataEditRequested", setUserModelEditRequest);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("addUserClicked", createNewUser);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateUserDataClicked", validateChanges);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("cancelUserDataChangesClicked", setUserModelCancelRequest )
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editUserDataSaved", publishUserUpdatesToAllUsers);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("newUserDataSaved", addUserDataToAllUsers);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataValidationFailed", renderUserValidationErrors);
+    
+    
+    function setUserModelEditRequest(userData){
+        userModelStable = userData
+        userModelMutable = Object.assign({}, userModelStable)
+
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataLoaded", {userData: userModelMutable, origin:"edit"})
+    }
+
+    function setUserModelCancelRequest(){
+        userModelMutable = Object.assign({}, userModelStable);
+
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataChangesCancelled")
+    }
+
+    function publishUserUpdatesToAllUsers(){
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateAllUsersModel", userModelMutable)
+    }
+
+    function addUserDataToAllUsers(_id){
+        userModelMutable._id = _id;
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateAllUsersModel", userModelMutable);
+    }
+    
+    //check this one separately
+    function createNewUser(){
+        userModelStable = {
+            name: "",
+            //password: coming soon
+            color: "#000000",
+            privilegeLevel: false,
+            teams:[], 
+            availability:{Sun:[], Mon:[], Tue: [], Wed: [], Thu: [], Fri: [], Sat: []}, 
+            lastVerified: null,
+            // adminPageSet: null,
+            // season: "fall"
+        };
+        userModelMutable = Object.assign({}, userModelStable);
+
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newUserModelBuilt", {userData: userModelMutable, origin:"add"})
+    }
+
+    function setName(name){
+        userModelMutable.name = name;
+    }
+
+    function setColor(color){
+        userModelMutable.color = color
+    }
+
+    function setPrivilegeLevel(privilege){
+        userModelMutable.privilegeLevel = privilege;
+        // if(privilege == false){
+        //     userModelMutable.adminPageSet = null
+        // }else{
+        //     userModelMutable.adminPageSet = "admin"
+        // }
+    }
+
+    function validateChanges(origin){
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataValidationRequested", {userData: userModelMutable, origin})
+    }
+
+    function renderUserValidationErrors(validationErrorData){
+        const {errors, origin} = validationErrorData
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUserValidationErrors", {data: userModelMutable, errors, origin})
+    }
+
+})()
+
+
+
+
+/***/ }),
+
 /***/ "./src/databasePost.js":
 /*!*****************************!*\
   !*** ./src/databasePost.js ***!
@@ -642,14 +1179,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "databasePost": () => (/* binding */ databasePost)
 /* harmony export */ });
 /* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../src/events */ "./src/events.js");
+/* harmony import */ var _adminHomePage_models_userData__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./adminHomePage/models/userData */ "./src/adminHomePage/models/userData.js");
+
 
 
 const databasePost = (function(){
 
-    // events.subscribe("allUsersDataUpdated", changeAllUsersArray);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userUpdateRequested", updateUserData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("newUserAdditionRequested", addUserData)
     // events.subscribe("adminAvailabilityDataUpdated", alertAndLogCurrentObject)
     // events.subscribe("adminAllTeamsDataUpdated", changeAllTeamsData)
-    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataUpdateRequested", changeFacilityData)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataUpdateRequested", updateFacilityData)
     // events.subscribe("availabilityDataUpdated", changeAvailabilityData)
     // events.subscribe("myTeamsDataUpdated", changeMyTeamsData)
     // events.subscribe("verifyUpToDateClicked", changeVerificationData)//
@@ -663,7 +1203,7 @@ const databasePost = (function(){
         alert(databaseBoundObject)
     }
 
-    async function changeFacilityData(databaseBoundObject){ 
+    async function updateFacilityData(databaseBoundObject){ 
         try{
             const facilityDataResponse = await fetch('adminHome/postAdminFacilitySettings.json', {
                 method:'POST',
@@ -680,6 +1220,60 @@ const databasePost = (function(){
             console.log(err)
         }//fix the id to be dynamic
        
+    }
+
+    async function updateUserData(databaseBoundObject){
+        try{
+            const userDataResponse = await fetch('adminHome/user/0/update.json', { //change the hard-coded id's into userspecific id's SOON
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(userDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(userDataResponse.status == 400){
+                const errors = await userDataResponse.json();
+                const origin = "edit"
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataValidationFailed", {errors, origin})
+            }else if(userDataResponse.status == 200){ 
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editUserDataSaved")
+            }
+           
+        }catch(err){
+            console.log(err)
+        }//fix the id to be dynamic
+    }
+
+    async function addUserData(databaseBoundObject){
+        try{
+            const userDataResponse = await fetch('adminHome/user/add.json', { //change the hard-coded id's into userspecific id's SOON
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(userDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(userDataResponse.status == 400){
+                const errors = await userDataResponse.json()
+                const origin = "add"
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataValidationFailed", {errors, origin})
+            }else if(userDataResponse.status == 200){
+                const newUser = await userDataResponse.json(); 
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newUserDataSaved", newUser)
+            }
+        }catch(err){
+            console.log(err)
+        }
     }
 
     function changeAllTeamsData(databaseBoundObject){
@@ -1373,25 +1967,106 @@ const facilityDataValidator = (function(){
     _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataValidationRequested", validateAdminFacilityData);
     
     function validateAdminFacilityData(facilityData){
-        const string = "A non-default value must be selected for the following: ";
-        const emptySelectors = [];
+        
+        const errorArray = [];
   
         for(let prop in facilityData){
+            
             if(facilityData[prop] == "default"){
-                emptySelectors.push(prop);
-                if(emptySelectors.length >1){
-                    string.concat(", ", prop);
-                }else{
-                    string.concat(prop);
-                }
+                const string = "A non-default value must be selected for: ";
+                string.concat(prop);
+                errorArray.push(string);
             }
         }
 
-        if(emptySelectors.length > 0){
-            alert(string) //change this to return errorContent to form
+        if(errorArray.length > 0){
+            alert(errorArray) //change this eo event that returns to form as list items
         }else{
             _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminFacilityDataValidated", facilityData)
         }
+    }
+})()
+
+
+
+/***/ }),
+
+/***/ "./src/validators/userValidator.js":
+/*!*****************************************!*\
+  !*** ./src/validators/userValidator.js ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "userDataValidator": () => (/* binding */ userDataValidator)
+/* harmony export */ });
+/* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../src/events */ "./src/events.js");
+
+
+/*purpose: validator for user dataModel updates
+
+userObject is modeled as such:
+
+    {
+        name,
+        color,
+        privilegeLevel,
+        teams:{},
+        availability:{},
+        lastVerified
+    }, 
+
+publishes:
+    successful validations FOR adminAllUsersDataModel
+   
+subscribes to: 
+    validation requests FROM adminUserDataModel
+*/
+
+const userDataValidator = (function(){
+    
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataValidationRequested", validateAllInputs);
+    
+    function validateAllInputs(adminUserData){
+        const {userData, origin} = adminUserData
+
+        const errorArray = [];
+
+        validateUserName(userData, errorArray); 
+        validateColor(userData, errorArray)
+
+        if(errorArray.length > 0){
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataValidationFailed", {errors: errorArray, origin});
+        }else{
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataValidated", adminUserData);
+        }
+    }
+
+    function validateUserName(userModel, array){
+        const userName = userModel.name;
+        const userNameRegex = /[^A-Za-z0-9]/;
+        try{
+            if(userNameRegex.test(userName)){
+                throw("User names can only include letters and numbers (no spaces or symbols).");
+            }else if(userName == ""){
+                throw("User name must have a value.");
+            }
+        }catch(err){
+            array.push(err)
+        }
+    }
+
+    function validateColor(userModel, array){
+        const color = userModel.color;
+        try{
+            if(color == "#000000"){
+                throw("Color must have a value not equal to black. Black is default value, and must be changed.")
+            }
+        }catch(err){
+            array.push(err)
+        }
+
     }
 })()
 
@@ -1468,7 +2143,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _src_adminHomePage_components_forms_facilityDataForm__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../src/adminHomePage/components/forms/facilityDataForm */ "./src/adminHomePage/components/forms/facilityDataForm.js");
 /* harmony import */ var _src_adminHomePage_models_facilityData__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../src/adminHomePage/models/facilityData */ "./src/adminHomePage/models/facilityData.js");
 /* harmony import */ var _src_validators_facilityDataValidator__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../src/validators/facilityDataValidator */ "./src/validators/facilityDataValidator.js");
-/* harmony import */ var _src_databasePost__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../src/databasePost */ "./src/databasePost.js");
+/* harmony import */ var _src_adminHomePage_components_mainModulesRenders_userGrid__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../src/adminHomePage/components/mainModulesRenders/userGrid */ "./src/adminHomePage/components/mainModulesRenders/userGrid.js");
+/* harmony import */ var _src_adminHomePage_components_forms_userForm__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../src/adminHomePage/components/forms/userForm */ "./src/adminHomePage/components/forms/userForm.js");
+/* harmony import */ var _src_adminHomePage_models_allUsersData__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../src/adminHomePage/models/allUsersData */ "./src/adminHomePage/models/allUsersData.js");
+/* harmony import */ var _src_adminHomePage_models_userData__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../src/adminHomePage/models/userData */ "./src/adminHomePage/models/userData.js");
+/* harmony import */ var _src_validators_userValidator__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../src/validators/userValidator */ "./src/validators/userValidator.js");
+/* harmony import */ var _src_databasePost__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../src/databasePost */ "./src/databasePost.js");
+
+
+
+
+
+
+
+
 
 
 

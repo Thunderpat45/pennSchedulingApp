@@ -1,9 +1,17 @@
 import {events} from "../src/events"
 import {adminHomeRender} from "../src/adminHomePage/components/adminHomeRender"
-import {facilityDataGrid} from "../src/adminHomePage/components/mainModulesRenders/facilityDataGrid"
-import {facilityDataForm} from "../src/adminHomePage/components/forms/facilityDataForm";
+
+import {facilityDataGridComponent} from "../src/adminHomePage/components/mainModulesRenders/facilityDataGrid"
+import {facilityDataFormComponent} from "../src/adminHomePage/components/forms/facilityDataForm";
 import {facilityData} from "../src/adminHomePage/models/facilityData";
 import {facilityDataValidator} from "../src/validators/facilityDataValidator"
+
+import {userDataGridComponent} from "../src/adminHomePage/components/mainModulesRenders/userGrid";
+import {userDataFormComponent} from "../src/adminHomePage/components/forms/userForm"
+import {allUsersData} from "../src/adminHomePage/models/allUsersData"
+import {userData} from "../src/adminHomePage/models/userData"
+import {userDataValidator} from "../src/validators/userValidator"
+
 import {databasePost} from "../src/databasePost"
 
 window.onload = setScriptData;

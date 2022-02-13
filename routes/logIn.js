@@ -9,4 +9,8 @@ router.get('/', function(req, res, next) {
     })
 })
 
+router.post('/logIn', function(req,res,next){
+
+})
+
 module.exports = router;

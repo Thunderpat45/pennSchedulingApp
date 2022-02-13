@@ -41,9 +41,7 @@ const adminMainPageFacilityDataModel = (function(){
     function setDataNewPageRender(adminData){
         adminFacilityDataStable = adminData.facilityData; //make sure this is correct property for database initial database fetch
         adminFacilityDataMutable = Object.create({});
-        for(let prop in adminFacilityDataStable){
-            adminFacilityDataMutable[prop] = adminFacilityDataStable[prop]
-        }
+        createFacilityDataDeepCopy(adminFacilityDataMutable, adminFacilityDataStable);
     }
 
     function setDataNewDatabasePost(){

@@ -2,10 +2,11 @@ import {events} from "../src/events"
 
 const databasePost = (function(){
 
-    // events.subscribe("allUsersDataUpdated", changeAllUsersArray);
+    events.subscribe("userUpdateRequested", updateUserData);
+    events.subscribe("newUserAdditionRequested", addUserData)
     // events.subscribe("adminAvailabilityDataUpdated", alertAndLogCurrentObject)
     // events.subscribe("adminAllTeamsDataUpdated", changeAllTeamsData)
-    events.subscribe("adminFacilityDataUpdateRequested", changeFacilityData)
+    events.subscribe("adminFacilityDataUpdateRequested", updateFacilityData)
     // events.subscribe("availabilityDataUpdated", changeAvailabilityData)
     // events.subscribe("myTeamsDataUpdated", changeMyTeamsData)
     // events.subscribe("verifyUpToDateClicked", changeVerificationData)//
@@ -19,7 +20,7 @@ const databasePost = (function(){
         alert(databaseBoundObject)
     }
 
-    async function changeFacilityData(databaseBoundObject){ 
+    async function updateFacilityData(databaseBoundObject){ 
         try{
             const facilityDataResponse = await fetch('adminHome/postAdminFacilitySettings.json', {
                 method:'POST',
@@ -36,6 +37,60 @@ const databasePost = (function(){
             console.log(err)
         }//fix the id to be dynamic
        
+    }
+
+    async function updateUserData(databaseBoundObject){
+        try{
+            const userDataResponse = await fetch('adminHome/user/0/update.json', { //change the hard-coded id's into userspecific id's SOON
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(userDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(userDataResponse.status == 400){
+                const errors = await userDataResponse.json();
+                const origin = "edit"
+                events.publish("userDataValidationFailed", {errors, origin})
+            }else if(userDataResponse.status == 200){ 
+                events.publish("editUserDataSaved")
+            }
+           
+        }catch(err){
+            console.log(err)
+        }//fix the id to be dynamic
+    }
+
+    async function addUserData(databaseBoundObject){
+        try{
+            const userDataResponse = await fetch('adminHome/user/add.json', { //change the hard-coded id's into userspecific id's SOON
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(userDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(userDataResponse.status == 400){
+                const errors = await userDataResponse.json()
+                const origin = "add"
+                events.publish("userDataValidationFailed", {errors, origin})
+            }else if(userDataResponse.status == 200){
+                const newUser = await userDataResponse.json(); 
+                events.publish("newUserDataSaved", newUser)
+            }
+        }catch(err){
+            console.log(err)
+        }
     }
 
     function changeAllTeamsData(databaseBoundObject){

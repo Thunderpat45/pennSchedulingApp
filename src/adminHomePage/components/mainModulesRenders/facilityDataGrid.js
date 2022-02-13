@@ -1,7 +1,7 @@
 import {events} from "../../../../src/events";
 import {timeValueConverter} from "../../../timeConverter";
 
-const facilityDataGrid = (function(){
+const facilityDataGridComponent = (function(){
 
     events.subscribe("renderUpdatedFacilityData", renderFacilityDataGrid); //add prompt about successful save
 
@@ -27,4 +27,4 @@ const facilityDataGrid = (function(){
     }
 })()
 
-export {facilityDataGrid}
+export {facilityDataGridComponent}

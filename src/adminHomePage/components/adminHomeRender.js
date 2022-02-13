@@ -77,6 +77,7 @@ const adminHomeMain = (function(){
 
     function setAdminEventListeners(){
         setFacilityDataListeners()
+        setUserDataListeners();
     }
 
     function setFacilityDataListeners(){
@@ -86,8 +87,39 @@ const adminHomeMain = (function(){
         function requestAdminDataEdit(){
             events.publish("editFacilityDataClicked");
         }
-    
-    
+    }
+
+    function setUserDataListeners(){
+        const addUserButton = document.querySelector("#adminUsersGridAddUser");
+        
+        const allUsers = Array.from(document.querySelectorAll(".adminUserGridUser"));
+        if(allUsers.length >0){
+            allUsers.forEach(function(user){
+                const _id = user.dataset.userid;
+                const editButton = user.querySelector(".adminUserGridUserEditButton");
+                const deleteButton = user.querySelector(".adminUserGridUserDeleteButton")
+
+                editButton.addEventListener("click", editUser);
+                deleteButton.addEventListener("click", deleteUser);
+
+                function editUser(){
+                    events.publish("editUserClicked", _id)
+                }
+                function deleteUser(){
+                    events.publish("deleteUserClicked")	
+                }
+            })
+        }
+
+        //need to add qSAll for edit/delete buttons that listen to appropriate event
+
+
+
+        addUserButton.addEventListener("click", addUser)
+
+        function addUser(){
+            events.publish("addUserClicked")
+        }
     }
 
 

@@ -1,65 +1,62 @@
-import { events } from "../events";
+import { events } from "../../../src/events";
 
-/*purpose: dataModel for creating/modifying individual user data 
+const userData = (function(){
 
-userObject is modeled as such:
-
-    {
-        name,
-        color,
-        privilegeLevel,
-        teams:{},
-        availability:{},
-        lastVerified,
-        adminPageSet,
-        season
-    }, 
-
-publishes:
-    userModel data FOR adminUserGeneratorDOM
-    validation requests to save data FOR userValidator
-   
-subscribes to: 
-    addUser requests FROM adminMainPageModel
-    editUser data FROM adminAllUsersDataModel
-	userData save requests FROM adminUserGeneratorDOM
-    data modifications for name/password/color/privelege FROM adminUserGeneratorDOM
-*/
-
-const adminUserDataModel = (function(){
-    //no obvious issues, ensure that password does not come to front-end
     let userModelStable;
     let userModelMutable;
 
     events.subscribe("modifyUserNameValue", setName);
     events.subscribe("modifyUserPrivilegeLevelValue", setPrivilegeLevel)
     events.subscribe("modifyUserColorValue", setColor)
-    events.subscribe("userEditDataLoaded", populateUserModel);
-    events.subscribe("addUser", createNewUser);
-    events.subscribe("saveUserDataClicked", validateChanges);
+    events.subscribe("userDataEditRequested", setUserModelEditRequest);
+    events.subscribe("addUserClicked", createNewUser);
+    events.subscribe("updateUserDataClicked", validateChanges);
+    events.subscribe("cancelUserDataChangesClicked", setUserModelCancelRequest )
+    events.subscribe("editUserDataSaved", publishUserUpdatesToAllUsers);
+    events.subscribe("newUserDataSaved", addUserDataToAllUsers);
+    events.subscribe("userDataValidationFailed", renderUserValidationErrors);
+        //USE ARRAY.MAP AND OBJ EQUIVALENT (?) IN DATAMODElS FOR DEEP COPIES?
     
-    
-    function populateUserModel(userData){
-        userModelStable = Object.assign({}, userData);
+    function setUserModelEditRequest(userData){
+        userModelStable = userData
         userModelMutable = Object.assign({}, userModelStable)
 
-        events.publish("userModelPopulated", userModelMutable)
+        events.publish("userDataLoaded", {userData: userModelMutable, origin:"edit"})
+    }
+
+    function setUserModelCancelRequest(){
+        userModelMutable = Object.assign({}, userModelStable);
+
+        events.publish("userDataChangesCancelled")
+    }
+
+    function publishUserUpdatesToAllUsers(){
+        events.publish("updateAllUsersModel", userModelMutable)
+    }
+
+    function addUserDataToAllUsers(_id){
+        userModelMutable._id = _id;
+        events.publish("updateAllUsersModel", userModelMutable);
     }
     
     function createNewUser(){
         userModelStable = {
             name: "",
+            //password: coming soon
             color: "#000000",
             privilegeLevel: false,
             teams:[], 
             availability:{Sun:[], Mon:[], Tue: [], Wed: [], Thu: [], Fri: [], Sat: []}, 
             lastVerified: null,
-            adminPageSet: null,
-            season: "fall"
+
+            //both of the below properties were checkign to see which page/data was last used , cookies/sessionStorage?
+
+            // adminPageSet: null,
+            // season: "fall"
         };
         userModelMutable = Object.assign({}, userModelStable);
 
-        events.publish("userModelPopulated", userModelMutable)
+        events.publish("newUserModelBuilt", {userData: userModelMutable, origin:"add"})
     }
 
     function setName(name){
@@ -72,17 +69,17 @@ const adminUserDataModel = (function(){
 
     function setPrivilegeLevel(privilege){
         userModelMutable.privilegeLevel = privilege;
-        if(privilege == false){
-            userModelMutable.adminPageSet = null
-        }else{
-            userModelMutable.adminPageSet = "admin"
-        }
     }
 
-    function validateChanges(){
-        events.publish("userDataValidationRequested", {newData: userModelMutable, existingData:userModelStable})
+    function validateChanges(origin){
+        events.publish("userDataValidationRequested", {userData: userModelMutable, origin})
+    }
+
+    function renderUserValidationErrors(validationErrorData){
+        const {errors, origin} = validationErrorData
+        events.publish("renderUserValidationErrors", {data: userModelMutable, errors, origin})
     }
 
 })()
-export {adminUserDataModel}
+export {userData}
 

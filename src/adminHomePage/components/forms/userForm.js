@@ -1,109 +1,130 @@
-import { events } from "../../../events";
+import { events } from "../../../../src/events";
 
+const userDataFormComponent = (function(){
 
-//add events to listen for button to do this
-function renderFacilityDataForm(userData){
-    const formDiv = document.querySelector("#entryForm")
+    events.subscribe("userDataLoaded", renderUserDataForm); 
+    events.subscribe("newUserModelBuilt", renderUserDataForm)
+    events.subscribe("userDataChangesCancelled", unrenderUserDataForm);
+    events.subscribe("editUserDataSaved", unrenderUserDataForm)
+    events.subscribe("newUserDataSaved", unrenderUserDataForm);
+    events.subscribe("renderUserValidationErrors", renderUserDataValidationErrors)
 
-    const elements = setElements();
-    populateFields(elements, userData);
-    setEventListeners(elements, userData);
+    const formDivWrapper = document.querySelector("#entryFormDiv")
+    const formDiv = document.querySelector("#entryForm");
 
-    if(formDiv.firstChild){
-        while(formDiv.firstChild){
-            formDiv.remove(formDiv.firstChild)
-        }
-    }
+    function renderUserDataForm(userData){
 
-    formDiv.appendChild(elements.content);
-} 
+        const elements = setElements();
+        populateFields(elements, userData.userData);
+        setEventListeners(elements, userData);
 
+        formDiv.appendChild(elements.content);
+        formDivWrapper.classList.toggle("formHidden");
+    } 
 
-function setElements(){
-    const template = document.querySelector("#adminUserGeneratorTemplate");
-    const content = document.importNode(template.content, true);
-
-    const name = content.querySelectorAll("#userGeneratorName");                  
-    const privilege = content.querySelector("#userGeneratorPrivilege");
-    const color = content.querySelector("#userGeneratorColor");
-
-    const saveButton = content.querySelector("#userGeneratorSaveButton");
-    const cancelButton = content.querySelector("#userGeneratorCancelButton"); 
-
-    return {content, name, privilege, color, saveButton, cancelButton}
-}
-
-
-function populateFields(userElements, userData){
-    userElements.name.value = userData.name;
-    if(userData.privilege == true){
-        userElements.privilege.checked = true;
-    }
-    userElements.color.value = userData.color;
-}
-
-
-function setEventListeners(userElements, userData){
-    userElements.name.addEventListener("blur", modifyUserNameValue);
-    userElements.privilege.addEventListener("blur", updateUserPrivilege);
-    userElements.color.addEventListener("blur", verifyColorChange);
-    userElements.saveButton.addEventListener("click", saveUserData);
-    userElements.cancelButton.addEventListener("click", cancelUserChanges);
-
-    function saveUserData(){
-        events.publish("saveUserDataClicked")
-    }
-
-    function cancelUserChanges(){
-        events.publish("adminMainPageDOMRequested")
-    }
-
-    function modifyUserNameValue(){ 
-        if(userData.name != "" && userElements.name.value != userData.name){
-            const confirmation = confirm(`If you submit changes, this will change the user name from ${userData.name} to ${userElements.name.value}. Proceed? `);
-            if(confirmation){
-                events.publish("modifyUserNameValue", userElements.name.value)
-            }else{
-                userElements.name.value = userData.name; 
+    function unrenderUserDataForm(){
+        if(formDiv.firstChild){
+            while(formDiv.firstChild){
+                formDiv.removeChild(formDiv.firstChild)
             }
-        }else if(userData.name != userElements.name.value){
-            events.publish("modifyUserNameValue", userElements.name.value)
-        } 
-
-        // add this to server side validation
-        // if(userData.name != userElements.name.value && blockNameDuplication(userElements.name.value)){
-        //     alert(`Data already exists for ${userElements.name.value}. Use another name or edit/delete the other user for the name you are trying to switch to.`);
-        //     userElements.name.value = "";
-        //     userElements.name.focus()
-        //}
-    }
-
-    function updateUserPrivilege(){
-        
-        if(userElements.privilege.checked != userData.privilegeLevel){
-            events.publish("modifyUserPrivilegeLevelValue", userElements.privilege.checked)
-        } 
-
-        // add to server-side validation
-        // if(userData.privilegeLevel == true & !userElements.privilege.checked && !checkForLastAdmin()){
-        //     alert("Cannot demote last admin. Create new admin users before demoting this admin.")
-        //     userElements.privilege.checked = true;
-        // }
-    }
-
-    function verifyColorChange(){
-        if(userData.color != userElements.color.value){
-            events.publish("modifyUserColorValue", userElements.color.value)
         }
-        
-        // add to server-side validation
-        // if(userData.color != userColorDOM.value && blockColorDuplication()){
-        //     alert(`Another user is already using this color. Considering all the possible colors available, the odds are pretty low. Unlucky pick, I guess!`)
-        //     userColorDOM.value = userData.color; 
-        //     userColorDOM.focus();
-        // }
-    }
-}
 
-export {renderFacilityDataForm}
+        formDivWrapper.classList.toggle("formHidden");
+    }
+
+
+    function setElements(){
+        const template = document.querySelector("#adminUserGeneratorTemplate");
+        const content = document.importNode(template.content, true);
+
+        const name = content.querySelector("#userGeneratorName");                  
+        const privilege = content.querySelector("#userGeneratorPrivilege");
+        const color = content.querySelector("#userGeneratorColor");
+
+        const saveButton = content.querySelector("#userGeneratorSaveButton");
+        const cancelButton = content.querySelector("#userGeneratorCancelButton"); 
+
+        return {content, name, privilege, color, saveButton, cancelButton}
+    }
+
+
+    function populateFields(userElements, userData){
+        userElements.name.value = userData.name;
+        if(userData.privilegeLevel == true){
+            userElements.privilege.checked = true;
+        }
+        userElements.color.value = userData.color;
+    }
+
+
+    function setEventListeners(userElements, userValues){
+        const userData = userValues.userData;
+        const origin = userValues.origin;
+
+        userElements.name.addEventListener('blur', modifyUserNameValue)
+        userElements.privilege.addEventListener("blur", updateUserPrivilege);
+        userElements.color.addEventListener("blur", verifyColorChange);
+        userElements.saveButton.addEventListener("click", saveUserData);
+        userElements.cancelButton.addEventListener("click", cancelUserChanges);
+
+        function saveUserData(){
+            events.publish("updateUserDataClicked", origin)    
+        }
+
+        function cancelUserChanges(){
+            events.publish("cancelUserDataChangesClicked")
+        }
+
+        function modifyUserNameValue(){ 
+            if(userData.name != "" && userElements.name.value != userData.name){
+                const confirmation = confirm(`If you submit changes, this will change the user name from ${userData.name} to ${userElements.name.value}. Proceed? `);
+                if(confirmation){
+                    events.publish("modifyUserNameValue", userElements.name.value)
+                }else{
+                    userElements.name.value = userData.name;
+                    return false 
+                }
+            }else if(userData.name != userElements.name.value){
+                events.publish("modifyUserNameValue", userElements.name.value)
+            } 
+        }
+
+        function updateUserPrivilege(){
+            
+            if(userElements.privilege.checked != userData.privilegeLevel){
+                events.publish("modifyUserPrivilegeLevelValue", userElements.privilege.checked)
+            } 
+        }
+
+        function verifyColorChange(){
+            if(userData.color != userElements.color.value){
+                events.publish("modifyUserColorValue", userElements.color.value)
+            }
+        }
+    }
+
+    function renderUserDataValidationErrors(userData){
+        const {data, origin} = userData
+        const renderData = {userData: data, origin}
+        
+        unrenderUserDataForm();
+        renderUserDataForm(renderData);
+        
+        const errorList = document.querySelector("#userGeneratorGeneralErrorList");
+
+        if(errorList.firstChild){
+            while(errorList.firstChild){
+                errorList.removeChild(errorList.firstChild)
+            }
+        }
+
+        userData.errors.forEach(function(error){
+            const bullet = document.createElement("li");
+            bullet.innerText = error;
+            errorList.appendChild(bullet);
+        })
+    }
+})()
+
+export {userDataFormComponent}
 

@@ -77,7 +77,13 @@ const facilityDataFormComponent = (function(){
         selectorElements.cancelButton.addEventListener("click", cancelFacilityDataChanges);
 
         function updateFacilityData(){
-            events.publish("updateFacilityDataClicked");
+            const confirmation = confirm("Changing facility settings from a longer to a shorter day can create bugs if other users are not informed to adjust. Please speak to other users to notify them of changes before running the schedule builder. Continue?")
+            if(confirmation){
+                events.publish("updateFacilityDataClicked");
+            }else{
+                events.publish("cancelFacilityDataChangesClicked")
+            }
+           
         }
         function cancelFacilityDataChanges(){
             events.publish("cancelFacilityDataChangesClicked") //check this path

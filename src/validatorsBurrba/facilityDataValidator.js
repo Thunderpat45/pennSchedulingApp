@@ -1,24 +1,6 @@
 import { events } from "../events";
 
-/*purpose: validator for facilityData updates
-
-facilityData object is modeled as such:
-
-obj = {
-    facilityOpen, 
-    facilityClose, 
-    facilityMaxCapacity
-}
-
-publishes:
-    successful validations FOR adminMainPageFacilityDataModel
-   
-subscribes to: 
-    validation requests FROM adminMainPageFacilityDataModel
-*/
-
 const facilityDataValidator = (function(){
-    //no obvious issues here
     events.subscribe("adminFacilityDataValidationRequested", validateAdminFacilityData);
     
     function validateAdminFacilityData(facilityData){
@@ -33,7 +15,7 @@ const facilityDataValidator = (function(){
         }
 
         if(emptySelectors.length > 0){
-            alert(string)
+            alert(string) //return this to form append as list item
         }else{
             events.publish("adminFacilityDataValidated", facilityData)
         }

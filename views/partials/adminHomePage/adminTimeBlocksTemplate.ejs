@@ -3,7 +3,7 @@
     <button class = "adminMainPageAddAvailabilityBlockAllUsersBlockAddButton">Add Block</button>
     <div class = "adminMainPageAddAvailabilityBlockAllUsersAllBlocks">
         <%adminTimeBlocks[day].forEach(function(timeBlock){%>
-        <div class = "adminMainPageAddAvailabilityBlockAllUsersBlock">
+        <div class = "adminMainPageAddAvailabilityBlockAllUsersBlock" dataTimeBlockId = "<%`${timeBlock._id}`%>">
             <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockStart">
                 <p><%=`Start Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.startTime)}`%></p>
             </div>

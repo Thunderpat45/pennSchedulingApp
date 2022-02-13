@@ -1,84 +1,74 @@
-//ADMIN USERS DIV
-import { events } from "../../events";
+import { events } from "../../../../src/events";
 
+const userDataGridComponent = (function(){
 
- //no obvious issues with this or dataModel, display is usersGrid and addUserButton
- function renderAdminUsers(adminMainPageData){
-    
-                        //add this back to adminHomePage to NOT be rerendered each time
-                        const addUserButton = document.querySelector("#adminUsersGridAddUser"); 
-                        addUserButton.addEventListener("click", addUser)
+    events.subscribe("renderUpdatedUserData", renderAdminUsers)
 
-                        function addUser(){
-                            events.publish("addUser")
-                        }
-                        //add this back to adminHomePage to NOT be rerendered each time
-    
-    const userGrid = document.querySelector("#adminUsersGrid");
-    const userGridNew = document.createElement("div");
-    userGridNew.id = "adminUsersGrid";
+    function renderAdminUsers(adminMainPageData){
 
-    adminMainPageData.forEach(function(user){
-        const userRow = buildUserRow(user);
-        userGridNew.appendChild(userRow);
-    })
+        const userGrid = document.querySelector("#adminUsersGrid");
+        const userGridNew = document.createElement("div");
+        userGridNew.id = "adminUsersGrid";
 
-    userGrid.replaceWith(userGridNew); 
-}
+        adminMainPageData.forEach(function(user){
+            const userRow = buildUserRow(user);
+            userGridNew.appendChild(userRow);
+        })
 
-
-//userRow display is: name, privilegeLevel, color, lastVerified date, edit and deleteButtons
-function buildUserRow(userData){   
-    const elements = setTemplateElements();
-    setElementsContent(elements, userData);
-    setEventListeners(elements, userData)
-
-    return elements.content  
-}
-
-
-function setTemplateElements(){
-    const template = document.querySelector("#adminMainPageUserGridUserTemplate");
-    const content = document.importNode(template.content, true);
-
-    const div = content.querySelector(".adminUserGridUser")
-
-    const name = content.querySelector(".adminUserGridUserName");
-    const privilege = content.querySelector(".adminUserGridUserPrivilege");
-    const lastVerified = content.querySelector(".adminUserGridUserLastVerified");
-    const colorBlock = content.querySelector(".adminUserColor");
-
-    const editButton = content.querySelector(".adminUserGridUserEditButton");
-    const deleteButton = content.querySelector(".adminUserGridUserDeleteButton");
-
-    return {content, div, name, privilege, lastVerified, colorBlock, editButton, deleteButton}
-}
-
-
-function setElementsContent(userElement, userData){
-    userElement.div.setAttribute("data-userId", userData._id)
-    userElement.name.innerText = `Name: ${userData.name}`;
-    if(userData.privilegeLevel){
-        userElement.privilege.innerText = `Privilege: Admin`
-    }else{
-        userElement.privilege.innerText = `Privilege: User`
+        userGrid.replaceWith(userGridNew); 
     }
-    userElement.lastVerified.innerText = `Last Verified: ${userData.lastVerified}`;
-    userElement.colorBlock.style.backgroundColor = userData.color
-}
 
+    function buildUserRow(userData){   
+        const elements = setTemplateElements();
+        setElementsContent(elements, userData);
+        setEventListeners(elements, userData)
 
-function setEventListeners(userElement, userData){
-    userElement.editButton.addEventListener("click", editUser);
-    userElement.deleteButton.addEventListener("click", deleteUser);
-
-    function editUser(){
-        events.publish("editUser", userData)
+        return elements.content  
     }
-    function deleteUser(){
-        events.publish("deleteUser", userData)	
+
+    function setTemplateElements(){
+        const template = document.querySelector("#adminMainPageUserGridUserTemplate");
+        const content = document.importNode(template.content, true);
+
+        const div = content.querySelector(".adminUserGridUser")
+
+        const name = content.querySelector(".adminUserGridUserName");
+        const privilege = content.querySelector(".adminUserGridUserPrivilege");
+        const lastVerified = content.querySelector(".adminUserGridUserLastVerified");
+        const colorBlock = content.querySelector(".adminUserColor");
+
+        const editButton = content.querySelector(".adminUserGridUserEditButton");
+        const deleteButton = content.querySelector(".adminUserGridUserDeleteButton");
+
+        return {content, div, name, privilege, lastVerified, colorBlock, editButton, deleteButton}
     }
-}
 
 
-export {renderAdminUsers}
+    function setElementsContent(userElement, userData){
+        userElement.div.setAttribute("data-userId", userData._id)
+        userElement.name.innerText = `Name: ${userData.name}`;
+        if(userData.privilegeLevel){
+            userElement.privilege.innerText = `Privilege: Admin`
+        }else{
+            userElement.privilege.innerText = `Privilege: User`
+        }
+        userElement.lastVerified.innerText = `Last Verified: ${userData.lastVerified}`;
+        userElement.colorBlock.style.backgroundColor = userData.color
+    }
+
+
+    function setEventListeners(userElement, userData){
+        userElement.editButton.addEventListener("click", editUser);
+        userElement.deleteButton.addEventListener("click", deleteUser);
+
+        function editUser(){
+            events.publish("editUserClicked", userData._id)
+        }
+        function deleteUser(){
+            events.publish("deleteUserClicked", userData._id)	
+        }
+    }
+
+})()
+ 
+export {userDataGridComponent}
