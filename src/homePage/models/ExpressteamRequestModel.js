@@ -1,4 +1,4 @@
-import {events} from "../events"
+import {events} from "../../events"
 
 /*purpose: dataModel for loading content and editing content for requestFormDOM
 

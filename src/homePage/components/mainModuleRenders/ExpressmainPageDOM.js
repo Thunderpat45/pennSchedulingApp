@@ -1,5 +1,5 @@
-import { events } from "../events"
-import { timeValueConverter } from "../timeConverter";
+import { events } from "../../../events"
+import { timeValueConverter } from "../../../timeConverter";
 
 /*action: user interface for observing teams and availability
 

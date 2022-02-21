@@ -55,16 +55,21 @@ const selectorBuilder = (function(){
         inWeiss: ["yes", "no"],
     };
     
-    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("SOME DATA BASE FETCH FIX THIS FIX THIS", setSelectorRanges);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminDataFetched", setSelectorRanges);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("setNewSelectorRanges", setSelectorRanges)
     
-
-    //call this after dbFetch
-    function setSelectorRanges(databaseRanges){
-        selectionRanges.startTime.start = databaseRanges.facilityOpen;
-        selectionRanges.endTime.start = databaseRanges.facilityOpen + 30;
-        selectionRanges.startTime.end = databaseRanges.facilityClose - 30;
-        selectionRanges.endTime.end = databaseRanges.facilityClose;
-        selectionRanges.teamSize.end = databaseRanges.facilityMaxCapacity;
+    function setSelectorRanges(dBdata){
+        let facilityData
+        if(Object.prototype.hasOwnProperty.call(dBdata, 'facilityData')){
+            facilityData = dBdata.facilityData
+        }else{
+            facilityData = dBdata
+        }
+        selectionRanges.startTime.start = facilityData.facilityOpen;
+        selectionRanges.endTime.start = facilityData.facilityOpen + 30;
+        selectionRanges.startTime.end = facilityData.facilityClose - 30;
+        selectionRanges.endTime.end = facilityData.facilityClose;
+        selectionRanges.teamSize.end = facilityData.facilityMaxCapacity;
     }
 
     function runBuildSelector(primaryClass){
@@ -144,11 +149,6 @@ const selectorBuilder = (function(){
             }else{
                 time.disabled = false;
             }
-            if(endTimeValue == startTimeSelectedValue + 60){
-                time.selected = true;
-            }else{
-                time.selected = false;
-            }
         })
     }
 
@@ -182,81 +182,14 @@ __webpack_require__.r(__webpack_exports__);
 // import {adminTeams} from "./components/teamGrid";
 // import {adminUsers} from "./components/userGrid";
 
-/*action: admin interface for observing allTeams/allUsers, setting facility parameters, blocking off time for all users, and running the scheduling function
-
-adminMainPageData object is modeled as such:
-
-obj = {
-    allTeams: 
-        [{ 
-            teamName,
-            teamSize, 
-            rank:
-                {
-                    myTeams,
-                    allTeams
-                },
-            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
-            coach,
-        }, {etc}, {etc}]
-
-    allUsers:
-        [{
-            name,
-            color,
-            password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END
-            privilegeLevel,
-            teams:{},
-            availability:{},
-            lastVerified
-        }, {etc}, {etc}]
-
-    facilitySelectors:
-        {facilityOpen, facilityClose, facilityMaxCapacity}
-
-    adminTimeBlocks:
-        {day: [{{startTime, stopTime, admin}, {startTime, stopTime, admin}, ], day: [{startTime, stopTime, admin}, {startTime, stopTime, admin}]},  make sure empties don't screw anything up
-
-    season,
-}
-
-adminSelectorsObj is modeled as such:
-
-obj = {
-
-    startTime: (pre-built select HTML element),
-    endTime: etc,
-    teamSize: etc,
-    facilityOpen: etc,
-    facilityClose: etc,
-    facilityMaxCapacity: etc,
-    dayOfWeek: etc,
-    inWeiss: etc
-}
-
-publishes:
-    page render requests FOR pageRenderer
-    season change requests FOR (?)
-    scheduler run requests FOR (?)
-    admin allTeam rank changes FOR adminAllTeamsDataModel
-    user add requests FOR adminUserGeneratorModel 
-    user edit/delete requests for adminAllUsersDataModel
-    facilityData changes, save requests, and change cancellations FOR adminMainPageFacilityDataModel
-    
-
-subscribes to: 
-    adminMainPageModel builds FROM adminMainPageModel
-    adminSelectorsBuilt FROM selectorDOMBuilder
-    adminAvailability and adminFacility model updates FROM adminAvailabity and adminFacility data models
-*/
-
 const adminHomeMain = (function(){
 
-    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminDataSet", setAdminEventListeners); //some prompt about setting data in client models
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminDataSet", setAdminEventListeners);
 
     function setAdminEventListeners(){
         setFacilityDataListeners()
         setUserDataListeners();
+        setAdminTimeBlocksEventListeners();
     }
 
     function setFacilityDataListeners(){
@@ -285,14 +218,13 @@ const adminHomeMain = (function(){
                     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editUserClicked", _id)
                 }
                 function deleteUser(){
-                    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteUserClicked")	
+                    const confirmation = confirm("Delete this user?");
+                    if(confirmation){
+                        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteUserRequested", _id)
+                    }
                 }
             })
         }
-
-        //need to add qSAll for edit/delete buttons that listen to appropriate event
-
-
 
         addUserButton.addEventListener("click", addUser)
 
@@ -301,50 +233,47 @@ const adminHomeMain = (function(){
         }
     }
 
+    function setAdminTimeBlocksEventListeners(){
+        const adminTimeBlockDays = Array.from(document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid").children);
 
+        adminTimeBlockDays.forEach(function(day){
+            const dayString = day.querySelector("h3").innerText;
+            const addBlockButton = day.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockAddButton");
 
+            addBlockButton.addEventListener("click", addTimeBlock);
 
+            const dayAllBlocks = Array.from(day.querySelectorAll(".adminMainPageAddAvailabilityBlockAllUsersAllBlocks > div"));
+            if(dayAllBlocks.length > 0 ){
+                dayAllBlocks.forEach(function(timeBlock){
+                    const _id = timeBlock.dataset.timeblockid
+                    const editBlockButton = timeBlock.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEditButton");
+                    const deleteBlockButton = timeBlock.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton")
 
-//     events.subscribe("", renderAdminTimeBlocksForm) //add listener for render click
+                    editBlockButton.addEventListener("click", editTimeBlock);
+                    deleteBlockButton.addEventListener("click", deleteTimeBlock);
 
-//     function renderAdminTimeBlocksForm(adminTimeBlockDayData){
-//         renderTimeBlockDataForm(adminTimeBlockDayData);
-//     }
+                    function editTimeBlock(){
+                        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editAdminAvailabilityClicked", {day:dayString, _id})
+                    }
 
-//     function setAdminTimeBlockListeners(){
-//         const dayBlocks = Array.from(document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid").children);
-//         dayBlocks.forEach(function(day){
-//             const dayName = day.firstChild("h3").innerText;
-//             const addButton = day.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockAddButton")
+                    function deleteTimeBlock(){
+                        const confirmation = confirm("Delete this time block?");
+                        if(confirmation){
+                            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteAdminAvailabilityClicked", {day:dayString, _id})
+                        }
+                    }
+                })
+            }
 
-//             const timeBlocks = Array.from(day.querySelector(".adminMainPageAddAvailabilityBlockAllUsersAllBlocks"))
-//             timeBlocks.forEach(function(block){
-//                 const _id = block.dataset.dataTimeBlockId;
-//                 const editButton = block.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEditButton");
-//                 const deleteButton = block.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton");
+            
 
-//                 editButton.addEventListener("click", requestAvailabilityBlockEdit);
-//                 deleteButton.addEventListener("click", requestAvailabilityBlockDelete);
+            function addTimeBlock(){
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("addAdminTimeBlockClicked", dayString)
+            }
+           
+        })
+    }
 
-//                 function requestAvailabilityBlockEdit(){
-//                     //class change?
-//                     events.publish("editAdminAvailabilityClicked", {day, _id})
-                    
-//                 }
-//                 function requestAvailabilityBlockDelete(){
-//                     events.publish("deleteAdminAvailabilityClicked", {day, _id})
-//                 }
-//             })
-
-//             addButton.addEventListener("click" , requestAvailabilityBlockNew);
-
-//             function requestAvailabilityBlockNew(){
-//                 //class change?
-//                 events.publish("adminAvailabilityBlockAddRequested", day)
-
-//             }
-//         })     
-//     }  
 })()
 
 
@@ -408,6 +337,186 @@ const adminHomeMain = (function(){
 
 /***/ }),
 
+/***/ "./src/adminHomePage/components/forms/adminTimeBlockForm.js":
+/*!******************************************************************!*\
+  !*** ./src/adminHomePage/components/forms/adminTimeBlockForm.js ***!
+  \******************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "adminTimeBlockDataFormComponent": () => (/* binding */ adminTimeBlockDataFormComponent)
+/* harmony export */ });
+/* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../src/events */ "./src/events.js");
+/* harmony import */ var _src_DOMBuilders_selectorDOMBuilder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../../src/DOMBuilders/selectorDOMBuilder */ "./src/DOMBuilders/selectorDOMBuilder.js");
+/* harmony import */ var _src_timeConverter__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../src/timeConverter */ "./src/timeConverter.js");
+
+
+
+
+
+const adminTimeBlockDataFormComponent = (function(){
+
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminAvailabilityBlockAddRequested', renderTimeBlockDataForm);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('blockDataLoaded', renderTimeBlockDataForm);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminAvailabilityDataChangesCancelled', unrenderTimeBlockDataForm);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("renderAdminBlockValidationErrors", renderAdminBlockDataValidationErrors)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editAdminBlockDataSaved", unrenderTimeBlockDataForm);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('newAdminBlockDataSaved', unrenderTimeBlockDataForm)
+
+
+
+    const formDivWrapper = document.querySelector("#entryFormDiv")
+    const formDiv = document.querySelector("#entryForm");
+    
+
+    function renderTimeBlockDataForm(adminTimeBlockDayData){
+        
+    
+        const elements = setElements();
+        populateContent(elements, adminTimeBlockDayData);
+        setEventListeners(elements, adminTimeBlockDayData);
+    
+        formDiv.appendChild(elements.content);
+
+        const selectors = formDiv.querySelectorAll('.selector');
+        const saveButton = formDiv.querySelector('#adminDayTimeBlockFormSaveButton')
+        if(Array.from(selectors).filter(function(selector){
+            return selector[selector.selectedIndex].value == "default"
+        }).length > 0){
+            saveButton.disabled = true;
+        }
+        formDivWrapper.classList.toggle("formHidden");
+    } 
+
+    function unrenderTimeBlockDataForm(){
+        if(formDiv.firstChild){
+            while(formDiv.firstChild){
+                formDiv.removeChild(formDiv.firstChild)
+            }
+        }
+
+        formDivWrapper.classList.toggle("formHidden");
+    }
+    
+    
+    function setElements(){
+        const template = document.querySelector("#adminDayTimeBlockFormTemplate");
+        const content = document.importNode(template.content, true);
+    
+        const dayLabel = content.querySelector('h3');
+        const timeBlockSelectors = content.querySelectorAll(".selector");  
+        const startDiv = content.querySelector("#adminDayTimeBlockSelectorsStart")
+        const endDiv =   content.querySelector("#adminDayTimeBlockSelectorsEnd")              
+        const saveButton = content.querySelector("#adminDayTimeBlockFormSaveButton");
+        const cancelButton = content.querySelector("#adminDayTimeBlockFormCancelButton");
+    
+        return {content, dayLabel, timeBlockSelectors, saveButton, cancelButton, startDiv, endDiv}
+    }
+    
+    function populateContent(selectorElements, timeBlockData){
+
+        selectorElements.dayLabel.innerText = `Day: ${timeBlockData.timeBlock.day}`;
+
+        selectorElements.timeBlockSelectors.forEach(function(selector){
+            const primaryClass = Array.from(selector.classList)[0];
+    
+            const selectorNew = _src_DOMBuilders_selectorDOMBuilder__WEBPACK_IMPORTED_MODULE_1__.selectorBuilder.runBuildSelector(primaryClass);
+            let selectedOption
+            
+            if(selectorNew.querySelector(`option[value = "${timeBlockData.timeBlock.availability[primaryClass]}"]`) != null){
+                selectedOption = selectorNew.querySelector(`option[value = "${timeBlockData.timeBlock.availability[primaryClass]}"]`)
+            }else{
+                selectedOption = selectorNew.querySelector("option[value = 'default']");
+                const errorText = createErrorText(timeBlockData.timeBlock.availability, primaryClass);
+                if(primaryClass == "startTime"){
+                    selectorElements.startDiv.appendChild(errorText)
+                }else{
+                    selectorElements.endDiv.appendChild(errorText)
+                }
+            }
+            
+            selectedOption.selected = true;
+            if(selectedOption.value != "default"){
+                selectorNew.firstChild.disabled = true;
+            }
+    
+            selectorNew.addEventListener("change", publishSelectionValueChange);
+            
+            function publishSelectionValueChange(){
+                const modifiedSelector = primaryClass
+                const value = selectorNew.value;
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyAdminTimeBlockSelectorValue", {modifiedSelector, value})
+
+                const selectors = formDiv.querySelectorAll('.selector');
+                const saveButton = formDiv.querySelector('#adminDayTimeBlockFormSaveButton')
+                if(Array.from(selectors).filter(function(selector){
+                    return selector[selector.selectedIndex].value == "default"
+                }).length == 0){
+                    saveButton.disabled = false;
+                }
+            }
+    
+            selector.replaceWith(selectorNew)
+        })
+    }
+    
+    function setEventListeners(selectorElements, timeBlockData){
+    
+        selectorElements.saveButton.addEventListener("click", updateTimeBlockData);
+        selectorElements.cancelButton.addEventListener("click", cancelTimeBlockChanges);
+    
+        function updateTimeBlockData(){
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateAdminBlockClicked", timeBlockData.origin);
+        }
+        function cancelTimeBlockChanges(){
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("cancelAdminBlockChangesClicked")
+        }
+    }
+    
+    function createErrorText(data, selector){
+        const errorText = document.createElement("p");
+        errorText.innerText = `Your selected value of ${_src_timeConverter__WEBPACK_IMPORTED_MODULE_2__.timeValueConverter.runConvertTotalMinutesToTime(data[selector])} for ${selector} has been invalidated by a change to the opening/closing times for the facility. Speak with your supervisor to address this or change this value.`;
+        return errorText;
+    }
+
+    function renderAdminBlockDataValidationErrors(blockData){
+        
+        unrenderTimeBlockDataForm();
+        renderTimeBlockDataForm(blockData);
+        
+        const errorList = document.querySelector("#adminDayTimeBlockGeneralErrorList");
+
+        if(errorList.firstChild){
+            while(errorList.firstChild){
+                errorList.removeChild(errorList.firstChild)
+            }
+        }
+
+        blockData.errors.forEach(function(error){
+            const bullet = document.createElement("li");
+            bullet.innerText = error;
+            errorList.appendChild(bullet);
+        })
+    }
+
+})()
+
+
+
+
+
+
+/*
+
+FIX:
+    remove save eventListener if any are --?
+    new add ddin't responsd
+*/
+
+
+/***/ }),
+
 /***/ "./src/adminHomePage/components/forms/facilityDataForm.js":
 /*!****************************************************************!*\
   !*** ./src/adminHomePage/components/forms/facilityDataForm.js ***!
@@ -432,7 +541,6 @@ const facilityDataFormComponent = (function(){
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm")
 
-
     function renderFacilityDataForm(facilityData){
         
         const elements = setElements();
@@ -442,7 +550,6 @@ const facilityDataFormComponent = (function(){
         formDiv.appendChild(elements.content);
         formDivWrapper.classList.toggle("formHidden");
     } 
-
 
     function unrenderFacilityDataForm(){
         if(formDiv.firstChild){
@@ -454,7 +561,6 @@ const facilityDataFormComponent = (function(){
         formDivWrapper.classList.toggle("formHidden");
     }
 
-
     function setElements(){
         const template = document.querySelector("#adminFacilityDataFormTemplate");
         const content = document.importNode(template.content, true);
@@ -465,7 +571,6 @@ const facilityDataFormComponent = (function(){
 
         return {content, facilitySelectors, saveButton, cancelButton}
     }
-
 
     function populateSelectors(selectorElements, facilityData){
         
@@ -491,7 +596,6 @@ const facilityDataFormComponent = (function(){
             selector.replaceWith(selectorNew)
         })
     }
-
 
     function setEventListeners(selectorElements){
 
@@ -548,10 +652,6 @@ const userDataFormComponent = (function(){
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm");
 
-    
-
-    
-
     function renderUserDataForm(userData){
 
         const elements = setElements();
@@ -572,7 +672,6 @@ const userDataFormComponent = (function(){
         formDivWrapper.classList.toggle("formHidden");
     }
 
-
     function setElements(){
         const template = document.querySelector("#adminUserGeneratorTemplate");
         const content = document.importNode(template.content, true);
@@ -587,7 +686,6 @@ const userDataFormComponent = (function(){
         return {content, name, privilege, color, saveButton, cancelButton}
     }
 
-
     function populateFields(userElements, userData){
         userElements.name.value = userData.name;
         if(userData.privilegeLevel == true){
@@ -596,19 +694,23 @@ const userDataFormComponent = (function(){
         userElements.color.value = userData.color;
     }
 
-
     function setEventListeners(userElements, userValues){
         const userData = userValues.userData;
-        const origin = userValues.origin;
-
-        userElements.name.addEventListener('blur', modifyUserNameValue)
-        userElements.privilege.addEventListener("blur", updateUserPrivilege);
-        userElements.color.addEventListener("blur", verifyColorChange);
+        const origin = userValues.origin
+       
         userElements.saveButton.addEventListener("click", saveUserData);
         userElements.cancelButton.addEventListener("click", cancelUserChanges);
 
+        //extract these functions to outer level, as to not recreate them each time
         function saveUserData(){
-            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateUserDataClicked", origin)    
+            
+            if(modifyUserNameValue() == false){
+                return
+            }else{
+                verifyColorChange();
+                updateUserPrivilege();
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateUserDataClicked", origin)   
+            }       
         }
 
         function cancelUserChanges(){
@@ -616,6 +718,22 @@ const userDataFormComponent = (function(){
         }
 
         function modifyUserNameValue(){ 
+            try{
+                if(userData.name != "" && userElements.name.value != userData.name){
+                    const confirmation = confirm(`If you submit changes, this will change the user name from ${userData.name} to ${userElements.name.value}. Proceed? `);
+                    if(confirmation){
+                        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserNameValue", userElements.name.value)
+                    }else{
+                        userElements.name.value = userData.name;
+                        throw false 
+                    }
+                }else if(userData.name != userElements.name.value){
+                    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserNameValue", userElements.name.value)
+                } 
+            }catch(err){
+                return err
+            }
+            
             if(userData.name != "" && userElements.name.value != userData.name){
                 const confirmation = confirm(`If you submit changes, this will change the user name from ${userData.name} to ${userElements.name.value}. Proceed? `);
                 if(confirmation){
@@ -634,25 +752,12 @@ const userDataFormComponent = (function(){
             if(userElements.privilege.checked != userData.privilegeLevel){
                 _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserPrivilegeLevelValue", userElements.privilege.checked)
             } 
-
-            // add to server-side validation
-            // if(userData.privilegeLevel == true & !userElements.privilege.checked && !checkForLastAdmin()){
-            //     alert("Cannot demote last admin. Create new admin users before demoting this admin.")
-            //     userElements.privilege.checked = true;
-            // }
         }
 
         function verifyColorChange(){
             if(userData.color != userElements.color.value){
                 _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserColorValue", userElements.color.value)
             }
-            
-            // add to server-side validation
-            // if(userData.color != userColorDOM.value && blockColorDuplication()){
-            //     alert(`Another user is already using this color. Considering all the possible colors available, the odds are pretty low. Unlucky pick, I guess!`)
-            //     userColorDOM.value = userData.color; 
-            //     userColorDOM.focus();
-            // }
         }
     }
 
@@ -680,6 +785,118 @@ const userDataFormComponent = (function(){
 })()
 
 
+
+
+
+/***/ }),
+
+/***/ "./src/adminHomePage/components/mainModulesRenders/adminTimeBlocksGrid.js":
+/*!********************************************************************************!*\
+  !*** ./src/adminHomePage/components/mainModulesRenders/adminTimeBlocksGrid.js ***!
+  \********************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "adminTimeBlockDataGridComponent": () => (/* binding */ adminTimeBlockDataGridComponent)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../events */ "./src/events.js");
+/* harmony import */ var _timeConverter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../timeConverter */ "./src/timeConverter.js");
+
+
+
+const adminTimeBlockDataGridComponent = (function(){
+
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("renderUpdatedBlockData", renderAdminTimeBlockDay)
+
+    function renderAdminTimeBlockDay(adminTimeBlockDayData){
+        const {day, blocks} = adminTimeBlockDayData
+    
+        const adminBlocksDiv = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid");
+        const dayDiv = Array.from(adminBlocksDiv.querySelectorAll("div")).find(function(div){
+            return div.firstElementChild.innerText == day;
+        });
+        const dayAllBlocksDiv = dayDiv.querySelector(".adminMainPageAddAvailabilityBlockAllUsersAllBlocks");
+        const dayAllBlocksDivNew = document.createElement("div");
+        dayAllBlocksDivNew.classList.add("adminMainPageAddAvailabilityBlockAllUsersAllBlocks")
+    
+        if(blocks.length > 0){
+            blocks.forEach(function(timeBlockData){
+                const row = buildBlockRow(day, timeBlockData);
+                dayAllBlocksDivNew.appendChild(row)
+            })
+        }else{
+            const defaultText = document.createElement('p');
+            defaultText.innerText = "No timeblocks";
+            dayAllBlocksDivNew.appendChild(defaultText);
+        }
+        
+    
+        dayAllBlocksDiv.replaceWith(dayAllBlocksDivNew);
+    
+       //data being sent as obj {day: STRING, blocks: [{start/end/admin}]}
+    
+                        //move this out to mainPage JS not to be rerendered each time
+                        // addButton.addEventListener("click", function addAdminTimeBlock(){
+                        // events.publish('addAdminTimeBlockClicked', {adminTimeBlockDiv, day})
+                        // })
+    }
+     
+    function buildBlockRow(day, blockData){ 
+        const {_id} = blockData
+        const elements = setTemplateElements()
+        setElementsContent(elements, blockData);
+        setEventListeners(elements, {day, _id});
+        
+        return elements.content 
+    }
+    
+    function setTemplateElements(){
+        const template = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersBlockTemplate");
+        const content = document.importNode(template.content, true);
+    
+        const main = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlock");
+        const startTimeText = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockStart > p")
+        const endTimeText = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEnd > p")
+        
+        const editButton = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEditButton");
+        const deleteButton = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton");
+        
+        return {main, content, startTimeText, endTimeText, editButton, deleteButton}
+    }
+    
+    function setElementsContent(blockElement, blockData){
+        blockElement.main.setAttribute("dataTimeBlockId", blockData._id)
+        if(isNaN(Number(blockData.availability.startTime)) == false){
+            blockElement.startTimeText.innerText += _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(blockData.availability.startTime);
+        }else{
+            blockElement.startTimeText.innerText = blockData.availability.startTime;
+        }
+        if(isNaN(Number(blockData.availability.endTime)) == false){
+            blockElement.endTimeText.innerText += _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(blockData.availability.endTime);
+        }else{
+            blockElement.endTimeText.innerText =blockData.availability.endTime;
+        }
+        
+    }
+    
+    function setEventListeners(timeBlockElement, timeBlockData){
+        timeBlockElement.editButton.addEventListener("click", editAdminTimeBlock);
+        timeBlockElement.deleteButton.addEventListener("click", deleteAdminTimeBlock);
+    
+        function editAdminTimeBlock(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editAdminAvailabilityClicked", timeBlockData)
+        }
+        function deleteAdminTimeBlock(){
+            const confirmation = confirm("Delete this time block?");
+            if(confirmation){
+                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteAdminAvailabilityClicked", timeBlockData)
+            }
+            
+        }
+    }
+
+})()
 
 
 
@@ -713,7 +930,7 @@ const facilityDataGridComponent = (function(){
         const main = document.querySelector("#facilityDataGrid")
         const openTimeText = document.querySelector("#adminMainPageFacilityHoursSelectorsOpen > p");
         const closeTimeText = document.querySelector("#adminMainPageFacilityHoursSelectorsClose > p");
-        const maxCapacityText = document.querySelector("#adminMainPageFacilityHoursSelectorsMax > p");
+        const maxCapacityText = document.querySelector("#adminMainPageFacilityCapacitySelectorsMax > p");
         
         return {main, openTimeText, closeTimeText, maxCapacityText}
     }
@@ -742,7 +959,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "userDataGridComponent": () => (/* binding */ userDataGridComponent)
 /* harmony export */ });
 /* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../src/events */ "./src/events.js");
-//ADMIN USERS DIV
 
 
 const userDataGridComponent = (function(){
@@ -763,10 +979,6 @@ const userDataGridComponent = (function(){
         userGrid.replaceWith(userGridNew); 
     }
 
-
-    //NEED TO GET _id PROP FOR NEW POST, RETURN ID THROUGH JSON AND ASSIGN IN USERDATA MODEL ON RETURN?
-    //USE ARRAY.MAP AND OBJ EQUIVALENT (?) IN DATAMODElS FOR DEEP COPIES
-    //WHAT IS FUNCTIONAL DIFFERENCE BETWEEN HTTP METHODS?
     function buildUserRow(userData){   
         const elements = setTemplateElements();
         setElementsContent(elements, userData);
@@ -774,7 +986,6 @@ const userDataGridComponent = (function(){
 
         return elements.content  
     }
-
 
     function setTemplateElements(){
         const template = document.querySelector("#adminMainPageUserGridUserTemplate");
@@ -793,7 +1004,6 @@ const userDataGridComponent = (function(){
         return {content, div, name, privilege, lastVerified, colorBlock, editButton, deleteButton}
     }
 
-
     function setElementsContent(userElement, userData){
         userElement.div.setAttribute("data-userId", userData._id)
         userElement.name.innerText = `Name: ${userData.name}`;
@@ -806,7 +1016,6 @@ const userDataGridComponent = (function(){
         userElement.colorBlock.style.backgroundColor = userData.color
     }
 
-
     function setEventListeners(userElement, userData){
         userElement.editButton.addEventListener("click", editUser);
         userElement.deleteButton.addEventListener("click", deleteUser);
@@ -815,15 +1024,138 @@ const userDataGridComponent = (function(){
             _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editUserClicked", userData._id)
         }
         function deleteUser(){
-            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteUserClicked", userData._id)	
+            const confirmation = confirm("Delete this user?");
+            if(confirmation){
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteUserRequested", userData._id)
+            }
         }
     }
-
 })()
- //no obvious issues with this or dataModel, display is usersGrid and addUserButton
  
 
 
+
+/***/ }),
+
+/***/ "./src/adminHomePage/models/allAdminTimeBlocksData.js":
+/*!************************************************************!*\
+  !*** ./src/adminHomePage/models/allAdminTimeBlocksData.js ***!
+  \************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "allAdminMainPageAdminTimeBlockModel": () => (/* binding */ allAdminMainPageAdminTimeBlockModel)
+/* harmony export */ });
+/* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../src/events */ "./src/events.js");
+/* harmony import */ var _timeConverter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../timeConverter */ "./src/timeConverter.js");
+
+
+
+const allAdminMainPageAdminTimeBlockModel = (function(){
+    //find subscriber to database update
+    //updates here would need to pushed to all users, should this publish to allUsers here, or do this on backEnd before DB save? Look at Node/Mongo scripts to determine how viable this is one way or another
+    let allAdminAvailabilityDataStable = {};
+    let allAdminAvailabilityDataMutable = {};
+    
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminDataFetched", setDataNewPageRender);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateAllBlocksModel", setDataNewDatabasePost)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editAdminAvailabilityClicked", editAdminAvailabilityBlock)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteAdminAvailabilityClicked", deleteAdminAvailabilityBlock);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("facilityDataAvailabiltyUpdateComparisonRequested", renderAllDays)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('blockDataDeleted', setDataBlockDataDeleted)
+
+    function setDataNewPageRender(adminData){
+        allAdminAvailabilityDataStable = adminData.adminTimeBlocks;
+        createAdminAvailabilityDeepCopy(allAdminAvailabilityDataMutable, allAdminAvailabilityDataStable);
+    }
+
+    function createAdminAvailabilityDeepCopy(newObj, copyObj){
+        for(let prop in newObj){
+            delete newObj[prop]
+        }
+
+        for(let day in copyObj){
+            newObj[day] = [];
+            copyObj[day].forEach(function(timeBlock){
+                const {admin, day, season, _id} = timeBlock
+                const timeBlockCopy = Object.assign({}, {admin, day, season, _id});
+                timeBlockCopy.availability = Object.assign({}, timeBlock.availability)
+                newObj[day].push(timeBlockCopy);
+                
+
+            });
+        }
+    }
+
+    function editAdminAvailabilityBlock(timeBlockObj){
+        const {day, _id} = timeBlockObj;
+        const block = allAdminAvailabilityDataMutable[day].filter(function(timeBlock){
+            return timeBlock._id == _id;
+        })[0]
+
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityBlockEditRequested", block); //add publish that sends to form, need _id/day?
+    }
+
+    function deleteAdminAvailabilityBlock(timeBlockObj){
+        const {day, _id} = timeBlockObj;
+        const block = allAdminAvailabilityDataMutable[day].filter(function(timeBlock){
+            return timeBlock._id == _id;
+        })[0];
+
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminBlockDeleteRequested", block); //send this to database, change to deleteRequested?
+    }
+
+    function setDataNewDatabasePost(blockData){
+		const thisBlockIndex = allAdminAvailabilityDataMutable[blockData.day].findIndex(function(block){
+			return block._id == blockData._id
+		});
+		if(thisBlockIndex != -1){
+			allAdminAvailabilityDataMutable[blockData.day][thisBlockIndex] = blockData
+		}else{
+			allAdminAvailabilityDataMutable[blockData.day].push(blockData);
+		}
+		
+        createAdminAvailabilityDeepCopy(allAdminAvailabilityDataStable, allAdminAvailabilityDataMutable);
+		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedBlockData", {day: blockData.day, blocks: allAdminAvailabilityDataMutable[blockData.day]})
+    }
+
+    function renderAllDays(facilityData){
+        const tempObj = {};
+        createAdminAvailabilityDeepCopy(tempObj, allAdminAvailabilityDataMutable)
+        for(let day in tempObj){
+            tempObj[day].forEach(function(timeBlock){
+                const index = tempObj[day].indexOf(timeBlock)
+                if((timeBlock.availability.startTime < facilityData.facilityOpen || 
+                    timeBlock.availability.startTime > facilityData.facilityClose)&&
+                    (timeBlock.availability.endTime < facilityData.facilityOpen || 
+                        timeBlock.availability.endTime > facilityData.facilityClose)){
+                        tempObj[day][index].availability.startTime = `Start time ${_timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime( tempObj[day][index].availability.startTime)} is outside facility hours. Speak to supervisor about time changes.`
+                        tempObj[day][index].availability.endTime = `End time ${_timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime( tempObj[day][index].availability.endTime)} is outside facility hours. Speak to supervisor about time changes.`
+                }else if(timeBlock.availability.startTime < facilityData.facilityOpen || 
+                    timeBlock.availability.startTime > facilityData.facilityClose){
+                        tempObj[day][index].availability.startTime = `Start time ${_timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime( tempObj[day][index].availability.startTime)} is outside facility hours. Speak to supervisor about time changes.`
+                }else if(timeBlock.availability.endTime < facilityData.facilityOpen || 
+                        timeBlock.availability.endTime > facilityData.facilityClose){
+                            tempObj[day][index].availability.endTime = `End time ${_timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime( tempObj[day][index].availability.endTime)} is outside facility hours. Speak to supervisor about time changes.`
+                }     
+            })
+
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedBlockData", {day, blocks: tempObj[day]})
+        }
+    }
+    function setDataBlockDataDeleted(blockData){
+        const {day, _id} = blockData
+		const newBlocksList = allAdminAvailabilityDataMutable[day].filter(function(block){
+			return _id != block._id
+		})
+
+		allAdminAvailabilityDataMutable[day] = newBlocksList;
+		createAdminAvailabilityDeepCopy(allAdminAvailabilityDataStable, allAdminAvailabilityDataMutable);
+		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedBlockData", {day, blocks: allAdminAvailabilityDataMutable[day]})
+	}
+
+})()
 
 
 
@@ -842,48 +1174,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../src/events */ "./src/events.js");
 
 
-/*purpose: dataModel for selecting individual user from allUsers to add/edit/delete
+const allUsersData = (function(){
 
-adminAllUsers array is modeled as such:
-
-allUsers = 
-	[
-		{
-            name,
-            color,
-            privilegeLevel,
-            teams:{},
-            availability:{},
-            lastVerified,
-			adminPageSet,
-            season
-        }, 
-		{etc}, {etc}
-	]
-
-	teamOrderObj obj is modeled as follows: {index, modifier}
-
-publishes:
-    user data FOR adminUserDataModel edits /adminUserGenerator DOM display
-	verified user addition/edits or deletions FOR database
-
-subscribes to: 
-    adminMainPageModel builds FROM adminMainPageModel
-    userData change validations FROM userValidator
-	requests to edit/delete a user FROM adminMainPageDOM
-*/
-
-const allUsersData = (function(){ //continue REVIEW HERE
-	//no obvious issues, find database update listeners for delete/modify/add allUsers, make sure password does not get passed to front-end
 	let allUsersDataStable;
 	let allUsersDataMutable;
 
 	_src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminDataFetched", setDataNewPageRender);
-	_src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateAllUsersModel", setDataNewDatabasePost) //add prompt for successful save
-
+	_src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateAllUsersModel", setDataNewDatabasePost)
+	_src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteUserClicked", deleteUser)
 	_src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editUserClicked", editUser);
-	_src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteUserClicked", deleteUserForDatabaseUpdate);
-	_src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataValidated", updateUserData)
+	_src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataDeleted", setDataUserDataDeleted);
+	
 
 	function setDataNewPageRender(adminAllUsers){
         allUsersDataStable = adminAllUsers.allUsers;
@@ -902,18 +1203,22 @@ const allUsersData = (function(){ //continue REVIEW HERE
 		}
 		
         createAllUsersDeepCopy(allUsersDataStable, allUsersDataMutable);
-		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedUserData", allUsersDataMutable) //do this
+		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedUserData", allUsersDataMutable)
     }
 
     function createAllUsersDeepCopy(newArr, copyArr){
 		copyArr.forEach(function(user){
-			const newUserObj = {};
-			for(let prop in user){
-				newUserObj[prop] = user[prop]
-			}
-			newArr.push(newUserObj);
+			newArr.push(Object.assign({}, user));
 		})
     }
+
+	function deleteUser(userId){
+		const thisUser = allUsersDataMutable.filter(function(user){
+			return userId == user._id
+		})[0];
+
+		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteUser", thisUser)
+	}
 
 	function editUser(userId){
 		const thisUser = allUsersDataMutable.filter(function(user){
@@ -923,18 +1228,17 @@ const allUsersData = (function(){ //continue REVIEW HERE
 		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataEditRequested", thisUser);
 	}
 
-	function deleteUserForDatabaseUpdate(userData){/////revierw this
-		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("allUsersDataUpdated", {userData}); 
-		
+	function setDataUserDataDeleted(userId){
+		const newUsersList = allUsersDataMutable.filter(function(user){
+			return userId != user._id
+		})
+
+		allUsersDataMutable = newUsersList;
+		createAllUsersDeepCopy(allUsersDataStable, allUsersDataMutable);
+		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedUserData", allUsersDataMutable)
 	}
 
-	function updateUserData(validatedUserData){
-		if(validatedUserData.origin == "edit"){
-			_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userUpdateRequested", validatedUserData.userData) 
-		}else{
-			_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newUserAdditionRequested", validatedUserData.userData)
-		}
-	}
+	
 })()
 
 
@@ -954,38 +1258,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../src/events */ "./src/events.js");
 
 
-/*purpose: dataModel for modifying/saving facilityData content for adminMainPage
-
-database object is modeled as such:
-
-obj = {
-    facilityOpen, 
-    facilityClose, 
-    facilityMaxCapacity
-}
-
-publishes:
-    facilityDataDOM renders FOR adminMainPageDOM
-    save requests FOR databse
-   
-subscribes to: 
-    adminMainPageModel builds FROM adminMainPageModel
-    data modification changes FROM adminMainPageDOM
-    save change and cancel change requests FROM adminMainPageDOM
-*/
-
-
-//start EDITING HERE, I WANT FACILITYDATA TO BE CONNECTED BY THE END OF TONIGHT!
 const adminMainPageFacilityDataModel = (function(){
-    //no obvious issues, find database listener for data update
+  
     let adminFacilityDataStable;
     let adminFacilityDataMutable;
 
-    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("hibbilty", console.log("Does this end it?"))
-    
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminDataFetched", setDataNewPageRender);
-    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("facilityDataSaved", setDataNewDatabasePost); //add prompt about successful post
-    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editFacilityDataClicked", editFacilityData) //add prompt about requesting dataEdit
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("facilityDataSaved", setDataNewDatabasePost); 
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editFacilityDataClicked", editFacilityData) 
 
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyFacilitySelectorValue", modifyFacilitySelectorValue);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateFacilityDataClicked", validateFacilityData);
@@ -993,14 +1273,16 @@ const adminMainPageFacilityDataModel = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("cancelFacilityDataChangesClicked", cancelFacilityDataChanges);
 
     function setDataNewPageRender(adminData){
-        adminFacilityDataStable = adminData.facilityData; //make sure this is correct property for database initial database fetch
+        adminFacilityDataStable = adminData.facilityData; 
         adminFacilityDataMutable = Object.create({});
         createFacilityDataDeepCopy(adminFacilityDataMutable, adminFacilityDataStable);
     }
 
     function setDataNewDatabasePost(){
         createFacilityDataDeepCopy(adminFacilityDataStable, adminFacilityDataMutable);
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedFacilityData", adminFacilityDataMutable)
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("setNewSelectorRanges", adminFacilityDataMutable)
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedFacilityData", adminFacilityDataMutable);
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("facilityDataAvailabiltyUpdateComparisonRequested", adminFacilityDataMutable)
     }
 
     function createFacilityDataDeepCopy(newObj, copyObj){
@@ -1030,8 +1312,110 @@ const adminMainPageFacilityDataModel = (function(){
         createFacilityDataDeepCopy(adminFacilityDataMutable, adminFacilityDataStable);
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminFacilityDataChangesCancelled")
     }
+})()
 
 
+
+/***/ }),
+
+/***/ "./src/adminHomePage/models/timeBlockData.js":
+/*!***************************************************!*\
+  !*** ./src/adminHomePage/models/timeBlockData.js ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "singleAdminTimeBlockModel": () => (/* binding */ singleAdminTimeBlockModel)
+/* harmony export */ });
+/* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../src/events */ "./src/events.js");
+
+
+const singleAdminTimeBlockModel = (function(){
+
+    let adminAvailabilityDataStable 
+    let adminAvailabilityDataMutable 
+
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events;
+
+    const timeBlockDefault = {
+        admin:true,
+        season:null,
+        day:null,
+        availability:{startTime: "default", endTime: "default"}
+    };
+    
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminDataFetched', setSeason)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("addAdminTimeBlockClicked", addAdminAvailabilityBlock);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyAdminTimeBlockSelectorValue", modifyAdminAvailabilityValue);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminAvailabilityBlockEditRequested", setAdminAvailabilityDataEditRequest);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("cancelAdminBlockChangesClicked", setAdminAvailabilityDataCancelRequest);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateAdminBlockClicked", validateChanges);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminAvailabilityDataValidated", updateBlockData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminAvailabilityDataValidationFailed", renderBlockValidationErrors);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editAdminBlockDataSaved", publishBlockUpdatesToAllBlocks);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("newAdminBlockDataSaved", addBlockDataToAllBlocks);
+    
+    function setSeason(adminData){
+        timeBlockDefault.season = adminData.season
+        console.log(timeBlockDefault)
+    }
+
+    function addAdminAvailabilityBlock(day){
+        adminAvailabilityDataStable = Object.assign({}, timeBlockDefault);
+        adminAvailabilityDataStable.day = day;
+
+        adminAvailabilityDataMutable = Object.assign({}, adminAvailabilityDataStable);
+        adminAvailabilityDataMutable.availability = Object.assign({}, adminAvailabilityDataStable.availability)
+
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityBlockAddRequested", {timeBlock: adminAvailabilityDataMutable, origin: "add"});
+    }
+
+    function setAdminAvailabilityDataEditRequest(timeBlock){
+        adminAvailabilityDataStable =  timeBlock;
+        adminAvailabilityDataMutable = Object.assign({}, adminAvailabilityDataStable)
+        adminAvailabilityDataMutable.availability = Object.assign({}, adminAvailabilityDataStable.availability)
+
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("blockDataLoaded", {timeBlock: adminAvailabilityDataMutable, origin:"edit"})
+    }
+
+    function setAdminAvailabilityDataCancelRequest(){
+        adminAvailabilityDataStable = {};
+
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityDataChangesCancelled")
+    }
+
+    function modifyAdminAvailabilityValue(timeBlockObj){
+        const {modifiedSelector, value} = timeBlockObj;
+        
+        adminAvailabilityDataMutable.availability[modifiedSelector] = value;
+    }
+
+    function validateChanges(origin){
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminBlockDataValidationRequested", {timeBlock: adminAvailabilityDataMutable, origin})
+    }
+
+    function updateBlockData(validatedBlockData){
+		if(validatedBlockData.origin == "edit"){
+			_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminBlockUpdateRequested", validatedBlockData.timeBlock) 
+		}else{
+			_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newAdminBlockAdditionRequested", validatedBlockData.timeBlock)
+		}
+	}
+
+    function renderBlockValidationErrors(validationErrorData){
+        const {errors, origin} = validationErrorData
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderAdminBlockValidationErrors", {timeBlock: adminAvailabilityDataMutable, errors, origin})
+    }
+
+    function publishBlockUpdatesToAllBlocks(){
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateAllBlocksModel", adminAvailabilityDataMutable)
+    }
+
+    function addBlockDataToAllBlocks(_id){
+        adminAvailabilityDataMutable._id = _id;
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateAllBlocksModel", adminAvailabilityDataMutable);
+    }
 
 })()
 
@@ -1052,34 +1436,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../src/events */ "./src/events.js");
 
 
-/*purpose: dataModel for creating/modifying individual user data 
-
-userObject is modeled as such:
-
-    {
-        name,
-        color,
-        privilegeLevel,
-        teams:{},
-        availability:{},
-        lastVerified,
-        adminPageSet,
-        season
-    }, 
-
-publishes:
-    userModel data FOR adminUserGeneratorDOM
-    validation requests to save data FOR userValidator
-   
-subscribes to: 
-    addUser requests FROM adminMainPageModel
-    editUser data FROM adminAllUsersDataModel
-	userData save requests FROM adminUserGeneratorDOM
-    data modifications for name/password/color/privelege FROM adminUserGeneratorDOM
-*/
-
 const userData = (function(){
-    //no obvious issues, ensure that password does not come to front-end
+
+    const userModel = {
+        name: "",
+        //password: coming soon
+        color: "#000000",
+        privilegeLevel: false,
+        teams:[], 
+        availability:{Sun:[], Mon:[], Tue: [], Wed: [], Thu: [], Fri: [], Sat: []}, 
+        lastVerified: null,
+
+        //both of the below properties were checkign to see which page/data was last used , cookies/sessionStorage?
+
+        // adminPageSet: null,
+        // season: "fall"
+    };
+
     let userModelStable;
     let userModelMutable;
 
@@ -1093,7 +1466,8 @@ const userData = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editUserDataSaved", publishUserUpdatesToAllUsers);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("newUserDataSaved", addUserDataToAllUsers);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataValidationFailed", renderUserValidationErrors);
-    
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataValidated", updateUserData)
+        //USE ARRAY.MAP AND OBJ EQUIVALENT (?) IN DATAMODElS FOR DEEP COPIES?
     
     function setUserModelEditRequest(userData){
         userModelStable = userData
@@ -1117,19 +1491,8 @@ const userData = (function(){
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateAllUsersModel", userModelMutable);
     }
     
-    //check this one separately
     function createNewUser(){
-        userModelStable = {
-            name: "",
-            //password: coming soon
-            color: "#000000",
-            privilegeLevel: false,
-            teams:[], 
-            availability:{Sun:[], Mon:[], Tue: [], Wed: [], Thu: [], Fri: [], Sat: []}, 
-            lastVerified: null,
-            // adminPageSet: null,
-            // season: "fall"
-        };
+        userModelStable = Object.assign({}, userModel);
         userModelMutable = Object.assign({}, userModelStable);
 
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newUserModelBuilt", {userData: userModelMutable, origin:"add"})
@@ -1145,11 +1508,6 @@ const userData = (function(){
 
     function setPrivilegeLevel(privilege){
         userModelMutable.privilegeLevel = privilege;
-        // if(privilege == false){
-        //     userModelMutable.adminPageSet = null
-        // }else{
-        //     userModelMutable.adminPageSet = "admin"
-        // }
     }
 
     function validateChanges(origin){
@@ -1161,7 +1519,15 @@ const userData = (function(){
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUserValidationErrors", {data: userModelMutable, errors, origin})
     }
 
+    function updateUserData(validatedUserData){
+		if(validatedUserData.origin == "edit"){
+			_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userUpdateRequested", validatedUserData.userData) 
+		}else{
+			_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newUserAdditionRequested", validatedUserData.userData)
+		}
+	}
 })()
+
 
 
 
@@ -1179,14 +1545,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "databasePost": () => (/* binding */ databasePost)
 /* harmony export */ });
 /* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../src/events */ "./src/events.js");
-/* harmony import */ var _adminHomePage_models_userData__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./adminHomePage/models/userData */ "./src/adminHomePage/models/userData.js");
-
 
 
 const databasePost = (function(){
 
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userUpdateRequested", updateUserData);
-    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("newUserAdditionRequested", addUserData)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("newUserAdditionRequested", addUserData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteUserRequested", deleteUserData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminBlockUpdateRequested', updateAdminBlockData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('newAdminBlockAdditionRequested', addAdminBlockData)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminBlockDeleteRequested', deleteAdminBlockData)
     // events.subscribe("adminAvailabilityDataUpdated", alertAndLogCurrentObject)
     // events.subscribe("adminAllTeamsDataUpdated", changeAllTeamsData)
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataUpdateRequested", updateFacilityData)
@@ -1195,7 +1563,8 @@ const databasePost = (function(){
     // events.subscribe("verifyUpToDateClicked", changeVerificationData)//
     // events.subscribe("pageChangeRequested", alertAndLogCurrentObject);
     // events.subscribe("userSeasonChangeRequested", changeUserSeason); //
-    // events.subscribe("adminSeasonChangeRequested", changeAdminSeason);
+    // events.subscribe("adminSeasonChangeRequested", changeAdminSeason);;
+    
     
 
     function alertAndLogCurrentObject(databaseBoundObject){
@@ -1205,7 +1574,7 @@ const databasePost = (function(){
 
     async function updateFacilityData(databaseBoundObject){ 
         try{
-            const facilityDataResponse = await fetch('adminHome/postAdminFacilitySettings.json', {
+            await fetch('adminHome/postAdminFacilitySettings.json', {
                 method:'POST',
                 headers:{
                     'Content-Type': 'application/json'
@@ -1214,7 +1583,6 @@ const databasePost = (function(){
                 body: JSON.stringify(databaseBoundObject)
     
             });
-            console.log(await facilityDataResponse.body)
             _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("facilityDataSaved")
         }catch(err){
             console.log(err)
@@ -1223,8 +1591,9 @@ const databasePost = (function(){
     }
 
     async function updateUserData(databaseBoundObject){
+        const {_id} = databaseBoundObject;
         try{
-            const userDataResponse = await fetch('adminHome/user/0/update.json', { //change the hard-coded id's into userspecific id's SOON
+            const userDataResponse = await fetch(`adminHome/user/${_id}/update.json`, { //change the hard-coded id's into userspecific id's SOON
                 method:'POST',
                 headers:{
                     'Content-Type': 'application/json'
@@ -1251,7 +1620,7 @@ const databasePost = (function(){
 
     async function addUserData(databaseBoundObject){
         try{
-            const userDataResponse = await fetch('adminHome/user/add.json', { //change the hard-coded id's into userspecific id's SOON
+            const userDataResponse = await fetch('adminHome/user/add.json', {
                 method:'POST',
                 headers:{
                     'Content-Type': 'application/json'
@@ -1268,8 +1637,115 @@ const databasePost = (function(){
                 const origin = "add"
                 _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataValidationFailed", {errors, origin})
             }else if(userDataResponse.status == 200){
-                const newUser = await userDataResponse.json(); 
+                const newUser = await userDataResponse.json();  
                 _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newUserDataSaved", newUser)
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    async function deleteUserData(userId){
+        const idObj = {_id: userId}
+        try{
+            const userDataResponse = await fetch(`adminHome/user/${userId}/delete.json`, { //change the hard-coded id's into userspecific id's SOON
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(idObj)
+    
+            });
+
+            if(userDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(userDataResponse.status == 400){
+                const errors = await userDataResponse.json();
+                alert(errors);
+            }else if(userDataResponse.status == 200){
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataDeleted", userId)
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    async function updateAdminBlockData(databaseBoundObject){
+        const {_id} = databaseBoundObject;
+        try{
+            const blockDataResponse = await fetch(`adminHome/timeBlock/${_id}/update.json`, { //change the path
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(blockDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(blockDataResponse.status == 400){
+                const errors = await blockDataResponse.json();
+                const origin = "edit"
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityDataValidationFailed", {errors, origin})
+            }else if(blockDataResponse.status == 200){ 
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editAdminBlockDataSaved") //find receiver
+            }
+           
+        }catch(err){
+            console.log(err)
+        }//fix the id to be dynamic
+    }
+
+    async function addAdminBlockData(databaseBoundObject){
+        try{
+            const blockDataResponse = await fetch('adminHome/timeBlock/add.json', {  //get rid of hard coded season as soon as possible
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(blockDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(blockDataResponse.status == 400){
+                const errors = await blockDataResponse.json()
+                const origin = "add"
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityDataValidationFailed", {errors, origin})
+            }else if(blockDataResponse.status == 200){
+                const newAdminBlock = await blockDataResponse.json(); 
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newAdminBlockDataSaved", newAdminBlock) //find listener
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    async function deleteAdminBlockData(blockData){
+        const idObj = {_id: blockData._id}
+        try{
+            const blockDataResponse = await fetch(`adminHome/timeBlock/${blockData._id}/delete.json`, { //change the hard-coded id's into userspecific id's SOON
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(idObj)
+    
+            });
+
+            if(blockDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(blockDataResponse.status == 400){
+                const errors = await blockDataResponse.json();
+                alert(errors);
+            }else if(blockDataResponse.status == 200){
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("blockDataDeleted", blockData)
             }
         }catch(err){
             console.log(err)
@@ -1932,6 +2408,69 @@ const timeValueConverter = (function(){
 
 /***/ }),
 
+/***/ "./src/validators/availabilityValidator.js":
+/*!*************************************************!*\
+  !*** ./src/validators/availabilityValidator.js ***!
+  \*************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "availabilityValidator": () => (/* binding */ availabilityValidator)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events.js");
+
+
+const availabilityValidator = (function(){
+  
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminBlockDataValidationRequested", validateAllAdminAvailability);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userBlockDataValidationRequested", validateAllUserAvailability);
+    
+    function validateAllAdminAvailability(timeBlockData){
+        const {timeBlock, origin} = timeBlockData
+        const errorArray = []
+        validateAllInputs(timeBlock, errorArray)
+        
+        
+        if(errorArray.length == 0){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityDataValidated", timeBlockData)
+        }else{
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityDataValidationFailed", {errors: errorArray, origin})
+        }
+    }
+    
+    function validateAllUserAvailability(timeBlockData){
+        const {timeBlock, origin} = timeBlockData
+        const errorArray = []
+        validateAllInputs(timeBlock, errorArray)
+        if(errorArray.length == 0){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userAvailabilityDataValidated",timeBlock);
+        }else{
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userAvailabilityValidationFailed", {errors: errorArray, origin})
+        }
+    }
+    
+    function validateAllInputs(timeBlock, array){
+        try{
+            for(let prop in timeBlock.availability){
+                if(timeBlock.availability[prop] == "default"){
+                    throw(`Value for ${prop} cannot be default`);
+                }
+            }
+
+            if(timeBlock.availability.startTime >= timeBlock.availability.endTime){
+                throw('Start time overlaps with end time!')
+            }
+        }catch(err){
+            array.push(err)
+        }
+    }
+})()
+
+
+
+/***/ }),
+
 /***/ "./src/validators/facilityDataValidator.js":
 /*!*************************************************!*\
   !*** ./src/validators/facilityDataValidator.js ***!
@@ -2004,30 +2543,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../src/events */ "./src/events.js");
 
 
-/*purpose: validator for user dataModel updates
-
-userObject is modeled as such:
-
-    {
-        name,
-        color,
-        privilegeLevel,
-        teams:{},
-        availability:{},
-        lastVerified
-    }, 
-
-publishes:
-    successful validations FOR adminAllUsersDataModel
-   
-subscribes to: 
-    validation requests FROM adminUserDataModel
-*/
-
 const userDataValidator = (function(){
     
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataValidationRequested", validateAllInputs);
     
+    //
     function validateAllInputs(adminUserData){
         const {userData, origin} = adminUserData
 
@@ -2148,7 +2668,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _src_adminHomePage_models_allUsersData__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../src/adminHomePage/models/allUsersData */ "./src/adminHomePage/models/allUsersData.js");
 /* harmony import */ var _src_adminHomePage_models_userData__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../src/adminHomePage/models/userData */ "./src/adminHomePage/models/userData.js");
 /* harmony import */ var _src_validators_userValidator__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../src/validators/userValidator */ "./src/validators/userValidator.js");
-/* harmony import */ var _src_databasePost__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../src/databasePost */ "./src/databasePost.js");
+/* harmony import */ var _src_adminHomePage_components_mainModulesRenders_adminTimeBlocksGrid__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../src/adminHomePage/components/mainModulesRenders/adminTimeBlocksGrid */ "./src/adminHomePage/components/mainModulesRenders/adminTimeBlocksGrid.js");
+/* harmony import */ var _src_adminHomePage_components_forms_adminTimeBlockForm__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../src/adminHomePage/components/forms/adminTimeBlockForm */ "./src/adminHomePage/components/forms/adminTimeBlockForm.js");
+/* harmony import */ var _src_adminHomePage_models_allAdminTimeBlocksData__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../src/adminHomePage/models/allAdminTimeBlocksData */ "./src/adminHomePage/models/allAdminTimeBlocksData.js");
+/* harmony import */ var _src_adminHomePage_models_timeBlockData__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../src/adminHomePage/models/timeBlockData */ "./src/adminHomePage/models/timeBlockData.js");
+/* harmony import */ var _src_validators_availabilityValidator__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../src/validators/availabilityValidator */ "./src/validators/availabilityValidator.js");
+/* harmony import */ var _src_databasePost__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../src/databasePost */ "./src/databasePost.js");
+
+
+
+
+
+
 
 
 
@@ -2171,6 +2702,7 @@ async function setScriptData(){
     try{
         const adminPageJSON = await fetch('adminHome/adminData.json'); //change this to accept userId and season
         const adminPageData = await adminPageJSON.json();
+        console.log(adminPageData)
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminDataFetched", adminPageData);
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminDataSet");
         
@@ -2179,42 +2711,6 @@ async function setScriptData(){
     }
 }
 
-
-
-// function setAdminTimeBlockListeners(){
-//     const dayBlocks = Array.from(document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid").children);
-//     dayBlocks.forEach(function(day){
-//         const dayName = day.firstChild("h3").innerText;
-//         const addButton = day.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockAddButton")
-
-//         const timeBlocks = Array.from(day.querySelector(".adminMainPageAddAvailabilityBlockAllUsersAllBlocks"))
-//         timeBlocks.forEach(function(block){
-//             const _id = block.dataTimeBlockId;
-//             const editButton = block.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEditButton");
-//             const deleteButton = block.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton");
-
-//             editButton.addEventListener("click", requestAvailabilityBlockEdit);
-//             deleteButton.addEventListener("click", requestAvailabilityBlockDelete);
-
-//             function requestAvailabilityBlockEdit(){
-//                 //class change?
-//                 events.publish("editAdminAvailabilityClicked", {dayName, _id})
-                
-//             }
-//             function requestAvailabilityBlockDelete(){
-//                 events.publish("deleteAdminAvailabilityClicked", {dayName, _id})
-//             }
-//         })
-
-//         addButton.addEventListener("click" , requestAvailabilityBlockNew);
-
-//         function requestAvailabilityBlockNew(){
-//             //class change?
-//             events.publish("adminAvailabilityBlockAddRequested", day)
-
-//         }
-//     })     
-// }  
 })();
 
 /******/ })()

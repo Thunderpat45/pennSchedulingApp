@@ -3,81 +3,14 @@ import { events } from "../../../src/events";
 // import {adminTeams} from "./components/teamGrid";
 // import {adminUsers} from "./components/userGrid";
 
-/*action: admin interface for observing allTeams/allUsers, setting facility parameters, blocking off time for all users, and running the scheduling function
-
-adminMainPageData object is modeled as such:
-
-obj = {
-    allTeams: 
-        [{ 
-            teamName,
-            teamSize, 
-            rank:
-                {
-                    myTeams,
-                    allTeams
-                },
-            allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
-            coach,
-        }, {etc}, {etc}]
-
-    allUsers:
-        [{
-            name,
-            color,
-            password, //MAKE SURE THIS DOES NOT GET PASSED TO FRONT END
-            privilegeLevel,
-            teams:{},
-            availability:{},
-            lastVerified
-        }, {etc}, {etc}]
-
-    facilitySelectors:
-        {facilityOpen, facilityClose, facilityMaxCapacity}
-
-    adminTimeBlocks:
-        {day: [{{startTime, stopTime, admin}, {startTime, stopTime, admin}, ], day: [{startTime, stopTime, admin}, {startTime, stopTime, admin}]},  make sure empties don't screw anything up
-
-    season,
-}
-
-adminSelectorsObj is modeled as such:
-
-obj = {
-
-    startTime: (pre-built select HTML element),
-    endTime: etc,
-    teamSize: etc,
-    facilityOpen: etc,
-    facilityClose: etc,
-    facilityMaxCapacity: etc,
-    dayOfWeek: etc,
-    inWeiss: etc
-}
-
-publishes:
-    page render requests FOR pageRenderer
-    season change requests FOR (?)
-    scheduler run requests FOR (?)
-    admin allTeam rank changes FOR adminAllTeamsDataModel
-    user add requests FOR adminUserGeneratorModel 
-    user edit/delete requests for adminAllUsersDataModel
-    facilityData changes, save requests, and change cancellations FOR adminMainPageFacilityDataModel
-    
-
-subscribes to: 
-    adminMainPageModel builds FROM adminMainPageModel
-    adminSelectorsBuilt FROM selectorDOMBuilder
-    adminAvailability and adminFacility model updates FROM adminAvailabity and adminFacility data models
-*/
-
 const adminHomeMain = (function(){
 
-    events.subscribe("adminDataSet", setAdminEventListeners); //some prompt about setting data in client models
+    events.subscribe("adminDataSet", setAdminEventListeners);
 
     function setAdminEventListeners(){
         setFacilityDataListeners()
         setUserDataListeners();
+        setAdminTimeBlocksEventListeners();
     }
 
     function setFacilityDataListeners(){
@@ -106,14 +39,13 @@ const adminHomeMain = (function(){
                     events.publish("editUserClicked", _id)
                 }
                 function deleteUser(){
-                    events.publish("deleteUserClicked")	
+                    const confirmation = confirm("Delete this user?");
+                    if(confirmation){
+                        events.publish("deleteUserRequested", _id)
+                    }
                 }
             })
         }
-
-        //need to add qSAll for edit/delete buttons that listen to appropriate event
-
-
 
         addUserButton.addEventListener("click", addUser)
 
@@ -122,50 +54,47 @@ const adminHomeMain = (function(){
         }
     }
 
+    function setAdminTimeBlocksEventListeners(){
+        const adminTimeBlockDays = Array.from(document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid").children);
 
+        adminTimeBlockDays.forEach(function(day){
+            const dayString = day.querySelector("h3").innerText;
+            const addBlockButton = day.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockAddButton");
 
+            addBlockButton.addEventListener("click", addTimeBlock);
 
+            const dayAllBlocks = Array.from(day.querySelectorAll(".adminMainPageAddAvailabilityBlockAllUsersAllBlocks > div"));
+            if(dayAllBlocks.length > 0 ){
+                dayAllBlocks.forEach(function(timeBlock){
+                    const _id = timeBlock.dataset.timeblockid
+                    const editBlockButton = timeBlock.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEditButton");
+                    const deleteBlockButton = timeBlock.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton")
 
-//     events.subscribe("", renderAdminTimeBlocksForm) //add listener for render click
+                    editBlockButton.addEventListener("click", editTimeBlock);
+                    deleteBlockButton.addEventListener("click", deleteTimeBlock);
 
-//     function renderAdminTimeBlocksForm(adminTimeBlockDayData){
-//         renderTimeBlockDataForm(adminTimeBlockDayData);
-//     }
+                    function editTimeBlock(){
+                        events.publish("editAdminAvailabilityClicked", {day:dayString, _id})
+                    }
 
-//     function setAdminTimeBlockListeners(){
-//         const dayBlocks = Array.from(document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid").children);
-//         dayBlocks.forEach(function(day){
-//             const dayName = day.firstChild("h3").innerText;
-//             const addButton = day.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockAddButton")
+                    function deleteTimeBlock(){
+                        const confirmation = confirm("Delete this time block?");
+                        if(confirmation){
+                            events.publish("deleteAdminAvailabilityClicked", {day:dayString, _id})
+                        }
+                    }
+                })
+            }
 
-//             const timeBlocks = Array.from(day.querySelector(".adminMainPageAddAvailabilityBlockAllUsersAllBlocks"))
-//             timeBlocks.forEach(function(block){
-//                 const _id = block.dataset.dataTimeBlockId;
-//                 const editButton = block.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEditButton");
-//                 const deleteButton = block.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton");
+            
 
-//                 editButton.addEventListener("click", requestAvailabilityBlockEdit);
-//                 deleteButton.addEventListener("click", requestAvailabilityBlockDelete);
+            function addTimeBlock(){
+                events.publish("addAdminTimeBlockClicked", dayString)
+            }
+           
+        })
+    }
 
-//                 function requestAvailabilityBlockEdit(){
-//                     //class change?
-//                     events.publish("editAdminAvailabilityClicked", {day, _id})
-                    
-//                 }
-//                 function requestAvailabilityBlockDelete(){
-//                     events.publish("deleteAdminAvailabilityClicked", {day, _id})
-//                 }
-//             })
-
-//             addButton.addEventListener("click" , requestAvailabilityBlockNew);
-
-//             function requestAvailabilityBlockNew(){
-//                 //class change?
-//                 events.publish("adminAvailabilityBlockAddRequested", day)
-
-//             }
-//         })     
-//     }  
 })()
 
 export {adminHomeMain}

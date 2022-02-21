@@ -2,18 +2,60 @@
     <h3><%=day%></h3>
     <button class = "adminMainPageAddAvailabilityBlockAllUsersBlockAddButton">Add Block</button>
     <div class = "adminMainPageAddAvailabilityBlockAllUsersAllBlocks">
-        <%adminTimeBlocks[day].forEach(function(timeBlock){%>
-        <div class = "adminMainPageAddAvailabilityBlockAllUsersBlock" dataTimeBlockId = "<%`${timeBlock._id}`%>">
-            <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockStart">
-                <p><%=`Start Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.startTime)}`%></p>
-            </div>
-            <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockEnd">
-                <p><%=`End Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.endTime)}`%></p>
-            </div>
-            <button class = "adminMainPageAddAvailabilityBlockAllUsersBlockEditButton">Edit Block</button>
-			<button class = "adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton">Delete Block</button>
-        </div>
-        <%})%>
+        <%if(adminTimeBlocks[day].length > 0){%>
+            <%adminTimeBlocks[day].forEach(function(timeBlock){%>
+                <%if((timeBlock.availability.startTime < facilityData.facilityOpen || timeBlock.availability.startTime > facilityData.facilityClose) && (timeBlock.availability.endTime < facilityData.facilityOpen || timeBlock.availability.endTime > facilityData.facilityClose)){%>
+                    <div class = "adminMainPageAddAvailabilityBlockAllUsersBlock" data-timeBlockId = "<%=`${timeBlock._id}`%>">
+                        <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockStart">
+                            <p><%= `Start time ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.startTime)} is outside facility hours. Speak to supervisor about time changes.`%></p>
+                        </div>
+                        <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockEnd">
+                            <p><%= `End time ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.endTime)} is outside facility hours. Speak to supervisor about time changes.`%></p>
+                        </div>
+                        <button class = "adminMainPageAddAvailabilityBlockAllUsersBlockEditButton">Edit Block</button>
+                        <button class = "adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton">Delete Block</button>
+                    </div>
+                <%}else if(timeBlock.availability.startTime < facilityData.facilityOpen || timeBlock.availability.startTime > facilityData.facilityClose){%>
+                    <div class = "adminMainPageAddAvailabilityBlockAllUsersBlock" data-timeBlockId = "<%=`${timeBlock._id}`%>">
+                        <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockStart">
+                            <p><%= `Start time ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.startTime)} is outside facility hours. Speak to supervisor about time changes.`%></p>
+                        </div>
+                        <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockEnd">
+                            <p><%=`End Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.endTime)}`%></p>
+                        </div>
+                        <button class = "adminMainPageAddAvailabilityBlockAllUsersBlockEditButton">Edit Block</button>
+                        <button class = "adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton">Delete Block</button>
+                    </div>
+                    
+                <%}else if(timeBlock.availability.endTime < facilityData.facilityOpen || timeBlock.availability.endTime > facilityData.facilityClose){%>
+                    <div class = "adminMainPageAddAvailabilityBlockAllUsersBlock" data-timeBlockId = "<%=`${timeBlock._id}`%>">
+                        <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockStart">
+                            <p><%=`Start Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.startTime)}`%></p>
+                        </div>
+                        <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockEnd">
+                            <p><%= `End time ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.endTime)} is outside facility hours. Speak to supervisor about time changes.`%></p>
+                        </div>
+                        <button class = "adminMainPageAddAvailabilityBlockAllUsersBlockEditButton">Edit Block</button>
+                        <button class = "adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton">Delete Block</button>
+                    </div>
+                    
+                <%}else{%>
+                    <div class = "adminMainPageAddAvailabilityBlockAllUsersBlock" data-timeBlockId = "<%=`${timeBlock._id}`%>">
+                        <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockStart">
+                            <p><%=`Start Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.startTime)}`%></p>
+                        </div>
+                        <div class = "adminMainPageAddAvailabilityBlockAllUsersBlockEnd">
+                            <p><%=`End Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.endTime)}`%></p>
+                        </div>
+                        <button class = "adminMainPageAddAvailabilityBlockAllUsersBlockEditButton">Edit Block</button>
+                        <button class = "adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton">Delete Block</button>
+                    </div>
+                <%}%>
+            <%})%>
+        <%}else{%>
+            <p>No timeblocks</p>
+        <%}%>
+       
     </div>
 </div>
 	

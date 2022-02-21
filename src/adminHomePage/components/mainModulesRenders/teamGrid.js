@@ -1,4 +1,3 @@
-//ADMIN TEAMS DIV
 import { events } from "../../events";
 
 function renderAdminTeams(allTeamsData){ 
@@ -13,7 +12,6 @@ function renderAdminTeams(allTeamsData){
 
     teamsDiv.replaceWith(teamsDivNew);
 }
-
 
 function buildTeamRow(teamData, allTeamsData){ 
     const elements = setTemplateElements()
@@ -37,7 +35,6 @@ function buildTeamRow(teamData, allTeamsData){
     return elements.content 
 }
 
-
 function setTemplateElements(){
     const template = document.querySelector("#adminMainPageTeamTemplate");
     const content = document.importNode(template.content, true);
@@ -56,7 +53,6 @@ function setTemplateElements(){
     return {content, div, name, coach, size, rank, uprankButton, downrankButton, disableButton}
 }
 
-
 function setElementsContent(teamElement, teamData){
     teamElement.div.setAttribute("data-teamId", teamData._id)
     teamElement.name.innerText = teamData.name;
@@ -64,7 +60,6 @@ function setElementsContent(teamElement, teamData){
     teamElement.size.innerText = `${teamData.size} athletes`;
     teamElement.rank.innerText = teamData.rank.allTeams +1;
 }
-
 
 function setEventListeners(teamElement, teamData){
 
@@ -87,6 +82,5 @@ function setEventListeners(teamElement, teamData){
         events.publish("modifyTeamEnabled", {index, _id})
     }
 }
-
 
 export {renderAdminTeams}

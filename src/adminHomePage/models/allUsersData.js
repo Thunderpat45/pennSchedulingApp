@@ -7,10 +7,10 @@ const allUsersData = (function(){
 
 	events.subscribe("adminDataFetched", setDataNewPageRender);
 	events.subscribe("updateAllUsersModel", setDataNewDatabasePost)
-
+	events.subscribe("deleteUserClicked", deleteUser)
 	events.subscribe("editUserClicked", editUser);
-	events.subscribe("deleteUserClicked", deleteUserForDatabaseUpdate); //review/modify this
-	events.subscribe("userDataValidated", updateUserData)
+	events.subscribe("userDataDeleted", setDataUserDataDeleted);
+	
 
 	function setDataNewPageRender(adminAllUsers){
         allUsersDataStable = adminAllUsers.allUsers;
@@ -34,13 +34,17 @@ const allUsersData = (function(){
 
     function createAllUsersDeepCopy(newArr, copyArr){
 		copyArr.forEach(function(user){
-			const newUserObj = {};
-			for(let prop in user){
-				newUserObj[prop] = user[prop]
-			}
-			newArr.push(newUserObj);
+			newArr.push(Object.assign({}, user));
 		})
     }
+
+	function deleteUser(userId){
+		const thisUser = allUsersDataMutable.filter(function(user){
+			return userId == user._id
+		})[0];
+
+		events.publish("deleteUser", thisUser)
+	}
 
 	function editUser(userId){
 		const thisUser = allUsersDataMutable.filter(function(user){
@@ -50,18 +54,17 @@ const allUsersData = (function(){
 		events.publish("userDataEditRequested", thisUser);
 	}
 
-	function deleteUserForDatabaseUpdate(userData){/////review this
-		events.publish("allUsersDataUpdated", {userData}); 
-		
+	function setDataUserDataDeleted(userId){
+		const newUsersList = allUsersDataMutable.filter(function(user){
+			return userId != user._id
+		})
+
+		allUsersDataMutable = newUsersList;
+		createAllUsersDeepCopy(allUsersDataStable, allUsersDataMutable);
+		events.publish("renderUpdatedUserData", allUsersDataMutable)
 	}
 
-	function updateUserData(validatedUserData){
-		if(validatedUserData.origin == "edit"){
-			events.publish("userUpdateRequested", validatedUserData.userData) 
-		}else{
-			events.publish("newUserAdditionRequested", validatedUserData.userData)
-		}
-	}
+	
 })()
 
 export {allUsersData}

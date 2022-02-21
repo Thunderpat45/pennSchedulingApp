@@ -1,112 +1,109 @@
-import {events} from "../events"
+import {events} from "../../../src/events"
+import { timeValueConverter } from "../../timeConverter";
 
-/*purpose: dataModel for modifying/saving adminTimeBlock content for adminMainPage
-
-database object is modeled as such:
-
-obj = {
-    day: [
-        {startTime, stopTime, admin}, {startTime, stopTime, admin}
-    ],
-    day: [
-        {startTime, stopTime, admin}, {startTime, stopTime, admin}
-    ]
-}
-
-publishes:
-    adminTimeBlockDOM renders FOR adminMainPageDOM
-    save requests FOR database
-   
-subscribes to: 
-    adminMainPageModel builds FROM adminMainPageModel
-    add timeBlock, deleteTimeBlock, and time modification changes FROM adminMainPageDOM
-    save change and cancel change requests FROM adminMainPageDOM
-*/
-
-const adminMainPageAdminTimeBlockModel = (function(){
-    //find subscriber to databse update
+const allAdminMainPageAdminTimeBlockModel = (function(){
+    //find subscriber to database update
     //updates here would need to pushed to all users, should this publish to allUsers here, or do this on backEnd before DB save? Look at Node/Mongo scripts to determine how viable this is one way or another
-    let adminAvailabilityDataStable;
-    let adminAvailabilityDataMutable;
+    let allAdminAvailabilityDataStable = {};
+    let allAdminAvailabilityDataMutable = {};
     
-    let timeBlockDefault = {
-        startTime:"default",
-        endTime:"default",
-        admin:"yes"
-    };
-
-    events.subscribe("adminDataFetched", setDataNewPageRender); //change event prompt
-    events.subscribe("", setDataNewDatabasePost) //add event prompt about successful database post
-
+    events.subscribe("adminDataFetched", setDataNewPageRender);
+    events.subscribe("updateAllBlocksModel", setDataNewDatabasePost)
     events.subscribe("editAdminAvailabilityClicked", editAdminAvailabilityBlock)
-    events.subscribe("deleteAdminTimeBlockClicked", deleteAdminAvailabilityBlock);
-    events.subscribe("addAdminTimeBlockClicked", addAdminAvailabilityBlock);
-    events.subscribe("modifyAdminTimeBlockSelectorValue", modifyAdminAvailabilityValue);
-    events.subscribe("updateAdminAvailabilityClicked", validateAdminAvailability);
-    events.subscribe("adminAvailabilityDataValidated", updateAdminAvailability)
-    events.subscribe("cancelAdminAvailabilityChangesClicked", cancelAdminAvailabilityChanges)
+    events.subscribe("deleteAdminAvailabilityClicked", deleteAdminAvailabilityBlock);
+    events.subscribe("facilityDataAvailabiltyUpdateComparisonRequested", renderAllDays)
+    events.subscribe('blockDataDeleted', setDataBlockDataDeleted)
 
     function setDataNewPageRender(adminData){
-        adminAvailabilityDataStable = adminData.adminTimeBlocks; //make sure this is correct property for database initial database fetch
-        createAdminAvailabilityDeepCopy(adminAvailabilityDataMutable, adminAvailabilityDataStable)
-    }
-
-    function setDataNewDatabasePost(){
-        createAdminAvailabilityDeepCopy(adminAvailabilityDataStable, adminAvailabilityDataMutable);
+        allAdminAvailabilityDataStable = adminData.adminTimeBlocks;
+        createAdminAvailabilityDeepCopy(allAdminAvailabilityDataMutable, allAdminAvailabilityDataStable);
     }
 
     function createAdminAvailabilityDeepCopy(newObj, copyObj){
-        newObj = Object.assign({}, copyObj);
-        for(let day in newObj){
-            newObj[day] = copyObj[day].concat();
+        for(let prop in newObj){
+            delete newObj[prop]
+        }
+
+        for(let day in copyObj){
+            newObj[day] = [];
             copyObj[day].forEach(function(timeBlock){
-                newObj[day][timeBlock] = Object.assign({}, copyObj[day][timeBlock])
+                const {admin, day, season, _id} = timeBlock
+                const timeBlockCopy = Object.assign({}, {admin, day, season, _id});
+                timeBlockCopy.availability = Object.assign({}, timeBlock.availability)
+                newObj[day].push(timeBlockCopy);
+                
+
             });
         }
     }
 
     function editAdminAvailabilityBlock(timeBlockObj){
         const {day, _id} = timeBlockObj;
-        const block = adminAvailabilityDataMutable[day].filter(function(timeBlock){
+        const block = allAdminAvailabilityDataMutable[day].filter(function(timeBlock){
             return timeBlock._id == _id;
         })[0]
-        events.publish("adminAvailabilityBlockEditRequested", {day, block, _id}); //add publish that sends to form
+
+        events.publish("adminAvailabilityBlockEditRequested", block); //add publish that sends to form, need _id/day?
     }
 
     function deleteAdminAvailabilityBlock(timeBlockObj){
         const {day, _id} = timeBlockObj;
-        const block = adminAvailabilityDataMutable[day].filter(function(timeBlock){
+        const block = allAdminAvailabilityDataMutable[day].filter(function(timeBlock){
             return timeBlock._id == _id;
         })[0];
 
-        events.publish("adminAvailabilityBlockDeleted", {day, block, _id}); //send this to database, change to deleteRequested?
+        events.publish("adminBlockDeleteRequested", block); //send this to database, change to deleteRequested?
     }
 
-    function addAdminAvailabilityBlock(day){
-        events.publish("adminAvailabilityBlockAddRequested", {day, timeBlockDefault}); //add publish that sends to form
+    function setDataNewDatabasePost(blockData){
+		const thisBlockIndex = allAdminAvailabilityDataMutable[blockData.day].findIndex(function(block){
+			return block._id == blockData._id
+		});
+		if(thisBlockIndex != -1){
+			allAdminAvailabilityDataMutable[blockData.day][thisBlockIndex] = blockData
+		}else{
+			allAdminAvailabilityDataMutable[blockData.day].push(blockData);
+		}
+		
+        createAdminAvailabilityDeepCopy(allAdminAvailabilityDataStable, allAdminAvailabilityDataMutable);
+		events.publish("renderUpdatedBlockData", {day: blockData.day, blocks: allAdminAvailabilityDataMutable[blockData.day]})
     }
 
-    function modifyAdminAvailabilityValue(timeBlockObj){
-        const {day, _id, modifiedSelector, value} = timeBlockObj;
-        const block = adminAvailabilityDataMutable[day].filter(function(timeBlock){
-            return timeBlock._id == _id;
-        })[0];
-        
-        block[modifiedSelector] = value
-    }
+    function renderAllDays(facilityData){
+        const tempObj = {};
+        createAdminAvailabilityDeepCopy(tempObj, allAdminAvailabilityDataMutable)
+        for(let day in tempObj){
+            tempObj[day].forEach(function(timeBlock){
+                const index = tempObj[day].indexOf(timeBlock)
+                if((timeBlock.availability.startTime < facilityData.facilityOpen || 
+                    timeBlock.availability.startTime > facilityData.facilityClose)&&
+                    (timeBlock.availability.endTime < facilityData.facilityOpen || 
+                        timeBlock.availability.endTime > facilityData.facilityClose)){
+                        tempObj[day][index].availability.startTime = `Start time ${timeValueConverter.runConvertTotalMinutesToTime( tempObj[day][index].availability.startTime)} is outside facility hours. Speak to supervisor about time changes.`
+                        tempObj[day][index].availability.endTime = `End time ${timeValueConverter.runConvertTotalMinutesToTime( tempObj[day][index].availability.endTime)} is outside facility hours. Speak to supervisor about time changes.`
+                }else if(timeBlock.availability.startTime < facilityData.facilityOpen || 
+                    timeBlock.availability.startTime > facilityData.facilityClose){
+                        tempObj[day][index].availability.startTime = `Start time ${timeValueConverter.runConvertTotalMinutesToTime( tempObj[day][index].availability.startTime)} is outside facility hours. Speak to supervisor about time changes.`
+                }else if(timeBlock.availability.endTime < facilityData.facilityOpen || 
+                        timeBlock.availability.endTime > facilityData.facilityClose){
+                            tempObj[day][index].availability.endTime = `End time ${timeValueConverter.runConvertTotalMinutesToTime( tempObj[day][index].availability.endTime)} is outside facility hours. Speak to supervisor about time changes.`
+                }     
+            })
 
-    function validateAdminAvailability(){
-        events.publish("adminAvailabilityValidationRequested", adminAvailabilityDataMutable)
+            events.publish("renderUpdatedBlockData", {day, blocks: tempObj[day]})
+        }
     }
+    function setDataBlockDataDeleted(blockData){
+        const {day, _id} = blockData
+		const newBlocksList = allAdminAvailabilityDataMutable[day].filter(function(block){
+			return _id != block._id
+		})
 
+		allAdminAvailabilityDataMutable[day] = newBlocksList;
+		createAdminAvailabilityDeepCopy(allAdminAvailabilityDataStable, allAdminAvailabilityDataMutable);
+		events.publish("renderUpdatedBlockData", {day, blocks: allAdminAvailabilityDataMutable[day]})
+	}
 
-    function updateAdminAvailability(timeBlockObj){
-        events.publish("adminAvailabilityDataUpdated", timeBlockObj) //send this to database, change to updateRequested?
-    }
-
-    function cancelAdminAvailabilityChanges(){
-        createAdminAvailabilityDeepCopy(adminAvailabilityDataMutable, adminAvailabilityDataStable);
-    }
 })()
 
-export {adminMainPageAdminTimeBlockModel}
+export {allAdminMainPageAdminTimeBlockModel}

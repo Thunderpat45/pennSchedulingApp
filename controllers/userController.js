@@ -1,3 +1,4 @@
+
 const user = require('../models/userModel');
 //find way to extract and abstract validation functions
 
@@ -44,7 +45,8 @@ const userControllerFunctions = {
 
     postUserUpdate: async function(req,res, next){ //userDependent
         try{
-            const thisUser = req.body
+            const thisUser = req.body;
+            const thisId = req.params.modifyUserId
             const errorArray = []
     
             const users = await user.find({$or: [{_id: thisUser._id}, {name: thisUser.name}, {privilegeLevel: true}, {color: thisUser.color}]}, 'name color privilegeLevel');
@@ -76,8 +78,8 @@ const userControllerFunctions = {
             if(errorArray.length > 0){
                 throw (errorArray)
             }else{
-                await user.findOneAndReplace({_id: thisUser._id});
-                res.send("Literally anything else")
+                await user.findOneAndReplace({_id: thisId}, thisUser);
+                res.send("Literally anything");
             }
 
             
@@ -88,8 +90,37 @@ const userControllerFunctions = {
         }
     },
 
-    postUserDelete:function(req,res, next){ //userDependent
-        res.send('NOT IMPLEMENTED: Post User Delete');
+    postUserDelete:async function(req,res, next){ //userDependent
+        try{
+            const thisUser = req.body;
+            const thisId = req.params.modifyUserId;
+            const errorArray = []
+    
+            const users = await user.find({$or: [{_id: thisUser._id}, {privilegeLevel: true}]}, 'privilegeLevel');
+            const privilegeLevelError = users.filter(function(user){
+                return user.privilegeLevel == true && user._id != thisUser._id;
+            })
+
+            if(thisUser.privilegeLevel != true && privilegeLevelError.length == 0){
+                const string = "Cannot delete last admin. Create new admin users before demoting this admin.";
+                errorArray.push(string);
+            }
+
+            if(errorArray.length > 0){
+                throw (errorArray)
+            }else{
+                await user.deleteOne({_id: thisId});
+                res.send("Literally anything");
+            }
+        }catch(err){
+            console.log(err);
+            res.status(400);
+            res.json(err);
+        }
+
+       
+        
+        
     }
 
 }

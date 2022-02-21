@@ -1,6 +1,5 @@
 
-<div id = "mainPage" class= "page"> <!--is page class still necessary?-->
-
+<div id = "mainPage">
   <div id = "mainPageMainColumn">
 
     <%- include('./partials/seasonsButtons', {season: season})%>
@@ -17,10 +16,14 @@
       </div>
       <div id = "teamGrid"></div>
       <%const allTeamsLength = teams.length%>
-      <%teams.forEach(function(team, index){%>
-        <%- include('./partials/homePage/teamTemplate', {allTeamsLength: allTeamsLength, index: index, team: team, timeConverter:timeConverter})%>
-        
-      <%})%>
+      <%if(allTeamsLength>0){%>
+        <%teams.forEach(function(team, index){%>
+          <%- include('./partials/homePage/teamTemplate', {allTeamsLength: allTeamsLength, index: index, team: team, timeConverter:timeConverter, facilityData:facilityData})%>
+        <%})%>
+      <%}else{%>
+        <p>You have no teams listed!</p>
+      <%}%>
+      
       <button id = "teamGridAddTeam">Add Team</button>
       <!--BUTTON HERE TO SAVE RANK CHANGES?-->
     </div>
@@ -41,7 +44,9 @@
       <button id = "editAvailability">Edit Availability</button>
       <div id = "availabilityDisplay">
         <%for(let day in availability){%>
-          <%- include('./partials/homePage/availabilityTemplate', {availability: availability, day:day, timeConverter: timeConverter})%>
+          <%if(availability.hasOwnProperty(day)){%>
+            <%- include('./partials/homePage/availabilityTemplate', {availability: availability, day:day, timeConverter: timeConverter, facilityData: facilityData})%>
+          <%}%>
         <%}%>
       </div>
     </div>
@@ -49,6 +54,7 @@
 
   <div id = "entryFormDiv" class = "form formHidden">
     <div id = "entryForm"></div>
-</div>
-  <script src = "../src/timeConverter.js"></script>
-</html>
+  </div>
+
+  <%- contentFor('script')%>
+  <script src = "/javascripts/homePage.js"></script>

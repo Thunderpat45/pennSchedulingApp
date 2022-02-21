@@ -43,7 +43,6 @@ const userDataGridComponent = (function(){
         return {content, div, name, privilege, lastVerified, colorBlock, editButton, deleteButton}
     }
 
-
     function setElementsContent(userElement, userData){
         userElement.div.setAttribute("data-userId", userData._id)
         userElement.name.innerText = `Name: ${userData.name}`;
@@ -56,7 +55,6 @@ const userDataGridComponent = (function(){
         userElement.colorBlock.style.backgroundColor = userData.color
     }
 
-
     function setEventListeners(userElement, userData){
         userElement.editButton.addEventListener("click", editUser);
         userElement.deleteButton.addEventListener("click", deleteUser);
@@ -65,10 +63,12 @@ const userDataGridComponent = (function(){
             events.publish("editUserClicked", userData._id)
         }
         function deleteUser(){
-            events.publish("deleteUserClicked", userData._id)	
+            const confirmation = confirm("Delete this user?");
+            if(confirmation){
+                events.publish("deleteUserRequested", userData._id)
+            }
         }
     }
-
 })()
  
 export {userDataGridComponent}

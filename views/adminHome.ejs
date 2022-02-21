@@ -14,10 +14,14 @@
 				</div>
 				<div id = "adminMainPageTeamGrid">
                     <%const allTeamsLength = allTeams.length%>
-                    <%allTeams.forEach(function(team, index){%>
-                        <%- include('./partials/adminHomePage/teamTemplate', {allTeamsLength: allTeamsLength, index: index, team: team})%>
-                        
-                    <%})%>
+					<%if(allTeamsLength>0){%>
+						<%allTeams.forEach(function(team, index){%>
+							<%- include('./partials/adminHomePage/teamTemplate', {allTeamsLength: allTeamsLength, index: index, team: team})%>	
+						<%})%>
+					<%}else{%>
+						<p>No users have added any teams! Get to work!</p>
+					<%}%>
+                    
                 </div>
 
 				<button id ="saveAdminRankChangesButton">Save Rank Changes</button>
@@ -51,11 +55,11 @@
 				<h3>Add Time Block To All Users</h3>
 				<div id = "adminMainPageAddAvailabilityBlockAllUsersGrid">
                     <%for(let day in adminTimeBlocks){%>
-                        <%- include('./partials/adminHomePage/adminTimeBlocksTemplate', {day : day, timeBlocks: adminTimeBlocks[day]})%>
-                    <%}%>
-                </div>
-				<button id = "adminMainPageAddAvailabilityBlockAllUsersSaveButton">Save Changes</button>
-				<button id = "adminMainPageAddAvailabilityBlockAllUsersCancelButton">Cancel Changes</button>	
+						<%if(adminTimeBlocks.hasOwnProperty(day)){%>
+                        	<%- include('./partials/adminHomePage/adminTimeBlocksTemplate', {day : day, timeBlocks: adminTimeBlocks[day], facilityData: facilityData})%>
+						<%}%>
+					<%}%>
+                </div>	
 			</div>
 		</div>
 		<div id = "entryFormDiv" class = "form formHidden">
@@ -156,9 +160,9 @@
 						<option value = "default">--</option>
 					</select>
 				</div>
-				<div id = "adminDayTimeBlockSelectorsStart">
-					<p>Start</p>
-					<select class = "startTime selector">
+				<div id = "adminDayTimeBlockSelectorsEnd">
+					<p>End</p>
+					<select class = "endTime selector">
 						<option value = "default">--</option>
 					</select>
 				</div>

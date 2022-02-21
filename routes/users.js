@@ -10,39 +10,42 @@ const userController = require('../controllers/userController');
 //add something to prevent ANYTHING UNTIL LOG IN
 
 //main page general functions
-router.get('/:id/:season/home', mainController.getHome);
-router.get('/:id/:season/adminHome', mainController.getAdminHome);
-router.get('/:id/:season/adminHome/adminData.json', mainController.getAdminDataAll);
+router.get('/:userId/:season/home', mainController.getHome);
+router.get('/:userId/:season/adminHome', mainController.getAdminHome);
+router.get('/:userId/:season/adminHome/adminData.json', mainController.getAdminDataAll);
+router.get('/:userId/:season/home/userData.json', mainController.getUserDataAll)
 
 //something for logOuts
 
 //single team data changes
-router.post(':id/:season/home/team/create', teamController.postTeamCreation);
-router.post(':id/:season/home/team/:id/update', teamController.postTeamUpdate);
-router.post(':id/:season/home/team/:id/verify', teamController.postTeamVerify);
-router.post(':id/:season/home/team/:id/delete', teamController.postTeamDelete);
-router.post(':id/:season/adminHome/team/:id/enableChange', teamController.postTeamEnableChange);
+router.post(':userId/:season/home/team/create', teamController.postTeamCreation);
+router.post(':userId/:season/home/team/:teamId/update', teamController.postTeamUpdate);
+router.post(':userId/:season/home/team/:teamId/verify', teamController.postTeamVerify);
+router.post(':userId/:season/home/team/:teamId/delete', teamController.postTeamDelete);
+router.post(':userId/:season/adminHome/team/:teamId/enableChange', teamController.postTeamEnableChange);
 
 //multi team data changes
-router.post('id:/:season/home/postAllTeamsVerified', mainController.postAllUserTeamsVerified) //not actually seasonally dependent
-router.post(':id/:season/home/postMyTeamsOrder', mainController.postMyTeamsOrder);
-router.post(':id/:season/adminHome/postAllTeamsOrder', mainController.postAllTeamsOrder);
+router.post(':userId:/:season/home/postAllTeamsVerified', mainController.postAllUserTeamsVerified) //not actually seasonally dependent
+router.post(':userId/:season/home/postMyTeamsOrder', mainController.postMyTeamsOrder);
+router.post(':userId/:season/adminHome/postAllTeamsOrder', mainController.postAllTeamsOrder);
 
 //availablity data changes
 
-router.post(':id/:season/home/availability:id/update', availabilityController.postAvailabilityEdit);
-router.post(':id/:season/adminHome/postAdminTimeBlocks', mainController.postAdminTimeBlocks);
+router.post(':userId/:season/home/availability:availabilityId/update', availabilityController.postAvailabilityEdit);
+router.post('/:userId/:season/adminHome/timeBlock/add.json', availabilityController.postAdminTimeBlockCreation)
+router.post('/:userId/:season/adminHome/timeBlock/:timeBlockId/update.json', availabilityController.postAdminTimeBlockUpdate);
+router.post('/:userId/:season/adminHome/timeBlock/:timeBlockId/delete.json', availabilityController.postAdminTimeBlockDelete)
 
 //user data changes, none of these are seasonally dependent
 
-router.post('/:id/:season/adminHome/user/add.json', userController.postUserCreation);
-router.post('/:id/:season/adminHome/user/:id/update.json', userController.postUserUpdate);
-router.post(':id/:season/adminHome/user/:id/delete', userController.postUserDelete);
+router.post('/:userId/:season/adminHome/user/add.json', userController.postUserCreation);
+router.post('/:userId/:season/adminHome/user/:modifyUserId/update.json', userController.postUserUpdate);
+router.post('/:userId/:season/adminHome/user/:modifyUserId/delete.json', userController.postUserDelete);
 
 //other
 
-router.post('/:id/:season/adminHome/postAdminFacilitySettings.json', mainController.postAdminFacilitySettings);
-router.get(':id/:season/adminHome/getSchedule', mainController.getSchedule);
+router.post('/:userId/:season/adminHome/postAdminFacilitySettings.json', mainController.postAdminFacilitySettings);
+router.get(':userId/:season/adminHome/getSchedule', mainController.getSchedule);
 
 
 

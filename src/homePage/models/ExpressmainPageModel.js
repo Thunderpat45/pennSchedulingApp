@@ -1,4 +1,4 @@
-import { events } from "../events";
+import { events } from "../../events";
 
 /*purpose: dataModel from database for loading content for user and adminPages
 

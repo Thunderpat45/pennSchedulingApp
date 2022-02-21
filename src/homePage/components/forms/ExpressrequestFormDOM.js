@@ -1,4 +1,4 @@
-import {events} from "../events"
+import {events} from "../../../events"
 
 /*action: user interface creating/editing team name/size/ schedule requests
 

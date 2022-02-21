@@ -32,7 +32,6 @@ const userDataFormComponent = (function(){
         formDivWrapper.classList.toggle("formHidden");
     }
 
-
     function setElements(){
         const template = document.querySelector("#adminUserGeneratorTemplate");
         const content = document.importNode(template.content, true);
@@ -47,7 +46,6 @@ const userDataFormComponent = (function(){
         return {content, name, privilege, color, saveButton, cancelButton}
     }
 
-
     function populateFields(userElements, userData){
         userElements.name.value = userData.name;
         if(userData.privilegeLevel == true){
@@ -56,19 +54,23 @@ const userDataFormComponent = (function(){
         userElements.color.value = userData.color;
     }
 
-
     function setEventListeners(userElements, userValues){
         const userData = userValues.userData;
-        const origin = userValues.origin;
-
-        userElements.name.addEventListener('blur', modifyUserNameValue)
-        userElements.privilege.addEventListener("blur", updateUserPrivilege);
-        userElements.color.addEventListener("blur", verifyColorChange);
+        const origin = userValues.origin
+       
         userElements.saveButton.addEventListener("click", saveUserData);
         userElements.cancelButton.addEventListener("click", cancelUserChanges);
 
+        //extract these functions to outer level, as to not recreate them each time
         function saveUserData(){
-            events.publish("updateUserDataClicked", origin)    
+            
+            if(modifyUserNameValue() == false){
+                return
+            }else{
+                verifyColorChange();
+                updateUserPrivilege();
+                events.publish("updateUserDataClicked", origin)   
+            }       
         }
 
         function cancelUserChanges(){
@@ -76,6 +78,22 @@ const userDataFormComponent = (function(){
         }
 
         function modifyUserNameValue(){ 
+            try{
+                if(userData.name != "" && userElements.name.value != userData.name){
+                    const confirmation = confirm(`If you submit changes, this will change the user name from ${userData.name} to ${userElements.name.value}. Proceed? `);
+                    if(confirmation){
+                        events.publish("modifyUserNameValue", userElements.name.value)
+                    }else{
+                        userElements.name.value = userData.name;
+                        throw false 
+                    }
+                }else if(userData.name != userElements.name.value){
+                    events.publish("modifyUserNameValue", userElements.name.value)
+                } 
+            }catch(err){
+                return err
+            }
+            
             if(userData.name != "" && userElements.name.value != userData.name){
                 const confirmation = confirm(`If you submit changes, this will change the user name from ${userData.name} to ${userElements.name.value}. Proceed? `);
                 if(confirmation){

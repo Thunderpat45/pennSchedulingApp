@@ -14,7 +14,7 @@ const facilityDataGridComponent = (function(){
         const main = document.querySelector("#facilityDataGrid")
         const openTimeText = document.querySelector("#adminMainPageFacilityHoursSelectorsOpen > p");
         const closeTimeText = document.querySelector("#adminMainPageFacilityHoursSelectorsClose > p");
-        const maxCapacityText = document.querySelector("#adminMainPageFacilityHoursSelectorsMax > p");
+        const maxCapacityText = document.querySelector("#adminMainPageFacilityCapacitySelectorsMax > p");
         
         return {main, openTimeText, closeTimeText, maxCapacityText}
     }

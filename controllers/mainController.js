@@ -11,93 +11,35 @@ const userMainControllerFunctions = {
         res.send('NOT IMPLEMENTED: Log Out Functionality');
     },
 
-    getHome: function(req,res, next){ //userDependent, seasonal! should act on cancel buttons too
+    getHome: async function(req,res, next){ //userDependent, seasonal! should act on cancel buttons too
+        const userId = req.params.userId;
+        const season = req.params.season;
 
+        try{
+            const facilityData = await facilitySettings.findById('6202a107cfebcecf4ca9aecd');
+            const thisUser = await user.findOne({_id: userId});
+            renderHomePage(thisUser, facilityData);
+        }catch(err){
+            console.log(err)
+            res.redirect() //
+        }
+        
+        function renderHomePage(thisUser, facilityData){
+            const {name, privilegeLevel, lastVerified, availability, teams} = thisUser;
+            res.render('home', {
+                name: name,
+                privilegeLevel: privilegeLevel,
+                layout: './layouts/homePagesLayout',
+                timeConverter: timeConverter,
+                season: "fall",
+                lastVerified: lastVerified,
+                availability: availability,
+                teams: teams,
+                facilityData: facilityData
+              })
+        }
 
-        res.render('home', {
-            name: 'Brindle',
-            layout: './layouts/homePagesLayout',
-            timeConverter: timeConverter,
-            privilege: true,
-            season: "fall",
-            lastVerified: 'October 10th, 2021',
-            availability: {
-                Sun:[{startTime: "420", endTime: "540", admin: "no"}],
-                Mon:[],
-                Tue:[],
-                Wed:[],
-                Thu:[],
-                Fri:[],
-                Sat:[]
-            },
-            teams: [
-              {
-              name:"basketballWomen",
-              coach: "Brindle",
-              lastVerified: 'October 10th, 2021',
-              rank:
-                  {
-                      myTeams: 0,
-                      allTeams:6
-                  },
-              size: 15,
-              allOpts:
-                  [
-                      [
-                          {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
-                          {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
-                          {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
-                      ],
-                  ]
-              },
-              
-              {
-                  name:"basketballMen",
-                  coach: "Brindle",
-                  rank:
-                      {
-                          myTeams: 1,
-                          allTeams:5
-                      },
-                  size: 25,
-                  allOpts:
-                  
-                      [
-                          [
-                              {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
-                              {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
-                              {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
-                          ],
-                      ]
-              },
-          
-              {
-              name: "football",
-              coach:"Brindle",
-              rank:
-                  {
-                      myTeams: 2,
-                      allTeams:1
-                  },
-              size: 110,
-              allOpts:
-                  [
-                      [
-                          {dayOfWeek:"Tue", startTime: 870, endTime:915, inWeiss:"yes"},
-                          {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
-                          {dayOfWeek:"Fri", startTime: 945, endTime:975, inWeiss:"yes"},
-                      ],
-          
-                      [
-                          {dayOfWeek:"Wed", startTime: 870, endTime:915, inWeiss:"yes"},
-                          {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
-                          {dayOfWeek:"Sat", startTime: 945, endTime:975, inWeiss:"yes"},
-                      ],
-                  ]
-              },
-          ]
-            
-          })
+        
     },
 
     postAllUserTeamsVerified: function(req,res, next){ //userDependent
@@ -110,22 +52,50 @@ const userMainControllerFunctions = {
 
     getAdminHome: async function(req,res, next){ //userDependent, seasonal!, should act on cancel buttons too
         try{
+            const {season} = req.params
             const facilityData = await facilitySettings.findById('6202a107cfebcecf4ca9aecd');
             const users = await user.find({});
-            const data = {facilityData, users}
+            const adminAvailability = await availability.find({admin: true, season: season})
+            const adminTimeBlocks = sortAvailabilities(adminAvailability)
+            
+            const data = {facilityData, users, adminTimeBlocks, season}
+
             renderAdminHome(data)
         }catch(err){
             console.log(err)
             res.redirect() //some error page
         }
       
+        function sortAvailabilities(availabilityData){
+            const availabilityObject = {
+                Sun: [],
+                Mon: [],
+                Tue: [],
+                Wed: [],
+                Thu: [],
+                Fri: [],
+                Sat: [],
+            }
+
+            availabilityData.forEach(function(availability){
+                availabilityObject[availability.day].push(availability)
+            })
+
+            for(let day in availabilityObject){
+                availabilityObject[day].sort(function(a,b,){
+                    return a.availability.startTime - b.availability.startTime
+                })
+            }
+
+            return availabilityObject
+        }
 
         function renderAdminHome(data){
             res.render('adminHome', { 
                 name: "Brindle",
                 layout: './layouts/homePagesLayout',
                 timeConverter: timeConverter,
-                privilege: true,
+                privilegeLevel: true,
                 season: "fall",
                 lastVerified: 'October 10th, 2021',
                 allTeams:
@@ -232,29 +202,56 @@ const userMainControllerFunctions = {
                 },
             
                 allUsers: data.users,
-            
-                adminTimeBlocks:
-                    {
-                    Sun:[],
-                    Mon:[{startTime: "420", endTime: "540", admin: "yes"}],
-                    Tue:[],
-                    Wed:[],
-                    Thu:[{startTime: "780", endTime: "840", admin: "yes"}],
-                    Fri:[],
-                    Sat:[]
-                    }
-            
-                })
+                adminTimeBlocks: data.adminTimeBlocks
+            })
         }
         
     },
 
     getAdminDataAll: async function(req,res,next){//userDependent
+        
         try{
+            const {season} = req.params;
             const facilityData = await facilitySettings.findOne(); //turn this into a promise.all
             const allUsers = await user.find();
-            const adminData = {facilityData, allUsers}
+            const adminAvailability = await availability.find({admin: true, season: season})
+            const adminTimeBlocks = sortAvailabilities(adminAvailability)
+            const adminData = {facilityData, allUsers, adminTimeBlocks, season}
             res.json(adminData);
+        }catch(err){
+            console.log(err)
+        }
+
+        function sortAvailabilities(availabilityData){
+            const availabilityObject = {
+                Sun: [],
+                Mon: [],
+                Tue: [],
+                Wed: [],
+                Thu: [],
+                Fri: [],
+                Sat: [],
+            }
+
+            availabilityData.forEach(function(availability){
+                availabilityObject[availability.day].push(availability)
+            })
+
+            for(let day in availabilityObject){
+                availabilityObject[day].sort(function(a,b,){
+                    return a.availability.startTime - b.availability.startTime
+                })
+            }
+
+            return availabilityObject
+        }
+    },
+
+    getUserDataAll: async function(req,res,next){
+        const userId = req.params.userId;
+        try{
+            const thisUser = await user.findOne({_id: userId});
+            res.json(thisUser);
         }catch(err){
             console.log(err)
         }
@@ -270,9 +267,7 @@ const userMainControllerFunctions = {
         }
     },
 
-    postAdminTimeBlocks:function(req,res, next){ //userDependent, seasonal!
-        res.send('NOT IMPLEMENTED: Post Admin Time Blocks');
-    },
+    
 
     postAllTeamsOrder:function(req,res, next){ 
         res.send('NOT IMPLEMENTED: Post All Teams Order');

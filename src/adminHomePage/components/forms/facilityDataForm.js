@@ -10,7 +10,6 @@ const facilityDataFormComponent = (function(){
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm")
 
-
     function renderFacilityDataForm(facilityData){
         
         const elements = setElements();
@@ -20,7 +19,6 @@ const facilityDataFormComponent = (function(){
         formDiv.appendChild(elements.content);
         formDivWrapper.classList.toggle("formHidden");
     } 
-
 
     function unrenderFacilityDataForm(){
         if(formDiv.firstChild){
@@ -32,7 +30,6 @@ const facilityDataFormComponent = (function(){
         formDivWrapper.classList.toggle("formHidden");
     }
 
-
     function setElements(){
         const template = document.querySelector("#adminFacilityDataFormTemplate");
         const content = document.importNode(template.content, true);
@@ -43,7 +40,6 @@ const facilityDataFormComponent = (function(){
 
         return {content, facilitySelectors, saveButton, cancelButton}
     }
-
 
     function populateSelectors(selectorElements, facilityData){
         
@@ -69,7 +65,6 @@ const facilityDataFormComponent = (function(){
             selector.replaceWith(selectorNew)
         })
     }
-
 
     function setEventListeners(selectorElements){
 

@@ -39,16 +39,21 @@ const selectorBuilder = (function(){
         inWeiss: ["yes", "no"],
     };
     
-    events.subscribe("SOME DATA BASE FETCH FIX THIS FIX THIS", setSelectorRanges);
+    events.subscribe("adminDataFetched", setSelectorRanges);
+    events.subscribe("setNewSelectorRanges", setSelectorRanges)
     
-
-    //call this after dbFetch
-    function setSelectorRanges(databaseRanges){
-        selectionRanges.startTime.start = databaseRanges.facilityOpen;
-        selectionRanges.endTime.start = databaseRanges.facilityOpen + 30;
-        selectionRanges.startTime.end = databaseRanges.facilityClose - 30;
-        selectionRanges.endTime.end = databaseRanges.facilityClose;
-        selectionRanges.teamSize.end = databaseRanges.facilityMaxCapacity;
+    function setSelectorRanges(dBdata){
+        let facilityData
+        if(Object.prototype.hasOwnProperty.call(dBdata, 'facilityData')){
+            facilityData = dBdata.facilityData
+        }else{
+            facilityData = dBdata
+        }
+        selectionRanges.startTime.start = facilityData.facilityOpen;
+        selectionRanges.endTime.start = facilityData.facilityOpen + 30;
+        selectionRanges.startTime.end = facilityData.facilityClose - 30;
+        selectionRanges.endTime.end = facilityData.facilityClose;
+        selectionRanges.teamSize.end = facilityData.facilityMaxCapacity;
     }
 
     function runBuildSelector(primaryClass){
@@ -127,11 +132,6 @@ const selectorBuilder = (function(){
                 time.disabled = true;
             }else{
                 time.disabled = false;
-            }
-            if(endTimeValue == startTimeSelectedValue + 60){
-                time.selected = true;
-            }else{
-                time.selected = false;
             }
         })
     }

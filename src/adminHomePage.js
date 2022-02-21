@@ -12,6 +12,12 @@ import {allUsersData} from "../src/adminHomePage/models/allUsersData"
 import {userData} from "../src/adminHomePage/models/userData"
 import {userDataValidator} from "../src/validators/userValidator"
 
+import { adminTimeBlockDataGridComponent } from "../src/adminHomePage/components/mainModulesRenders/adminTimeBlocksGrid";
+import { adminTimeBlockDataFormComponent } from "../src/adminHomePage/components/forms/adminTimeBlockForm";
+import {allAdminTimeBlocksData} from "../src/adminHomePage/models/allAdminTimeBlocksData"
+import {singleAdminTimeBlockModel} from "../src/adminHomePage/models/timeBlockData"
+import { availabilityValidator } from "../src/validators/availabilityValidator"
+
 import {databasePost} from "../src/databasePost"
 
 window.onload = setScriptData;
@@ -20,6 +26,7 @@ async function setScriptData(){
     try{
         const adminPageJSON = await fetch('adminHome/adminData.json'); //change this to accept userId and season
         const adminPageData = await adminPageJSON.json();
+        console.log(adminPageData)
         events.publish("adminDataFetched", adminPageData);
         events.publish("adminDataSet");
         
@@ -27,40 +34,3 @@ async function setScriptData(){
         console.log(err)
     }
 }
-
-
-
-// function setAdminTimeBlockListeners(){
-//     const dayBlocks = Array.from(document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid").children);
-//     dayBlocks.forEach(function(day){
-//         const dayName = day.firstChild("h3").innerText;
-//         const addButton = day.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockAddButton")
-
-//         const timeBlocks = Array.from(day.querySelector(".adminMainPageAddAvailabilityBlockAllUsersAllBlocks"))
-//         timeBlocks.forEach(function(block){
-//             const _id = block.dataTimeBlockId;
-//             const editButton = block.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEditButton");
-//             const deleteButton = block.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton");
-
-//             editButton.addEventListener("click", requestAvailabilityBlockEdit);
-//             deleteButton.addEventListener("click", requestAvailabilityBlockDelete);
-
-//             function requestAvailabilityBlockEdit(){
-//                 //class change?
-//                 events.publish("editAdminAvailabilityClicked", {dayName, _id})
-                
-//             }
-//             function requestAvailabilityBlockDelete(){
-//                 events.publish("deleteAdminAvailabilityClicked", {dayName, _id})
-//             }
-//         })
-
-//         addButton.addEventListener("click" , requestAvailabilityBlockNew);
-
-//         function requestAvailabilityBlockNew(){
-//             //class change?
-//             events.publish("adminAvailabilityBlockAddRequested", day)
-
-//         }
-//     })     
-// }  

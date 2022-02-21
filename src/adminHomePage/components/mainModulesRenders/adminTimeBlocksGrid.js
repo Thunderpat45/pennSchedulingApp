@@ -1,77 +1,97 @@
-//ADMIN TEAMS DIV;; CONTINUATION TBD!
 import { events } from "../../../events";
+import {timeValueConverter} from "../../../timeConverter";
 
-//adminTimeBlocker display is blockGrid (allTimeBlocks), saveChanges, cancelChanges buttons; dataModel issue to determine when to write changes to allUsers (FE or BE)
-function renderAdminTimeBlockDay(adminTimeBlockDayData){
-    const {day, blocks} = adminTimeBlockDayData
+const adminTimeBlockDataGridComponent = (function(){
 
-    const adminBlocksDiv = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid");
-    const dayDiv = adminBlocksDiv.querySelector(`div > h3[innerText = "${day}"]`); //make sure this works
-    const dayAllBlocksDiv = dayDiv.querySelector(".adminMainPageAddAvailabilityBlockAllUsersAllBlocks");
-    const dayAllBlocksDivNew = document.createElement("div");
-    dayAllBlocksDivNew.classList.add("adminMainPageAddAvailabilityBlockAllUsersAllBlocks")
+    events.subscribe("renderUpdatedBlockData", renderAdminTimeBlockDay)
 
-    adminTimeBlockDayData.forEach(function(timeBlockData){
-        const blockNumber = blocks.indexOf(timeBlockData);
-        const row = buildBlockRow(day, blockNumber, timeBlockData);
-        dayAllBlocksDivNew.appendChild(row)
-    })
-
-    dayAllBlocksDiv.replaceWith(dayAllBlocksDivNew);
-
-   //data being sent as obj {day: STRING, blocks: [{start/end/admin}]}
-
-                    //move this out to mainPage JS not to be rerendered each time
-                    // addButton.addEventListener("click", function addAdminTimeBlock(){
-                    // events.publish('addAdminTimeBlockClicked', {adminTimeBlockDiv, day})
-                    // })
-}
-
-
-function buildBlockRow(day, blockNumber, timeBlockData){ 
-    const timeBlockObj = {day, blockNumber, _id: timeBlockData._id}
-
-    const elements = setTemplateElements()
-    setElementsContent(elements, timeBlockData);
-    setEventListeners(elements, timeBlockObj);
+    function renderAdminTimeBlockDay(adminTimeBlockDayData){
+        const {day, blocks} = adminTimeBlockDayData
     
-    return elements.content 
-}
-
-
-function setTemplateElements(){
-    const template = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersBlockTemplate");
-    const content = document.importNode(template.content, true);
-
-    const main = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlock");
-    const startTimeText = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockStart").firstChild;
-    const endTimeText = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEnd").firstChild;
+        const adminBlocksDiv = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid");
+        const dayDiv = Array.from(adminBlocksDiv.querySelectorAll("div")).find(function(div){
+            return div.firstElementChild.innerText == day;
+        });
+        const dayAllBlocksDiv = dayDiv.querySelector(".adminMainPageAddAvailabilityBlockAllUsersAllBlocks");
+        const dayAllBlocksDivNew = document.createElement("div");
+        dayAllBlocksDivNew.classList.add("adminMainPageAddAvailabilityBlockAllUsersAllBlocks")
     
-    const editButton = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEditButton");
-    const deleteButton = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton");
+        if(blocks.length > 0){
+            blocks.forEach(function(timeBlockData){
+                const row = buildBlockRow(day, timeBlockData);
+                dayAllBlocksDivNew.appendChild(row)
+            })
+        }else{
+            const defaultText = document.createElement('p');
+            defaultText.innerText = "No timeblocks";
+            dayAllBlocksDivNew.appendChild(defaultText);
+        }
+        
     
-    return {main, content, startTimeText, endTimeText, editButton, deleteButton}
-}
-
-
-function setElementsContent(blockElement, blockData){
-    blockElement.main.setAttribute("dataTimeBlockId", blockData._id)
-    blockElement.startTimeText.innerText += blockData.startTime;
-    blockElement.endTimeText.innerText += blockData.endTime;
-}
-
-
-function setEventListeners(timeBlockElement, timeBlockObj){
-    timeBlockElement.editButton.addEventListener("click", editAdminTimeBlock);
-    timeBlockElement.deleteButton.addEventListener("click", deleteAdminTimeBlock);
-
-    function editAdminTimeBlock(){
-        events.publish("editAdminAvailabilityClicked", timeBlockObj)
+        dayAllBlocksDiv.replaceWith(dayAllBlocksDivNew);
+    
+       //data being sent as obj {day: STRING, blocks: [{start/end/admin}]}
+    
+                        //move this out to mainPage JS not to be rerendered each time
+                        // addButton.addEventListener("click", function addAdminTimeBlock(){
+                        // events.publish('addAdminTimeBlockClicked', {adminTimeBlockDiv, day})
+                        // })
     }
-    function deleteAdminTimeBlock(){
-        events.publish("deleteAdminAvailabilityChangesClicked", timeBlockObj)
+     
+    function buildBlockRow(day, blockData){ 
+        const {_id} = blockData
+        const elements = setTemplateElements()
+        setElementsContent(elements, blockData);
+        setEventListeners(elements, {day, _id});
+        
+        return elements.content 
     }
-}
+    
+    function setTemplateElements(){
+        const template = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersBlockTemplate");
+        const content = document.importNode(template.content, true);
+    
+        const main = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlock");
+        const startTimeText = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockStart > p")
+        const endTimeText = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEnd > p")
+        
+        const editButton = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEditButton");
+        const deleteButton = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton");
+        
+        return {main, content, startTimeText, endTimeText, editButton, deleteButton}
+    }
+    
+    function setElementsContent(blockElement, blockData){
+        blockElement.main.setAttribute("dataTimeBlockId", blockData._id)
+        if(isNaN(Number(blockData.availability.startTime)) == false){
+            blockElement.startTimeText.innerText += timeValueConverter.runConvertTotalMinutesToTime(blockData.availability.startTime);
+        }else{
+            blockElement.startTimeText.innerText = blockData.availability.startTime;
+        }
+        if(isNaN(Number(blockData.availability.endTime)) == false){
+            blockElement.endTimeText.innerText += timeValueConverter.runConvertTotalMinutesToTime(blockData.availability.endTime);
+        }else{
+            blockElement.endTimeText.innerText =blockData.availability.endTime;
+        }
+        
+    }
+    
+    function setEventListeners(timeBlockElement, timeBlockData){
+        timeBlockElement.editButton.addEventListener("click", editAdminTimeBlock);
+        timeBlockElement.deleteButton.addEventListener("click", deleteAdminTimeBlock);
+    
+        function editAdminTimeBlock(){
+            events.publish("editAdminAvailabilityClicked", timeBlockData)
+        }
+        function deleteAdminTimeBlock(){
+            const confirmation = confirm("Delete this time block?");
+            if(confirmation){
+                events.publish("deleteAdminAvailabilityClicked", timeBlockData)
+            }
+            
+        }
+    }
 
+})()
 
-export {renderAdminTimeBlockDay}
+export {adminTimeBlockDataGridComponent}

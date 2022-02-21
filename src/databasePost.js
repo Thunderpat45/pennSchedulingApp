@@ -3,7 +3,11 @@ import {events} from "../src/events"
 const databasePost = (function(){
 
     events.subscribe("userUpdateRequested", updateUserData);
-    events.subscribe("newUserAdditionRequested", addUserData)
+    events.subscribe("newUserAdditionRequested", addUserData);
+    events.subscribe("deleteUserRequested", deleteUserData);
+    events.subscribe('adminBlockUpdateRequested', updateAdminBlockData);
+    events.subscribe('newAdminBlockAdditionRequested', addAdminBlockData)
+    events.subscribe('adminBlockDeleteRequested', deleteAdminBlockData)
     // events.subscribe("adminAvailabilityDataUpdated", alertAndLogCurrentObject)
     // events.subscribe("adminAllTeamsDataUpdated", changeAllTeamsData)
     events.subscribe("adminFacilityDataUpdateRequested", updateFacilityData)
@@ -12,7 +16,8 @@ const databasePost = (function(){
     // events.subscribe("verifyUpToDateClicked", changeVerificationData)//
     // events.subscribe("pageChangeRequested", alertAndLogCurrentObject);
     // events.subscribe("userSeasonChangeRequested", changeUserSeason); //
-    // events.subscribe("adminSeasonChangeRequested", changeAdminSeason);
+    // events.subscribe("adminSeasonChangeRequested", changeAdminSeason);;
+    
     
 
     function alertAndLogCurrentObject(databaseBoundObject){
@@ -22,7 +27,7 @@ const databasePost = (function(){
 
     async function updateFacilityData(databaseBoundObject){ 
         try{
-            const facilityDataResponse = await fetch('adminHome/postAdminFacilitySettings.json', {
+            await fetch('adminHome/postAdminFacilitySettings.json', {
                 method:'POST',
                 headers:{
                     'Content-Type': 'application/json'
@@ -31,7 +36,6 @@ const databasePost = (function(){
                 body: JSON.stringify(databaseBoundObject)
     
             });
-            console.log(await facilityDataResponse.body)
             events.publish("facilityDataSaved")
         }catch(err){
             console.log(err)
@@ -40,8 +44,9 @@ const databasePost = (function(){
     }
 
     async function updateUserData(databaseBoundObject){
+        const {_id} = databaseBoundObject;
         try{
-            const userDataResponse = await fetch('adminHome/user/0/update.json', { //change the hard-coded id's into userspecific id's SOON
+            const userDataResponse = await fetch(`adminHome/user/${_id}/update.json`, { //change the hard-coded id's into userspecific id's SOON
                 method:'POST',
                 headers:{
                     'Content-Type': 'application/json'
@@ -68,7 +73,7 @@ const databasePost = (function(){
 
     async function addUserData(databaseBoundObject){
         try{
-            const userDataResponse = await fetch('adminHome/user/add.json', { //change the hard-coded id's into userspecific id's SOON
+            const userDataResponse = await fetch('adminHome/user/add.json', {
                 method:'POST',
                 headers:{
                     'Content-Type': 'application/json'
@@ -85,8 +90,115 @@ const databasePost = (function(){
                 const origin = "add"
                 events.publish("userDataValidationFailed", {errors, origin})
             }else if(userDataResponse.status == 200){
-                const newUser = await userDataResponse.json(); 
+                const newUser = await userDataResponse.json();  
                 events.publish("newUserDataSaved", newUser)
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    async function deleteUserData(userId){
+        const idObj = {_id: userId}
+        try{
+            const userDataResponse = await fetch(`adminHome/user/${userId}/delete.json`, { //change the hard-coded id's into userspecific id's SOON
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(idObj)
+    
+            });
+
+            if(userDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(userDataResponse.status == 400){
+                const errors = await userDataResponse.json();
+                alert(errors);
+            }else if(userDataResponse.status == 200){
+                events.publish("userDataDeleted", userId)
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    async function updateAdminBlockData(databaseBoundObject){
+        const {_id} = databaseBoundObject;
+        try{
+            const blockDataResponse = await fetch(`adminHome/timeBlock/${_id}/update.json`, { //change the path
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(blockDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(blockDataResponse.status == 400){
+                const errors = await blockDataResponse.json();
+                const origin = "edit"
+                events.publish("adminAvailabilityDataValidationFailed", {errors, origin})
+            }else if(blockDataResponse.status == 200){ 
+                events.publish("editAdminBlockDataSaved") //find receiver
+            }
+           
+        }catch(err){
+            console.log(err)
+        }//fix the id to be dynamic
+    }
+
+    async function addAdminBlockData(databaseBoundObject){
+        try{
+            const blockDataResponse = await fetch('adminHome/timeBlock/add.json', {  //get rid of hard coded season as soon as possible
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(blockDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(blockDataResponse.status == 400){
+                const errors = await blockDataResponse.json()
+                const origin = "add"
+                events.publish("adminAvailabilityDataValidationFailed", {errors, origin})
+            }else if(blockDataResponse.status == 200){
+                const newAdminBlock = await blockDataResponse.json(); 
+                events.publish("newAdminBlockDataSaved", newAdminBlock) //find listener
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    async function deleteAdminBlockData(blockData){
+        const idObj = {_id: blockData._id}
+        try{
+            const blockDataResponse = await fetch(`adminHome/timeBlock/${blockData._id}/delete.json`, { //change the hard-coded id's into userspecific id's SOON
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(idObj)
+    
+            });
+
+            if(blockDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(blockDataResponse.status == 400){
+                const errors = await blockDataResponse.json();
+                alert(errors);
+            }else if(blockDataResponse.status == 200){
+                events.publish("blockDataDeleted", blockData)
             }
         }catch(err){
             console.log(err)
