@@ -1,8 +1,9 @@
     <div id = "adminMainPage">
 		<div id = "adminMainPageMainColumn">
 
-			<%- include('./partials/seasonsButtons', {season: season})%>
-			<div id = "adminTeamGridMainLabel">All Teams</div>
+			<%- include('./partials/adminHomePage/adminSeasonsButtons', {season: season})%>
+			<% const string = season.slice(0,1).toUpperCase() + season.slice(1)%>
+			<div id = "adminTeamGridMainLabel">All Teams: <%=string%></div>
 			<div id = "adminMainPageTeamsGridContainer">
 
 				<div id = "adminMainPageTeamGridLabels">

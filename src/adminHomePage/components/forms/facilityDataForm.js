@@ -6,14 +6,15 @@ const facilityDataFormComponent = (function(){
     events.subscribe("adminFacilityDataEditRequested", renderFacilityDataForm);
     events.subscribe("adminFacilityDataChangesCancelled", unrenderFacilityDataForm);
     events.subscribe("facilityDataSaved", unrenderFacilityDataForm)
+    events.subscribe("renderFacilityDataValidationErrors", renderFacilityDataValidationErrors)
     
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm")
 
-    function renderFacilityDataForm(facilityData){
+    function renderFacilityDataForm(facilityDataObj){
         
         const elements = setElements();
-        populateSelectors(elements, facilityData);
+        populateSelectors(elements, facilityDataObj);
         setEventListeners(elements);
 
         formDiv.appendChild(elements.content);
@@ -41,14 +42,14 @@ const facilityDataFormComponent = (function(){
         return {content, facilitySelectors, saveButton, cancelButton}
     }
 
-    function populateSelectors(selectorElements, facilityData){
+    function populateSelectors(selectorElements, facilityDataObj){
         
         selectorElements.facilitySelectors.forEach(function(selector){
             const primaryClass = Array.from(selector.classList)[0];
 
             const selectorNew = selectorBuilder.runBuildSelector(primaryClass);
             
-            const selectedOption = selectorNew.querySelector(`option[value = "${facilityData[primaryClass]}"]`);
+            const selectedOption = selectorNew.querySelector(`option[value = "${facilityDataObj.facilityData[primaryClass]}"]`);
             selectedOption.selected = true;
             if(selectedOption.value != "default"){
                 selectorNew.firstChild.disabled = true;
@@ -83,6 +84,26 @@ const facilityDataFormComponent = (function(){
         function cancelFacilityDataChanges(){
             events.publish("cancelFacilityDataChangesClicked") //check this path
         }
+    }
+
+    function renderFacilityDataValidationErrors(facilityDataObj){
+        
+        unrenderFacilityDataForm();
+        renderFacilityDataForm(facilityDataObj);
+        
+        const errorList = document.querySelector("#adminMainPageFacilityGeneralErrorList");
+
+        if(errorList.firstChild){
+            while(errorList.firstChild){
+                errorList.removeChild(errorList.firstChild)
+            }
+        }
+
+        facilityDataObj.errors.forEach(function(error){
+            const bullet = document.createElement("li");
+            bullet.innerText = error;
+            errorList.appendChild(bullet);
+        })
     }
 })()
 

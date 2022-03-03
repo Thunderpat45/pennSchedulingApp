@@ -7,11 +7,14 @@ const databasePost = (function(){
     events.subscribe("deleteUserRequested", deleteUserData);
     events.subscribe('adminBlockUpdateRequested', updateAdminBlockData);
     events.subscribe('newAdminBlockAdditionRequested', addAdminBlockData)
-    events.subscribe('adminBlockDeleteRequested', deleteAdminBlockData)
-    // events.subscribe("adminAvailabilityDataUpdated", alertAndLogCurrentObject)
+    events.subscribe('adminBlockDeleteRequested', deleteAdminBlockData);
+    events.subscribe('availabilityBlockUpdateRequested', updateUserBlockData);
+    events.subscribe('newAvailabilityBlockAdditionRequested', addUserBlockData)
+    events.subscribe('availabilityBlockDeleteRequested', deleteUserBlockData)
+   
     // events.subscribe("adminAllTeamsDataUpdated", changeAllTeamsData)
     events.subscribe("adminFacilityDataUpdateRequested", updateFacilityData)
-    // events.subscribe("availabilityDataUpdated", changeAvailabilityData)
+   
     // events.subscribe("myTeamsDataUpdated", changeMyTeamsData)
     // events.subscribe("verifyUpToDateClicked", changeVerificationData)//
     // events.subscribe("pageChangeRequested", alertAndLogCurrentObject);
@@ -198,12 +201,97 @@ const databasePost = (function(){
                 const errors = await blockDataResponse.json();
                 alert(errors);
             }else if(blockDataResponse.status == 200){
-                events.publish("blockDataDeleted", blockData)
+                events.publish("adminBlockDataDeleted", blockData)
             }
         }catch(err){
             console.log(err)
         }
     }
+
+    ///
+    async function updateUserBlockData(databaseBoundObject){
+        const {_id} = databaseBoundObject;
+        try{
+            const blockDataResponse = await fetch(`home/timeBlock/${_id}/update.json`, { //change the path
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(blockDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(blockDataResponse.status == 400){
+               
+                const errors = await blockDataResponse.json();
+                console.log(errors)
+                const origin = "edit"
+                events.publish("userAvailabilityValidationFailed", {errors, origin})
+            }else if(blockDataResponse.status == 200){ 
+                events.publish("editAvailabilityBlockDataSaved") 
+            }
+           
+        }catch(err){
+            console.log(err)
+        }//fix the id to be dynamic
+    }
+
+    async function addUserBlockData(databaseBoundObject){
+        try{
+            const blockDataResponse = await fetch('home/timeBlock/add.json', { 
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(blockDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(blockDataResponse.status == 400){
+                const errors = await blockDataResponse.json()
+                const origin = "add"
+                events.publish("userAvailabilityValidationFailed", {errors, origin})
+            }else if(blockDataResponse.status == 200){
+                const newAdminBlock = await blockDataResponse.json(); 
+                events.publish("newAvailabilityBlockDataSaved", newAdminBlock)
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    async function deleteUserBlockData(blockData){
+        try{
+            const blockDataResponse = await fetch(`home/timeBlock/${blockData._id}/delete.json`, { //change the hard-coded id's into userspecific id's SOON
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(blockData)
+    
+            });
+
+            if(blockDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(blockDataResponse.status == 400){
+                const errors = await blockDataResponse.json();
+                alert(errors);
+            }else if(blockDataResponse.status == 200){
+                events.publish("availabilityBlockDataDeleted", blockData)
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    ///
 
     function changeAllTeamsData(databaseBoundObject){
         alertAndLogCurrentObject(databaseBoundObject)

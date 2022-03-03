@@ -12,31 +12,58 @@ const userMainControllerFunctions = {
     },
 
     getHome: async function(req,res, next){ //userDependent, seasonal! should act on cancel buttons too
-        const userId = req.params.userId;
-        const season = req.params.season;
+        const {userId, season} = req.params
 
         try{
             const facilityData = await facilitySettings.findById('6202a107cfebcecf4ca9aecd');
+            const availabilityData = await availability.find({$and:[{$or:[{coach: userId}, {admin:true}]},{season:season}]})
+            const availabilityTimeBlocks = sortAvailabilities(availabilityData);
             const thisUser = await user.findOne({_id: userId});
-            renderHomePage(thisUser, facilityData);
+
+            const data = {thisUser, facilityData, season, availabilityTimeBlocks}
+            renderHomePage(data);
         }catch(err){
             console.log(err)
             res.redirect() //
         }
         
-        function renderHomePage(thisUser, facilityData){
-            const {name, privilegeLevel, lastVerified, availability, teams} = thisUser;
+        function renderHomePage(data){
+            const {name, privilegeLevel, lastVerified, /*availabilityTimeBlocks,*/ teams} = data.thisUser;
             res.render('home', {
                 name: name,
                 privilegeLevel: privilegeLevel,
                 layout: './layouts/homePagesLayout',
                 timeConverter: timeConverter,
-                season: "fall",
+                season: data.season,
                 lastVerified: lastVerified,
-                availability: availability,
+                availability: data.availabilityTimeBlocks,
                 teams: teams,
-                facilityData: facilityData
+                facilityData: data.facilityData
               })
+        }
+
+        function sortAvailabilities(availabilityData){
+            const availabilityObject = {
+                Sun: [],
+                Mon: [],
+                Tue: [],
+                Wed: [],
+                Thu: [],
+                Fri: [],
+                Sat: [],
+            }
+    
+            availabilityData.forEach(function(availability){
+                availabilityObject[availability.day].push(availability)
+            })
+    
+            for(let day in availabilityObject){
+                availabilityObject[day].sort(function(a,b,){
+                    return a.availability.startTime - b.availability.startTime
+                })
+            }
+    
+            return availabilityObject
         }
 
         
@@ -52,51 +79,26 @@ const userMainControllerFunctions = {
 
     getAdminHome: async function(req,res, next){ //userDependent, seasonal!, should act on cancel buttons too
         try{
-            const {season} = req.params
+            const {season, userId} = req.params
             const facilityData = await facilitySettings.findById('6202a107cfebcecf4ca9aecd');
             const users = await user.find({});
             const adminAvailability = await availability.find({admin: true, season: season})
             const adminTimeBlocks = sortAvailabilities(adminAvailability)
             
             const data = {facilityData, users, adminTimeBlocks, season}
-
             renderAdminHome(data)
         }catch(err){
             console.log(err)
             res.redirect() //some error page
         }
       
-        function sortAvailabilities(availabilityData){
-            const availabilityObject = {
-                Sun: [],
-                Mon: [],
-                Tue: [],
-                Wed: [],
-                Thu: [],
-                Fri: [],
-                Sat: [],
-            }
-
-            availabilityData.forEach(function(availability){
-                availabilityObject[availability.day].push(availability)
-            })
-
-            for(let day in availabilityObject){
-                availabilityObject[day].sort(function(a,b,){
-                    return a.availability.startTime - b.availability.startTime
-                })
-            }
-
-            return availabilityObject
-        }
-
         function renderAdminHome(data){
             res.render('adminHome', { 
                 name: "Brindle",
                 layout: './layouts/homePagesLayout',
                 timeConverter: timeConverter,
-                privilegeLevel: true,
-                season: "fall",
+                privilegeLevel: true, //check for this in authentication going forward
+                season: data.season,
                 lastVerified: 'October 10th, 2021',
                 allTeams:
                     [
@@ -205,6 +207,30 @@ const userMainControllerFunctions = {
                 adminTimeBlocks: data.adminTimeBlocks
             })
         }
+
+        function sortAvailabilities(availabilityData){
+            const availabilityObject = {
+                Sun: [],
+                Mon: [],
+                Tue: [],
+                Wed: [],
+                Thu: [],
+                Fri: [],
+                Sat: [],
+            }
+    
+            availabilityData.forEach(function(availability){
+                availabilityObject[availability.day].push(availability)
+            })
+    
+            for(let day in availabilityObject){
+                availabilityObject[day].sort(function(a,b,){
+                    return a.availability.startTime - b.availability.startTime
+                })
+            }
+    
+            return availabilityObject
+        }
         
     },
 
@@ -222,6 +248,45 @@ const userMainControllerFunctions = {
             console.log(err)
         }
 
+       function sortAvailabilities(availabilityData){
+            const availabilityObject = {
+                Sun: [],
+                Mon: [],
+                Tue: [],
+                Wed: [],
+                Thu: [],
+                Fri: [],
+                Sat: [],
+            }
+    
+            availabilityData.forEach(function(availability){
+                availabilityObject[availability.day].push(availability)
+            })
+    
+            for(let day in availabilityObject){
+                availabilityObject[day].sort(function(a,b,){
+                    return a.availability.startTime - b.availability.startTime
+                })
+            }
+    
+            return availabilityObject
+        }
+    },
+
+    getUserDataAll: async function(req,res,next){
+        const {userId, season} = req.params
+        try{
+            const thisUser = await user.findOne({_id: userId});
+            const availabilityData = await availability.find({$and:[{$or:[{coach: userId}, {admin:true}]},{season:season}]})
+            const facilityData = await facilitySettings.findById('6202a107cfebcecf4ca9aecd');
+            const availabilityTimeBlocks = sortAvailabilities(availabilityData);
+
+            const data = {thisUser, availabilityTimeBlocks, facilityData, season}
+            res.json(data);
+        }catch(err){
+            console.log(err)
+        }
+
         function sortAvailabilities(availabilityData){
             const availabilityObject = {
                 Sun: [],
@@ -232,28 +297,18 @@ const userMainControllerFunctions = {
                 Fri: [],
                 Sat: [],
             }
-
+    
             availabilityData.forEach(function(availability){
                 availabilityObject[availability.day].push(availability)
             })
-
+    
             for(let day in availabilityObject){
                 availabilityObject[day].sort(function(a,b,){
                     return a.availability.startTime - b.availability.startTime
                 })
             }
-
+    
             return availabilityObject
-        }
-    },
-
-    getUserDataAll: async function(req,res,next){
-        const userId = req.params.userId;
-        try{
-            const thisUser = await user.findOne({_id: userId});
-            res.json(thisUser);
-        }catch(err){
-            console.log(err)
         }
     },
 
@@ -276,6 +331,30 @@ const userMainControllerFunctions = {
     getSchedule:function(req,res, next){ 
         res.send('NOT IMPLEMENTED: Get Schedule');
     },
+
+    // sortAvailabilities: function(availabilityData){
+    //     const availabilityObject = {
+    //         Sun: [],
+    //         Mon: [],
+    //         Tue: [],
+    //         Wed: [],
+    //         Thu: [],
+    //         Fri: [],
+    //         Sat: [],
+    //     }
+
+    //     availabilityData.forEach(function(availability){
+    //         availabilityObject[availability.day].push(availability)
+    //     })
+
+    //     for(let day in availabilityObject){
+    //         availabilityObject[day].sort(function(a,b,){
+    //             return a.availability.startTime - b.availability.startTime
+    //         })
+    //     }
+
+    //     return availabilityObject
+    // } try to make this globally available within object, -this- not workign
 
 
 }

@@ -2,8 +2,9 @@
 <div id = "mainPage">
   <div id = "mainPageMainColumn">
 
-    <%- include('./partials/seasonsButtons', {season: season})%>
-    <div id = "teamGridMainLabel">My Teams</div>
+    <%- include('./partials/homePage/seasonsButtons', {season: season})%>
+    <% const string = season.slice(0,1).toUpperCase() + season.slice(1)%>
+    <div id = "teamGridMainLabel">My Teams: <%=string%></div>
     <div id = "teamGridContainer">
       
       <div id = "teamGridLabels">
@@ -41,20 +42,58 @@
   <div id = "mainPageSideColumn">
     <div id = "userAvailability">
       <h3 id = "userAvailabilityLabel">Availability</h3>
-      <button id = "editAvailability">Edit Availability</button>
-      <div id = "availabilityDisplay">
-        <%for(let day in availability){%>
-          <%if(availability.hasOwnProperty(day)){%>
-            <%- include('./partials/homePage/availabilityTemplate', {availability: availability, day:day, timeConverter: timeConverter, facilityData: facilityData})%>
+      <div id = "userPageAddAvailabilityBlockGrid">
+          <%for(let day in availability){%>
+            <%if(availability.hasOwnProperty(day)){%>
+              <%- include('./partials/homePage/availabilityTemplate', {availability: availability, day:day, timeConverter: timeConverter, facilityData: facilityData})%>
+            <%}%>
           <%}%>
-        <%}%>
+        </div>
       </div>
     </div>
-  </div>
 
   <div id = "entryFormDiv" class = "form formHidden">
     <div id = "entryForm"></div>
   </div>
+
+
+  <!--module templates-->
+  <template id = "userPageAddAvailabilityBlockTemplate">
+		<div class = "userPageAddAvailabilityBlock">
+			<div class = "userPageAddAvailabilityBlockStart">
+				<p>Start Time: </p>
+			</div>
+			<div class = "userPageAddAvailabilityBlockEnd">
+				<p>End Time: </p>
+			</div>
+			<button class = "userPageAddAvailabilityBlockEditButton">Edit Block</button>
+			<button class = "userPageAddAvailabilityBlockDeleteButton">Delete Block</button>
+		</div>
+	</template>
+
+  <!--form templates-->
+  <template id = "availabilityDayTimeBlockFormTemplate">
+		<div id = "availabilityDayTimeBlockForm">
+			<h3>Day: </h3>
+				<div id = "availabilityDayTimeBlockSelectorsStart">
+					<p>Start</p>
+					<select class = "startTime selector">
+						<option value = "default">--</option>
+					</select>
+				</div>
+				<div id = "availabilityDayTimeBlockSelectorsEnd">
+					<p>End</p>
+					<select class = "endTime selector">
+						<option value = "default">--</option>
+					</select>
+				</div>
+			<button id = "availabilityDayTimeBlockFormSaveButton">Save</button>
+			<button id = "availabilityDayTimeBlockFormCancelButton">Cancel</button>
+			<div id = "availabilityDayTimeBlockGeneralErrorDiv">
+				<ul id = "availabilityDayTimeBlockGeneralErrorList"></ul>
+			</div>
+		</div>
+	</template>
 
   <%- contentFor('script')%>
   <script src = "/javascripts/homePage.js"></script>

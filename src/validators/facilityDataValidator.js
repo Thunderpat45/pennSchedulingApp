@@ -34,8 +34,12 @@ const facilityDataValidator = (function(){
             }
         }
 
+        if(facilityData.facilityOpen >= facilityData.facilityClose){
+            errorArray.push('Start time overlaps with end time!')
+        }
+
         if(errorArray.length > 0){
-            alert(errorArray) //change this eo event that returns to form as list items
+            events.publish('facilityDataValidationFailed', errorArray)
         }else{
             events.publish("adminFacilityDataValidated", facilityData)
         }

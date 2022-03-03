@@ -2,17 +2,16 @@ import {events} from "../../../src/events"
 import { timeValueConverter } from "../../timeConverter";
 
 const allAdminMainPageAdminTimeBlockModel = (function(){
-    //find subscriber to database update
-    //updates here would need to pushed to all users, should this publish to allUsers here, or do this on backEnd before DB save? Look at Node/Mongo scripts to determine how viable this is one way or another
+   
     let allAdminAvailabilityDataStable = {};
     let allAdminAvailabilityDataMutable = {};
     
     events.subscribe("adminDataFetched", setDataNewPageRender);
-    events.subscribe("updateAllBlocksModel", setDataNewDatabasePost)
+    events.subscribe("updateAllAdminBlocksModel", setDataNewDatabasePost)
     events.subscribe("editAdminAvailabilityClicked", editAdminAvailabilityBlock)
     events.subscribe("deleteAdminAvailabilityClicked", deleteAdminAvailabilityBlock);
     events.subscribe("facilityDataAvailabiltyUpdateComparisonRequested", renderAllDays)
-    events.subscribe('blockDataDeleted', setDataBlockDataDeleted)
+    events.subscribe('adminBlockDataDeleted', setDataBlockDataDeleted)
 
     function setDataNewPageRender(adminData){
         allAdminAvailabilityDataStable = adminData.adminTimeBlocks;
@@ -66,7 +65,7 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
 		}
 		
         createAdminAvailabilityDeepCopy(allAdminAvailabilityDataStable, allAdminAvailabilityDataMutable);
-		events.publish("renderUpdatedBlockData", {day: blockData.day, blocks: allAdminAvailabilityDataMutable[blockData.day]})
+		events.publish("renderUpdatedAdminBlockData", {day: blockData.day, blocks: allAdminAvailabilityDataMutable[blockData.day]})
     }
 
     function renderAllDays(facilityData){
@@ -90,7 +89,7 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
                 }     
             })
 
-            events.publish("renderUpdatedBlockData", {day, blocks: tempObj[day]})
+            events.publish("renderUpdatedAdminBlockData", {day, blocks: tempObj[day]})
         }
     }
     function setDataBlockDataDeleted(blockData){
@@ -101,7 +100,7 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
 
 		allAdminAvailabilityDataMutable[day] = newBlocksList;
 		createAdminAvailabilityDeepCopy(allAdminAvailabilityDataStable, allAdminAvailabilityDataMutable);
-		events.publish("renderUpdatedBlockData", {day, blocks: allAdminAvailabilityDataMutable[day]})
+		events.publish("renderUpdatedAdminBlockData", {day, blocks: allAdminAvailabilityDataMutable[day]})
 	}
 
 })()

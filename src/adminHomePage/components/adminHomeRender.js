@@ -86,12 +86,9 @@ const adminHomeMain = (function(){
                 })
             }
 
-            
-
             function addTimeBlock(){
                 events.publish("addAdminTimeBlockClicked", dayString)
             }
-           
         })
     }
 

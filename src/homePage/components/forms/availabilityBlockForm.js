@@ -3,14 +3,14 @@ import { selectorBuilder } from "../../../../src/DOMBuilders/selectorDOMBuilder"
 import { timeValueConverter } from "../../../../src/timeConverter";
 
 
-const adminTimeBlockDataFormComponent = (function(){
+const availabilityTimeBlockDataFormComponent = (function(){
 
-    events.subscribe('adminAvailabilityBlockAddRequested', renderTimeBlockDataForm);
-    events.subscribe('adminBlockDataLoaded', renderTimeBlockDataForm);
-    events.subscribe('adminAvailabilityDataChangesCancelled', unrenderTimeBlockDataForm);
-    events.subscribe("renderAdminBlockValidationErrors", renderAdminBlockDataValidationErrors)
-    events.subscribe("editAdminBlockDataSaved", unrenderTimeBlockDataForm);
-    events.subscribe('newAdminBlockDataSaved', unrenderTimeBlockDataForm)
+    events.subscribe('availabilityBlockAddRequested', renderTimeBlockDataForm);
+    events.subscribe('availabilityBlockDataLoaded', renderTimeBlockDataForm);
+    events.subscribe('availabilityDataChangesCancelled', unrenderTimeBlockDataForm);
+    events.subscribe("renderAvailabilityBlockValidationErrors", renderAvailabilityBlockDataValidationErrors)
+    events.subscribe("editAvailabilityBlockDataSaved", unrenderTimeBlockDataForm);
+    events.subscribe('newAvailabilityBlockDataSaved', unrenderTimeBlockDataForm)
 
 
 
@@ -18,17 +18,17 @@ const adminTimeBlockDataFormComponent = (function(){
     const formDiv = document.querySelector("#entryForm");
     
 
-    function renderTimeBlockDataForm(adminTimeBlockDayData){
+    function renderTimeBlockDataForm(timeBlockDayData){
         
     
         const elements = setElements();
-        populateContent(elements, adminTimeBlockDayData);
-        setEventListeners(elements, adminTimeBlockDayData);
+        populateContent(elements, timeBlockDayData);
+        setEventListeners(elements, timeBlockDayData);
     
         formDiv.appendChild(elements.content);
 
         const selectors = formDiv.querySelectorAll('.selector');
-        const saveButton = formDiv.querySelector('#adminDayTimeBlockFormSaveButton')
+        const saveButton = formDiv.querySelector('#availabilityDayTimeBlockFormSaveButton')
         if(Array.from(selectors).filter(function(selector){
             return selector[selector.selectedIndex].value == "default"
         }).length > 0){
@@ -49,15 +49,15 @@ const adminTimeBlockDataFormComponent = (function(){
     
     
     function setElements(){
-        const template = document.querySelector("#adminDayTimeBlockFormTemplate");
+        const template = document.querySelector("#availabilityDayTimeBlockFormTemplate");
         const content = document.importNode(template.content, true);
     
         const dayLabel = content.querySelector('h3');
         const timeBlockSelectors = content.querySelectorAll(".selector");  
-        const startDiv = content.querySelector("#adminDayTimeBlockSelectorsStart")
-        const endDiv =   content.querySelector("#adminDayTimeBlockSelectorsEnd")              
-        const saveButton = content.querySelector("#adminDayTimeBlockFormSaveButton");
-        const cancelButton = content.querySelector("#adminDayTimeBlockFormCancelButton");
+        const startDiv = content.querySelector("#availabilityDayTimeBlockSelectorsStart")
+        const endDiv =   content.querySelector("#availabilityDayTimeBlockSelectorsEnd")              
+        const saveButton = content.querySelector("#availabilityDayTimeBlockFormSaveButton");
+        const cancelButton = content.querySelector("#availabilityDayTimeBlockFormCancelButton");
     
         return {content, dayLabel, timeBlockSelectors, saveButton, cancelButton, startDiv, endDiv}
     }
@@ -94,10 +94,10 @@ const adminTimeBlockDataFormComponent = (function(){
             function publishSelectionValueChange(){
                 const modifiedSelector = primaryClass
                 const value = selectorNew.value;
-                events.publish("modifyAdminTimeBlockSelectorValue", {modifiedSelector, value})
+                events.publish("modifyAvailabilitySelectorValues", {modifiedSelector, value})
 
                 const selectors = formDiv.querySelectorAll('.selector');
-                const saveButton = formDiv.querySelector('#adminDayTimeBlockFormSaveButton')
+                const saveButton = formDiv.querySelector('#availabilityDayTimeBlockFormSaveButton')
                 if(Array.from(selectors).filter(function(selector){
                     return selector[selector.selectedIndex].value == "default"
                 }).length == 0){
@@ -115,10 +115,10 @@ const adminTimeBlockDataFormComponent = (function(){
         selectorElements.cancelButton.addEventListener("click", cancelTimeBlockChanges);
     
         function updateTimeBlockData(){
-            events.publish("updateAdminBlockClicked", timeBlockData.origin);
+            events.publish("updateAvailabilityClicked", timeBlockData.origin);
         }
         function cancelTimeBlockChanges(){
-            events.publish("cancelAdminBlockChangesClicked")
+            events.publish("cancelAvailabilityBlockChangesClicked")
         }
     }
     
@@ -128,12 +128,12 @@ const adminTimeBlockDataFormComponent = (function(){
         return errorText;
     }
 
-    function renderAdminBlockDataValidationErrors(blockData){
+    function renderAvailabilityBlockDataValidationErrors(blockData){
         
         unrenderTimeBlockDataForm();
         renderTimeBlockDataForm(blockData);
         
-        const errorList = document.querySelector("#adminDayTimeBlockGeneralErrorList");
+        const errorList = document.querySelector("#availabilityDayTimeBlockGeneralErrorList");
 
         if(errorList.firstChild){
             while(errorList.firstChild){
@@ -152,5 +152,4 @@ const adminTimeBlockDataFormComponent = (function(){
 
 
 
-export {adminTimeBlockDataFormComponent}
-
+export {availabilityTimeBlockDataFormComponent}

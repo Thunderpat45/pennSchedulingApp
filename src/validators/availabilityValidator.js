@@ -3,7 +3,7 @@ import { events } from "../events";
 const availabilityValidator = (function(){
   
     events.subscribe("adminBlockDataValidationRequested", validateAllAdminAvailability);
-    events.subscribe("userBlockDataValidationRequested", validateAllUserAvailability);
+    events.subscribe("availabilityValidationRequested", validateAllUserAvailability);
     
     function validateAllAdminAvailability(timeBlockData){
         const {timeBlock, origin} = timeBlockData
@@ -22,8 +22,9 @@ const availabilityValidator = (function(){
         const {timeBlock, origin} = timeBlockData
         const errorArray = []
         validateAllInputs(timeBlock, errorArray)
+
         if(errorArray.length == 0){
-            events.publish("userAvailabilityDataValidated",timeBlock);
+            events.publish("userAvailabilityDataValidated",timeBlockData);
         }else{
             events.publish("userAvailabilityValidationFailed", {errors: errorArray, origin})
         }

@@ -1,21 +1,66 @@
 <div class = "userAvailabilityDay">
-    <p class = "userAvailabilityDayLabel"><%= `${day}`%></p>
-    <div class = "userAvailabilityDayBlockWrapper">
+    <h3><%=day%></h3>
+        <button class = "userPageAddAvailabilityBlockAddButton">Add Block</button>
+    <div class = "userPageAddAvailabilityAllBlocks">
         <%if(availability[day].length > 0){%>
             <%availability[day].forEach(function(timeBlock){%>
-                <%if(timeBlock.startTime < facilityData.facilityOpen || timeBlock.startTime > facilityData.facilityClose || timeBlock.endTime < facilityData.facilityOpen || timeBlock.endTime > facilityData.facilityClose){%>
-                    <p>Time outside facility hours. Speak to supervisor about time changes.</p>
+                <%if((timeBlock.availability.startTime < facilityData.facilityOpen || timeBlock.availability.startTime > facilityData.facilityClose) && (timeBlock.availability.endTime < facilityData.facilityOpen || timeBlock.availability.endTime > facilityData.facilityClose)){%>
+                    <div class = "userPageAddAvailabilityBlock" data-timeBlockId = "<%=`${timeBlock._id}`%>">
+                        <div class = "userPageAddAvailabilityBlockStart">
+                            <p><%= `Start time ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.startTime)} is outside facility hours. Speak to supervisor about time changes.`%></p>
+                        </div>
+                        <div class = "userPageAddAvailabilityBlockEnd">
+                            <p><%= `End time ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.endTime)} is outside facility hours. Speak to supervisor about time changes.`%></p>
+                        </div>
+                        <%if(timeBlock.admin == false){%>
+                            <button class = "userPageAddAvailabilityBlockEditButton">Edit Block</button>
+                            <button class = "userPageAddAvailabilityBlockDeleteButton">Delete Block</button>
+                        <%}%> 
+                    </div>
+                <%}else if(timeBlock.availability.startTime < facilityData.facilityOpen || timeBlock.availability.startTime > facilityData.facilityClose){%>
+                    <div class = "userPageAddAvailabilityBlock" data-timeBlockId = "<%=`${timeBlock._id}`%>">
+                        <div class = "userPageAddAvailabilityBlockStart">
+                            <p><%= `Start time ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.startTime)} is outside facility hours. Speak to supervisor about time changes.`%></p>
+                        </div>
+                        <div class = "userPageAddAvailabilityBlockEnd">
+                            <p><%=`End Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.endTime)}`%></p>
+                        </div>
+                        <%if(timeBlock.admin == false){%>
+                            <button class = "userPageAddAvailabilityBlockEditButton">Edit Block</button>
+                            <button class = "userPageAddAvailabilityBlockDeleteButton">Delete Block</button>
+                        <%}%>
+                    </div>
+                    
+                <%}else if(timeBlock.availability.endTime < facilityData.facilityOpen || timeBlock.availability.endTime > facilityData.facilityClose){%>
+                    <div class = "userPageAddAvailabilityBlock" data-timeBlockId = "<%=`${timeBlock._id}`%>">
+                        <div class = "userPageAddAvailabilityBlockStart">
+                            <p><%=`Start Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.startTime)}`%></p>
+                        </div>
+                        <div class = "userPageAddAvailabilityBlockEnd">
+                            <p><%= `End time ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.endTime)} is outside facility hours. Speak to supervisor about time changes.`%></p>
+                        </div>
+                        <button class = "userPageAddAvailabilityBlockEditButton">Edit Block</button>
+                        <button class = "userPageAddAvailabilityBlockDeleteButton">Delete Block</button>
+                    </div>
+                    
                 <%}else{%>
-                    <%const index = availability[day].indexOf(timeBlock)%>
-                    <div class = "userAvailabilityTimeBlock">
-                        <p><%=`Start: ${timeConverter.runConvertTotalMinutesToTime(availability[day][index].startTime)}`%></p>
-                        <p><%=`End: ${timeConverter.runConvertTotalMinutesToTime(availability[day][index].endTime)}`%></p>
+                    <div class = "userPageAddAvailabilityBlock" data-timeBlockId = "<%=`${timeBlock._id}`%>">
+                        <div class = "userPageAddAvailabilityBlockStart">
+                            <p><%=`Start Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.startTime)}`%></p>
+                        </div>
+                        <div class = "userPageAddAvailabilityBlockEnd">
+                            <p><%=`End Time: ${timeConverter.runConvertTotalMinutesToTime(timeBlock.availability.endTime)}`%></p>
+                        </div>
+                        <%if(timeBlock.admin == false){%>
+                            <button class = "userPageAddAvailabilityBlockEditButton">Edit Block</button>
+                            <button class = "userPageAddAvailabilityBlockDeleteButton">Delete Block</button>
+                        <%}%>
                     </div>
                 <%}%>
             <%})%>
         <%}else{%>
             <p>No timeblocks</p>
         <%}%>
-        
+       
     </div>
 </div>

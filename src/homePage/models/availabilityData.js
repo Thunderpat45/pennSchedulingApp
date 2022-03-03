@@ -4,65 +4,82 @@ const availabilityData = (function(){
     
     let availabilityModelStable;
     let availabilityModelMutable;
+
     const timeBlockDefault = {
-        startTime:"default",
-        endTime:"default",
-        admin: "no"
+        admin:false,
+        season:null,
+        day:null,
+        availability:{startTime: "default", endTime: "default"}
     };
 
-    events.subscribe("mainPageModelBuilt", setAvailabilityModel); 
-    events.subscribe("availabilityModelRequested", publishAvailabilityModel)
-    events.subscribe("deleteTimeBlockClicked", deleteAvailabilityRow);
-    events.subscribe("addTimeBlockClicked", addAvailabilityRow);
+    events.subscribe('userDataFetched', setSeason)
+    events.subscribe("addAvailabilityTimeBlockClicked", addAvailabilityBlock);
     events.subscribe("modifyAvailabilitySelectorValues", modifyAvailabilityValue);
-    events.subscribe("updateAvailabilityClicked", validateAvailability);
-    events.subscribe("userAvailabilityDataValidated", updateAvailability)
+    events.subscribe('availabilityBlockEditRequested', setAvailabilityDataEditRequest)
+    events.subscribe('cancelAvailabilityBlockChangesClicked', setAvailabilityDataCancelRequest)
+    events.subscribe("updateAvailabilityClicked", validateChanges);
+    events.subscribe("userAvailabilityDataValidated", updateAvailabilityData)
+    events.subscribe("userAvailabilityValidationFailed", renderBlockValidationErrors);
+    events.subscribe("editAvailabilityBlockDataSaved", publishBlockUpdatesToAllBlocks);
+    events.subscribe("newAvailabilityBlockDataSaved", addBlockDataToAllBlocks);
 
-    
-    function setAvailabilityModel(userAvailability){
-        availabilityModelStable = userAvailability.availability
+    function setSeason(userData){
+        timeBlockDefault.season = userData.season
+    } 
+
+    function setAvailabilityDataEditRequest(timeBlock){
+        availabilityModelStable =  timeBlock;
+        availabilityModelMutable = Object.assign({}, availabilityModelStable)
+        availabilityModelMutable.availability = Object.assign({}, availabilityModelStable.availability)
+
+        events.publish("availabilityBlockDataLoaded", {timeBlock: availabilityModelMutable, origin:"edit"})
     }
 
-    function setAvailabilityModelCopy(){
+    function setAvailabilityDataCancelRequest(){
+        availabilityModelStable = {};
+
+        events.publish("availabilityDataChangesCancelled") 
+    }
+
+    function addAvailabilityBlock(day){
+        availabilityModelStable = Object.assign({}, timeBlockDefault);
+        availabilityModelStable.day = day;
+
         availabilityModelMutable = Object.assign({}, availabilityModelStable);
-        for(let day in availabilityModelStable){
-            availabilityModelMutable[day] = availabilityModelStable[day].concat();
-            availabilityModelStable[day].forEach(function(timeBlock){
-                availabilityModelMutable[day][timeBlock] = Object.assign({}, availabilityModelStable[day][timeBlock])
-            });
-        }
+        availabilityModelMutable.availability = Object.assign({}, availabilityModelStable.availability)
+
+        events.publish("availabilityBlockAddRequested", {timeBlock: availabilityModelMutable, origin: "add"});
     }
 
-    function publishAvailabilityModel(){
-        setAvailabilityModelCopy();
-        events.publish("availabilityDOMPageRequested", availabilityModelMutable)
+    function modifyAvailabilityValue(timeBlockObj){ //make sure this is sent this way
+        const {modifiedSelector, value} = timeBlockObj
+        availabilityModelMutable.availability[modifiedSelector] = value
     }
 
-
-    function addAvailabilityRow(day){
-        availabilityModelMutable[day].push(Object.assign({}, timeBlockDefault));
-
-        events.publish("availabilityModelModified", availabilityModelMutable);
+    function validateChanges(origin){
+        events.publish("availabilityValidationRequested", {timeBlock: availabilityModelMutable, origin})
     }
 
-    function deleteAvailabilityRow(rowObj){
-        const blockIndex = rowObj.blockNumber;
-        availabilityModelMutable[rowObj.day].splice(blockIndex, 1);
-
-        events.publish("availabilityModelModified", availabilityModelMutable);
+    function updateAvailabilityData(validatedBlockData){
+        if(validatedBlockData.origin == "edit"){
+			events.publish("availabilityBlockUpdateRequested", validatedBlockData.timeBlock) 
+		}else{
+			events.publish("newAvailabilityBlockAdditionRequested", validatedBlockData.timeBlock)
+		}
     }
 
-    function modifyAvailabilityValue(rowObj){
-        const blockIndex = rowObj.blockNumber;
-        availabilityModelMutable[rowObj.day][blockIndex][rowObj.selector] = rowObj.value
+    function renderBlockValidationErrors(validationErrorData){
+        const {errors, origin} = validationErrorData
+        events.publish("renderAvailabilityBlockValidationErrors", {timeBlock: availabilityModelMutable, errors, origin})
     }
 
-    function validateAvailability(){
-        events.publish("userAvailabilityValidationRequested", availabilityModelMutable)
+    function publishBlockUpdatesToAllBlocks(){
+        events.publish("updateAllAvailabilityBlocksModel", availabilityModelMutable)
     }
 
-    function updateAvailability(){
-        events.publish("availabilityDataUpdated", availabilityModelMutable)
+    function addBlockDataToAllBlocks(_id){
+        availabilityModelMutable._id = _id;
+        events.publish("updateAllAvailabilityBlocksModel", availabilityModelMutable);
     }
 
 })()

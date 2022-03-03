@@ -13,6 +13,7 @@ const adminMainPageFacilityDataModel = (function(){
     events.subscribe("updateFacilityDataClicked", validateFacilityData);
     events.subscribe("adminFacilityDataValidated", updateFacilityData);
     events.subscribe("cancelFacilityDataChangesClicked", cancelFacilityDataChanges);
+    events.subscribe('facilityDataValidationFailed', renderFacilityDataValidationErrors)
 
     function setDataNewPageRender(adminData){
         adminFacilityDataStable = adminData.facilityData; 
@@ -34,7 +35,7 @@ const adminMainPageFacilityDataModel = (function(){
     }
 
     function editFacilityData(){
-        events.publish("adminFacilityDataEditRequested", adminFacilityDataMutable)
+        events.publish("adminFacilityDataEditRequested", {facilityData: adminFacilityDataMutable})
     }
 
     function modifyFacilitySelectorValue(facilityDataObj){
@@ -53,6 +54,11 @@ const adminMainPageFacilityDataModel = (function(){
     function cancelFacilityDataChanges(){
         createFacilityDataDeepCopy(adminFacilityDataMutable, adminFacilityDataStable);
         events.publish("adminFacilityDataChangesCancelled")
+    }
+
+    function renderFacilityDataValidationErrors(validationErrorData){
+        const errors = validationErrorData
+        events.publish("renderFacilityDataValidationErrors", {facilityData: adminFacilityDataMutable, errors})
     }
 })()
 

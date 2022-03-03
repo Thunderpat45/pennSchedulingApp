@@ -31,7 +31,9 @@ router.post(':userId/:season/adminHome/postAllTeamsOrder', mainController.postAl
 
 //availablity data changes
 
-router.post(':userId/:season/home/availability:availabilityId/update', availabilityController.postAvailabilityEdit);
+router.post('/:userId/:season/home/timeBlock/add.json' ,availabilityController.postTimeBlockCreation);
+router.post('/:userId/:season/home/timeBlock/:timeBlockId/update.json', availabilityController.postTimeBlockUpdate);
+router.post('/:userId/:season/home/timeBlock/:timeBlockId/delete.json', availabilityController.postTimeBlockDelete);
 router.post('/:userId/:season/adminHome/timeBlock/add.json', availabilityController.postAdminTimeBlockCreation)
 router.post('/:userId/:season/adminHome/timeBlock/:timeBlockId/update.json', availabilityController.postAdminTimeBlockUpdate);
 router.post('/:userId/:season/adminHome/timeBlock/:timeBlockId/delete.json', availabilityController.postAdminTimeBlockDelete)

@@ -1,20 +1,20 @@
 import { events } from "../../../events";
 import {timeValueConverter} from "../../../timeConverter";
 
-const adminTimeBlockDataGridComponent = (function(){
+const availabilityTimeBlockDataGridComponent = (function(){
 
-    events.subscribe("renderUpdatedAdminBlockData", renderAdminTimeBlockDay)
+    events.subscribe("renderUpdatedAvailabilityBlockData", renderAdminTimeBlockDay)
 
     function renderAdminTimeBlockDay(adminTimeBlockDayData){
         const {day, blocks} = adminTimeBlockDayData
     
-        const adminBlocksDiv = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersGrid");
-        const dayDiv = Array.from(adminBlocksDiv.querySelectorAll("div")).find(function(div){
+        const availabilityBlocksDiv = document.querySelector("#userPageAddAvailabilityBlockGrid");
+        const dayDiv = Array.from(availabilityBlocksDiv.querySelectorAll("div")).find(function(div){
             return div.firstElementChild.innerText == day;
         });
-        const dayAllBlocksDiv = dayDiv.querySelector(".adminMainPageAddAvailabilityBlockAllUsersAllBlocks");
+        const dayAllBlocksDiv = dayDiv.querySelector(".userPageAddAvailabilityAllBlocks");
         const dayAllBlocksDivNew = document.createElement("div");
-        dayAllBlocksDivNew.classList.add("adminMainPageAddAvailabilityBlockAllUsersAllBlocks")
+        dayAllBlocksDivNew.classList.add("userPageAddAvailabilityAllBlocks")
     
         if(blocks.length > 0){
             blocks.forEach(function(timeBlockData){
@@ -41,21 +41,21 @@ const adminTimeBlockDataGridComponent = (function(){
     }
     
     function setTemplateElements(){
-        const template = document.querySelector("#adminMainPageAddAvailabilityBlockAllUsersBlockTemplate");
+        const template = document.querySelector("#userPageAddAvailabilityBlockTemplate");
         const content = document.importNode(template.content, true);
     
-        const main = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlock");
-        const startTimeText = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockStart > p")
-        const endTimeText = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEnd > p")
+        const user = content.querySelector(".userPageAddAvailabilityBlock");
+        const startTimeText = content.querySelector(".userPageAddAvailabilityBlockStart > p")
+        const endTimeText = content.querySelector(".userPageAddAvailabilityBlockEnd > p")
         
-        const editButton = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockEditButton");
-        const deleteButton = content.querySelector(".adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton");
+        const editButton = content.querySelector(".userPageAddAvailabilityBlockEditButton");
+        const deleteButton = content.querySelector(".userPageAddAvailabilityBlockDeleteButton");
         
-        return {main, content, startTimeText, endTimeText, editButton, deleteButton}
+        return {user, content, startTimeText, endTimeText, editButton, deleteButton}
     }
     
     function setElementsContent(blockElement, blockData){
-        blockElement.main.setAttribute("dataTimeBlockId", blockData._id)
+        blockElement.user.setAttribute("dataTimeBlockId", blockData._id)
         if(isNaN(Number(blockData.availability.startTime)) == false){
             blockElement.startTimeText.innerText += timeValueConverter.runConvertTotalMinutesToTime(blockData.availability.startTime);
         }else{
@@ -66,6 +66,11 @@ const adminTimeBlockDataGridComponent = (function(){
         }else{
             blockElement.endTimeText.innerText =blockData.availability.endTime;
         }
+    
+        if(blockData.admin == true){
+            blockElement.editButton.remove()
+            blockElement.deleteButton.remove()
+        }
         
     }
     
@@ -74,12 +79,12 @@ const adminTimeBlockDataGridComponent = (function(){
         timeBlockElement.deleteButton.addEventListener("click", deleteAdminTimeBlock);
     
         function editAdminTimeBlock(){
-            events.publish("editAdminAvailabilityClicked", timeBlockData)
+            events.publish("editAvailabilityClicked", timeBlockData)
         }
         function deleteAdminTimeBlock(){
             const confirmation = confirm("Delete this time block?");
             if(confirmation){
-                events.publish("deleteAdminAvailabilityClicked", timeBlockData)
+                events.publish("deleteAvailabilityClicked", timeBlockData)
             }
             
         }
@@ -87,4 +92,4 @@ const adminTimeBlockDataGridComponent = (function(){
 
 })()
 
-export {adminTimeBlockDataGridComponent}
+export {availabilityTimeBlockDataGridComponent}

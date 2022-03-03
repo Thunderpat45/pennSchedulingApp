@@ -56,7 +56,7 @@ const selectorBuilder = (function(){
     };
     
     _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminDataFetched", setSelectorRanges);
-    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("setNewSelectorRanges", setSelectorRanges)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('userDataFetched', setSelectorRanges)
     
     function setSelectorRanges(dBdata){
         let facilityData
@@ -265,12 +265,9 @@ const adminHomeMain = (function(){
                 })
             }
 
-            
-
             function addTimeBlock(){
                 _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("addAdminTimeBlockClicked", dayString)
             }
-           
         })
     }
 
@@ -358,7 +355,7 @@ __webpack_require__.r(__webpack_exports__);
 const adminTimeBlockDataFormComponent = (function(){
 
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminAvailabilityBlockAddRequested', renderTimeBlockDataForm);
-    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('blockDataLoaded', renderTimeBlockDataForm);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminBlockDataLoaded', renderTimeBlockDataForm);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminAvailabilityDataChangesCancelled', unrenderTimeBlockDataForm);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("renderAdminBlockValidationErrors", renderAdminBlockDataValidationErrors)
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editAdminBlockDataSaved", unrenderTimeBlockDataForm);
@@ -507,13 +504,6 @@ const adminTimeBlockDataFormComponent = (function(){
 
 
 
-/*
-
-FIX:
-    remove save eventListener if any are --?
-    new add ddin't responsd
-*/
-
 
 /***/ }),
 
@@ -537,14 +527,15 @@ const facilityDataFormComponent = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataEditRequested", renderFacilityDataForm);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataChangesCancelled", unrenderFacilityDataForm);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("facilityDataSaved", unrenderFacilityDataForm)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("renderFacilityDataValidationErrors", renderFacilityDataValidationErrors)
     
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm")
 
-    function renderFacilityDataForm(facilityData){
+    function renderFacilityDataForm(facilityDataObj){
         
         const elements = setElements();
-        populateSelectors(elements, facilityData);
+        populateSelectors(elements, facilityDataObj);
         setEventListeners(elements);
 
         formDiv.appendChild(elements.content);
@@ -572,14 +563,14 @@ const facilityDataFormComponent = (function(){
         return {content, facilitySelectors, saveButton, cancelButton}
     }
 
-    function populateSelectors(selectorElements, facilityData){
+    function populateSelectors(selectorElements, facilityDataObj){
         
         selectorElements.facilitySelectors.forEach(function(selector){
             const primaryClass = Array.from(selector.classList)[0];
 
             const selectorNew = _DOMBuilders_selectorDOMBuilder__WEBPACK_IMPORTED_MODULE_1__.selectorBuilder.runBuildSelector(primaryClass);
             
-            const selectedOption = selectorNew.querySelector(`option[value = "${facilityData[primaryClass]}"]`);
+            const selectedOption = selectorNew.querySelector(`option[value = "${facilityDataObj.facilityData[primaryClass]}"]`);
             selectedOption.selected = true;
             if(selectedOption.value != "default"){
                 selectorNew.firstChild.disabled = true;
@@ -614,6 +605,26 @@ const facilityDataFormComponent = (function(){
         function cancelFacilityDataChanges(){
             _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("cancelFacilityDataChangesClicked") //check this path
         }
+    }
+
+    function renderFacilityDataValidationErrors(facilityDataObj){
+        
+        unrenderFacilityDataForm();
+        renderFacilityDataForm(facilityDataObj);
+        
+        const errorList = document.querySelector("#adminMainPageFacilityGeneralErrorList");
+
+        if(errorList.firstChild){
+            while(errorList.firstChild){
+                errorList.removeChild(errorList.firstChild)
+            }
+        }
+
+        facilityDataObj.errors.forEach(function(error){
+            const bullet = document.createElement("li");
+            bullet.innerText = error;
+            errorList.appendChild(bullet);
+        })
     }
 })()
 
@@ -807,7 +818,7 @@ __webpack_require__.r(__webpack_exports__);
 
 const adminTimeBlockDataGridComponent = (function(){
 
-    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("renderUpdatedBlockData", renderAdminTimeBlockDay)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("renderUpdatedAdminBlockData", renderAdminTimeBlockDay)
 
     function renderAdminTimeBlockDay(adminTimeBlockDayData){
         const {day, blocks} = adminTimeBlockDayData
@@ -833,13 +844,6 @@ const adminTimeBlockDataGridComponent = (function(){
         
     
         dayAllBlocksDiv.replaceWith(dayAllBlocksDivNew);
-    
-       //data being sent as obj {day: STRING, blocks: [{start/end/admin}]}
-    
-                        //move this out to mainPage JS not to be rerendered each time
-                        // addButton.addEventListener("click", function addAdminTimeBlock(){
-                        // events.publish('addAdminTimeBlockClicked', {adminTimeBlockDiv, day})
-                        // })
     }
      
     function buildBlockRow(day, blockData){ 
@@ -1053,17 +1057,16 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const allAdminMainPageAdminTimeBlockModel = (function(){
-    //find subscriber to database update
-    //updates here would need to pushed to all users, should this publish to allUsers here, or do this on backEnd before DB save? Look at Node/Mongo scripts to determine how viable this is one way or another
+   
     let allAdminAvailabilityDataStable = {};
     let allAdminAvailabilityDataMutable = {};
     
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminDataFetched", setDataNewPageRender);
-    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateAllBlocksModel", setDataNewDatabasePost)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateAllAdminBlocksModel", setDataNewDatabasePost)
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editAdminAvailabilityClicked", editAdminAvailabilityBlock)
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteAdminAvailabilityClicked", deleteAdminAvailabilityBlock);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("facilityDataAvailabiltyUpdateComparisonRequested", renderAllDays)
-    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('blockDataDeleted', setDataBlockDataDeleted)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminBlockDataDeleted', setDataBlockDataDeleted)
 
     function setDataNewPageRender(adminData){
         allAdminAvailabilityDataStable = adminData.adminTimeBlocks;
@@ -1117,7 +1120,7 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
 		}
 		
         createAdminAvailabilityDeepCopy(allAdminAvailabilityDataStable, allAdminAvailabilityDataMutable);
-		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedBlockData", {day: blockData.day, blocks: allAdminAvailabilityDataMutable[blockData.day]})
+		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedAdminBlockData", {day: blockData.day, blocks: allAdminAvailabilityDataMutable[blockData.day]})
     }
 
     function renderAllDays(facilityData){
@@ -1141,7 +1144,7 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
                 }     
             })
 
-            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedBlockData", {day, blocks: tempObj[day]})
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedAdminBlockData", {day, blocks: tempObj[day]})
         }
     }
     function setDataBlockDataDeleted(blockData){
@@ -1152,7 +1155,7 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
 
 		allAdminAvailabilityDataMutable[day] = newBlocksList;
 		createAdminAvailabilityDeepCopy(allAdminAvailabilityDataStable, allAdminAvailabilityDataMutable);
-		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedBlockData", {day, blocks: allAdminAvailabilityDataMutable[day]})
+		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedAdminBlockData", {day, blocks: allAdminAvailabilityDataMutable[day]})
 	}
 
 })()
@@ -1271,6 +1274,7 @@ const adminMainPageFacilityDataModel = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateFacilityDataClicked", validateFacilityData);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataValidated", updateFacilityData);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("cancelFacilityDataChangesClicked", cancelFacilityDataChanges);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('facilityDataValidationFailed', renderFacilityDataValidationErrors)
 
     function setDataNewPageRender(adminData){
         adminFacilityDataStable = adminData.facilityData; 
@@ -1292,7 +1296,7 @@ const adminMainPageFacilityDataModel = (function(){
     }
 
     function editFacilityData(){
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminFacilityDataEditRequested", adminFacilityDataMutable)
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminFacilityDataEditRequested", {facilityData: adminFacilityDataMutable})
     }
 
     function modifyFacilitySelectorValue(facilityDataObj){
@@ -1311,6 +1315,11 @@ const adminMainPageFacilityDataModel = (function(){
     function cancelFacilityDataChanges(){
         createFacilityDataDeepCopy(adminFacilityDataMutable, adminFacilityDataStable);
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminFacilityDataChangesCancelled")
+    }
+
+    function renderFacilityDataValidationErrors(validationErrorData){
+        const errors = validationErrorData
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderFacilityDataValidationErrors", {facilityData: adminFacilityDataMutable, errors})
     }
 })()
 
@@ -1336,8 +1345,6 @@ const singleAdminTimeBlockModel = (function(){
     let adminAvailabilityDataStable 
     let adminAvailabilityDataMutable 
 
-    _src_events__WEBPACK_IMPORTED_MODULE_0__.events;
-
     const timeBlockDefault = {
         admin:true,
         season:null,
@@ -1358,7 +1365,6 @@ const singleAdminTimeBlockModel = (function(){
     
     function setSeason(adminData){
         timeBlockDefault.season = adminData.season
-        console.log(timeBlockDefault)
     }
 
     function addAdminAvailabilityBlock(day){
@@ -1376,7 +1382,7 @@ const singleAdminTimeBlockModel = (function(){
         adminAvailabilityDataMutable = Object.assign({}, adminAvailabilityDataStable)
         adminAvailabilityDataMutable.availability = Object.assign({}, adminAvailabilityDataStable.availability)
 
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("blockDataLoaded", {timeBlock: adminAvailabilityDataMutable, origin:"edit"})
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminBlockDataLoaded", {timeBlock: adminAvailabilityDataMutable, origin:"edit"})
     }
 
     function setAdminAvailabilityDataCancelRequest(){
@@ -1409,12 +1415,12 @@ const singleAdminTimeBlockModel = (function(){
     }
 
     function publishBlockUpdatesToAllBlocks(){
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateAllBlocksModel", adminAvailabilityDataMutable)
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateAllAdminBlocksModel", adminAvailabilityDataMutable)
     }
 
     function addBlockDataToAllBlocks(_id){
         adminAvailabilityDataMutable._id = _id;
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateAllBlocksModel", adminAvailabilityDataMutable);
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateAllAdminBlocksModel", adminAvailabilityDataMutable);
     }
 
 })()
@@ -1554,11 +1560,14 @@ const databasePost = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteUserRequested", deleteUserData);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminBlockUpdateRequested', updateAdminBlockData);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('newAdminBlockAdditionRequested', addAdminBlockData)
-    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminBlockDeleteRequested', deleteAdminBlockData)
-    // events.subscribe("adminAvailabilityDataUpdated", alertAndLogCurrentObject)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminBlockDeleteRequested', deleteAdminBlockData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('availabilityBlockUpdateRequested', updateUserBlockData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('newAvailabilityBlockAdditionRequested', addUserBlockData)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('availabilityBlockDeleteRequested', deleteUserBlockData)
+   
     // events.subscribe("adminAllTeamsDataUpdated", changeAllTeamsData)
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataUpdateRequested", updateFacilityData)
-    // events.subscribe("availabilityDataUpdated", changeAvailabilityData)
+   
     // events.subscribe("myTeamsDataUpdated", changeMyTeamsData)
     // events.subscribe("verifyUpToDateClicked", changeVerificationData)//
     // events.subscribe("pageChangeRequested", alertAndLogCurrentObject);
@@ -1745,12 +1754,97 @@ const databasePost = (function(){
                 const errors = await blockDataResponse.json();
                 alert(errors);
             }else if(blockDataResponse.status == 200){
-                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("blockDataDeleted", blockData)
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminBlockDataDeleted", blockData)
             }
         }catch(err){
             console.log(err)
         }
     }
+
+    ///
+    async function updateUserBlockData(databaseBoundObject){
+        const {_id} = databaseBoundObject;
+        try{
+            const blockDataResponse = await fetch(`home/timeBlock/${_id}/update.json`, { //change the path
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(blockDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(blockDataResponse.status == 400){
+               
+                const errors = await blockDataResponse.json();
+                console.log(errors)
+                const origin = "edit"
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userAvailabilityValidationFailed", {errors, origin})
+            }else if(blockDataResponse.status == 200){ 
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editAvailabilityBlockDataSaved") 
+            }
+           
+        }catch(err){
+            console.log(err)
+        }//fix the id to be dynamic
+    }
+
+    async function addUserBlockData(databaseBoundObject){
+        try{
+            const blockDataResponse = await fetch('home/timeBlock/add.json', { 
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(blockDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(blockDataResponse.status == 400){
+                const errors = await blockDataResponse.json()
+                const origin = "add"
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userAvailabilityValidationFailed", {errors, origin})
+            }else if(blockDataResponse.status == 200){
+                const newAdminBlock = await blockDataResponse.json(); 
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newAvailabilityBlockDataSaved", newAdminBlock)
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    async function deleteUserBlockData(blockData){
+        try{
+            const blockDataResponse = await fetch(`home/timeBlock/${blockData._id}/delete.json`, { //change the hard-coded id's into userspecific id's SOON
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(blockData)
+    
+            });
+
+            if(blockDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(blockDataResponse.status == 400){
+                const errors = await blockDataResponse.json();
+                alert(errors);
+            }else if(blockDataResponse.status == 200){
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("availabilityBlockDataDeleted", blockData)
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    ///
 
     function changeAllTeamsData(databaseBoundObject){
         alertAndLogCurrentObject(databaseBoundObject)
@@ -2424,7 +2518,7 @@ __webpack_require__.r(__webpack_exports__);
 const availabilityValidator = (function(){
   
     _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminBlockDataValidationRequested", validateAllAdminAvailability);
-    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userBlockDataValidationRequested", validateAllUserAvailability);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("availabilityValidationRequested", validateAllUserAvailability);
     
     function validateAllAdminAvailability(timeBlockData){
         const {timeBlock, origin} = timeBlockData
@@ -2443,8 +2537,9 @@ const availabilityValidator = (function(){
         const {timeBlock, origin} = timeBlockData
         const errorArray = []
         validateAllInputs(timeBlock, errorArray)
+
         if(errorArray.length == 0){
-            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userAvailabilityDataValidated",timeBlock);
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userAvailabilityDataValidated",timeBlockData);
         }else{
             _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userAvailabilityValidationFailed", {errors: errorArray, origin})
         }
@@ -2518,8 +2613,12 @@ const facilityDataValidator = (function(){
             }
         }
 
+        if(facilityData.facilityOpen >= facilityData.facilityClose){
+            errorArray.push('Start time overlaps with end time!')
+        }
+
         if(errorArray.length > 0){
-            alert(errorArray) //change this eo event that returns to form as list items
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish('facilityDataValidationFailed', errorArray)
         }else{
             _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminFacilityDataValidated", facilityData)
         }

@@ -40,7 +40,7 @@ const selectorBuilder = (function(){
     };
     
     events.subscribe("adminDataFetched", setSelectorRanges);
-    events.subscribe("setNewSelectorRanges", setSelectorRanges)
+    events.subscribe('userDataFetched', setSelectorRanges)
     
     function setSelectorRanges(dBdata){
         let facilityData

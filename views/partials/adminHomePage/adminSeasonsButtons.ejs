@@ -1,12 +1,17 @@
 <div id = "seasonButtons">
     <% const arr = ['fall', 'spring'] %>
+    <% console.log(season) %>
     <% arr.forEach(function(value){ %>
       <% const buttonId = `${value}Button`%>
       <% const string = value.slice(0,1).toUpperCase() + value.slice(1)%>
       <% if(value == season){ %>
-          <button id = "<%=buttonId%>"><%=string%></button>
+        <button id = "<%=buttonId%>" disabled = true><%=string%></button>
       <%}else{%>
-          <button id = "<%=buttonId%>" disabled = true><%=string%></button>
+        <button id = "<%=buttonId%>">
+          <a href = '../<%=value%>/adminHome'><%=string%></a> <!--fix this for userHome/adminHome flexibility-->
+        </button>
+        
+         
       <%}%>
     <%})%>
   </div>

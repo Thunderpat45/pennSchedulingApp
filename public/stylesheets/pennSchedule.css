@@ -65,6 +65,10 @@ header a{
 	border-radius:5px;
 }
 
+#seasonButtons > button > a{
+	color: black;
+}
+
 /*general page content elements*/
 
 main{
@@ -190,11 +194,11 @@ main, .page{
 	gap: 15px;
 }
 
-.teamGridTeamEditButton, .adminUserGridUserEditButton{
+.teamGridTeamEditButton, .adminUserGridUserEditButton, #adminMainPageFacilitySelectorsEditButton, .adminMainPageAddAvailabilityBlockAllUsersBlockEditButton, .userPageAddAvailabilityBlockEditButton{
 	background-color: yellow;
 }
 
-.teamGridTeamDeleteButton, .adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton{
+.teamGridTeamDeleteButton, .adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton, .userPageAddAvailabilityBlockDeleteButton{
 	background-color: red;
 }
 
@@ -245,10 +249,6 @@ main, .page{
 	border-radius: 5px;
 	height: 2rem;
 	font-size: .8rem;
-}
-
-.userAvailabilityDay{
-	margin: 1.25rem auto;
 }
 
 .userAvailabilityDayLabel{
@@ -657,41 +657,36 @@ main, .page{
 	margin-bottom: 1rem;
 }
 
-#adminMainPageFacilitySelectorsWrapper, .adminTimeBlockDay{
+#adminMainPageFacilitySelectorsWrapper, .adminTimeBlockDay, .userAvailabilityDay{
 	background-color: white;
 	padding:.5rem;
 	margin: .5rem;
 	border: #011F5b solid .5rem;
 }
 
-.adminMainPageAddAvailabilityBlockAllUsersBlock{
+.adminMainPageAddAvailabilityBlockAllUsersBlock, .userPageAddAvailabilityBlock{
 	display: grid;
 	grid-template-areas: 
-	"adminBlockStart adminBlockEnd"
-	"adminBlockDelete adminBlockDelete";
+	"blockStart blockEnd"
+	"blockDelete blockDelete";
 	background-color:#9898dd;
 	border: #011F5b solid .125rem;
 	margin: .25rem;
 }
 
-.adminTimeBlockDay p, .adminTimeBlockDay h3{
+.adminTimeBlockDay p, .adminTimeBlockDay h3, .userAvailabilityDay p, .userAvailabilityDay h3{
 	margin: .25rem auto;
 	color: black;
 }
 
-.adminMainPageAddAvailabilityBlockAllUsersBlockStart{
-	grid-area: adminBlockStart
+.adminMainPageAddAvailabilityBlockAllUsersBlockStart, .userPageAddAvailabilityBlockStart{
+	grid-area: blockStart;
+	padding-bottom: .5rem;
 }
 
-.adminMainPageAddAvailabilityBlockAllUsersBlockEnd{
-	grid-area: adminBlockEnd
-}
-
-.adminMainPageAddAvailabilityBlockAllUsersBlockDeleteButton{
-	grid-area: adminBlockDelete;
-	width: 50%;
-	margin: .5rem 0 .25rem 0;
-	justify-self: center;
+.adminMainPageAddAvailabilityBlockAllUsersBlockEnd, .userPageAddAvailabilityBlockEnd{
+	grid-area: blockEnd;
+	padding-bottom: .5rem;
 }
 
 #userGeneratorDiv{

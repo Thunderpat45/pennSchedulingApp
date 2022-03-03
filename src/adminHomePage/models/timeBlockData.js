@@ -5,8 +5,6 @@ const singleAdminTimeBlockModel = (function(){
     let adminAvailabilityDataStable 
     let adminAvailabilityDataMutable 
 
-    events;
-
     const timeBlockDefault = {
         admin:true,
         season:null,
@@ -27,7 +25,6 @@ const singleAdminTimeBlockModel = (function(){
     
     function setSeason(adminData){
         timeBlockDefault.season = adminData.season
-        console.log(timeBlockDefault)
     }
 
     function addAdminAvailabilityBlock(day){
@@ -45,7 +42,7 @@ const singleAdminTimeBlockModel = (function(){
         adminAvailabilityDataMutable = Object.assign({}, adminAvailabilityDataStable)
         adminAvailabilityDataMutable.availability = Object.assign({}, adminAvailabilityDataStable.availability)
 
-        events.publish("blockDataLoaded", {timeBlock: adminAvailabilityDataMutable, origin:"edit"})
+        events.publish("adminBlockDataLoaded", {timeBlock: adminAvailabilityDataMutable, origin:"edit"})
     }
 
     function setAdminAvailabilityDataCancelRequest(){
@@ -78,12 +75,12 @@ const singleAdminTimeBlockModel = (function(){
     }
 
     function publishBlockUpdatesToAllBlocks(){
-        events.publish("updateAllBlocksModel", adminAvailabilityDataMutable)
+        events.publish("updateAllAdminBlocksModel", adminAvailabilityDataMutable)
     }
 
     function addBlockDataToAllBlocks(_id){
         adminAvailabilityDataMutable._id = _id;
-        events.publish("updateAllBlocksModel", adminAvailabilityDataMutable);
+        events.publish("updateAllAdminBlocksModel", adminAvailabilityDataMutable);
     }
 
 })()
