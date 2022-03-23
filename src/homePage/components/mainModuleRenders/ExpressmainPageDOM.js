@@ -59,45 +59,22 @@ const mainPageDOM = (function(){
         const template = document.querySelector("#mainPageTemplate");
         const content = document.importNode(template.content, true);
 
-        const seasonButtons = content.querySelector("#seasonButtons");
-        const seasonButtonsChildren = Array.from(seasonButtons.children)
-        const mainPageAvailability = content.querySelector("#userAvailability");
         const mainPageMyTeams = content.querySelector("#teamGridContainer");
         const verifyInfo = content.querySelector("#verifyInfo");
         const verifyButton = content.querySelector("#verifyButton");
 
-        const mainPageAvailabilityNew = renderMainPageAvailability(mainPageAvailability, mainPageData.availability);
         const mainPageMyTeamsNew = renderMainPageMyTeams(mainPageMyTeams, mainPageData.teams); 
         
-        mainPageAvailability.replaceWith(mainPageAvailabilityNew);
         mainPageMyTeams.replaceWith(mainPageMyTeamsNew);
         
         if(mainPageData.lastVerified != null){
             verifyInfo.innerText += ` ${mainPageData.lastVerified}`
         }
 
-        
-        seasonButtonsChildren.forEach(function(child){
-            if(child.id == `${season}Button`){
-                child.disabled = true;
-            }else{
-                child.addEventListener("click", changeSeason)
-               
-            }
-        })
-
         verifyButton.addEventListener("click", publishTeamsUpToDateVerification);
     
         return content
     
-        function changeSeason(){
-            let string = "Button";
-            const seasonButtonId = this.id;
-            const truncateIndex = seasonButtonId.indexOf(string);
-            const seasonName = seasonButtonId.slice(0, truncateIndex);
-            
-            events.publish("userSeasonChangeRequested", seasonName) 
-        }
 
         function publishTeamsUpToDateVerification(){
             const date = new Date().toLocaleString();
@@ -106,60 +83,7 @@ const mainPageDOM = (function(){
         }
     }
     //no obvious issues here or with dataModel or availabilityDOM
-    function renderMainPageAvailability(availabilityDOM, availabilityData){
-        const availabilityDisplay = availabilityDOM.querySelector("#availabilityDisplay");
-        const editAvailability = availabilityDOM.querySelector("#editAvailability");
-
-        const availabilityDisplayNew = buildAvailabilityDisplay(availabilityData);
-        availabilityDisplay.replaceWith(availabilityDisplayNew);
-
-        editAvailability.addEventListener("click", getAvailabilityModel);
-
-        return availabilityDOM
-        
-        function getAvailabilityModel(){
-            events.publish("availabilityModelRequested")
-        }
-    }
-
-    function buildAvailabilityDisplay(availabilityData){
-        const availabilityDisplayNew = document.createElement("div");
-        availabilityDisplayNew.id = "availabilityDisplay"
-        for(let day in availabilityData){
-            const dayDiv = document.createElement("div");
-            dayDiv.classList.add("userAvailabilityDay");
-
-            const allBlocksWrapper = document.createElement("div");
-            allBlocksWrapper.classList.add("userAvailabilityDayBlockWrapper")
-
-            const label = document.createElement("p");
-            label.classList.add("userAvailabilityDayLabel");
-
-            label.innerText = `${day}`;
-            dayDiv.appendChild(label)
-
-            availabilityData[day].forEach(function(timeBlock){
-                const blockNumber = availabilityData[day].indexOf(timeBlock);
-                
-                const timeBlockDiv = document.createElement("div");
-                timeBlockDiv.classList.add("userAvailabilityTimeBlock")
-
-                const startTime = document.createElement("p");
-                const endTime = document.createElement("p");
-
-                startTime.innerText = `Start: ${timeValueConverter.runConvertTotalMinutesToTime(availabilityData[day][blockNumber].startTime)}`;
-                endTime.innerText = `End: ${timeValueConverter.runConvertTotalMinutesToTime(availabilityData[day][blockNumber].endTime)}`;
-
-                timeBlockDiv.appendChild(startTime);
-                timeBlockDiv.appendChild(endTime);
-                allBlocksWrapper.appendChild(timeBlockDiv)
-            })
-            dayDiv.appendChild(allBlocksWrapper)
-            availabilityDisplayNew.appendChild(dayDiv)
-        }
-        return availabilityDisplayNew
-    }
-
+    
     function renderMainPageMyTeams(teamsDOM, teamArray){
         
         const teamGrid = teamsDOM.querySelector("#teamGrid"); 

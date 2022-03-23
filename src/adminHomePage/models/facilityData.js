@@ -16,13 +16,12 @@ const adminMainPageFacilityDataModel = (function(){
     events.subscribe('facilityDataValidationFailed', renderFacilityDataValidationErrors)
 
     function setDataNewPageRender(adminData){
-        adminFacilityDataStable = adminData.facilityData; 
-        adminFacilityDataMutable = Object.create({});
-        createFacilityDataDeepCopy(adminFacilityDataMutable, adminFacilityDataStable);
+        adminFacilityDataStable= structuredClone(adminData.facilityData); 
+        adminFacilityDataMutable = structuredClone(adminFacilityDataStable);
     }
 
     function setDataNewDatabasePost(){
-        createFacilityDataDeepCopy(adminFacilityDataStable, adminFacilityDataMutable);
+        adminFacilityDataStable= structuredClone(adminFacilityDataMutable);
         events.publish("setNewSelectorRanges", adminFacilityDataMutable)
         events.publish("renderUpdatedFacilityData", adminFacilityDataMutable);
         events.publish("facilityDataAvailabiltyUpdateComparisonRequested", adminFacilityDataMutable)
@@ -52,7 +51,7 @@ const adminMainPageFacilityDataModel = (function(){
     }
     
     function cancelFacilityDataChanges(){
-        createFacilityDataDeepCopy(adminFacilityDataMutable, adminFacilityDataStable);
+        adminFacilityDataMutable= structuredClone(adminFacilityDataStable);
         events.publish("adminFacilityDataChangesCancelled")
     }
 

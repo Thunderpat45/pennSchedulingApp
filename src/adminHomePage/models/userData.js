@@ -31,17 +31,16 @@ const userData = (function(){
     events.subscribe("newUserDataSaved", addUserDataToAllUsers);
     events.subscribe("userDataValidationFailed", renderUserValidationErrors);
     events.subscribe("userDataValidated", updateUserData)
-        //USE ARRAY.MAP AND OBJ EQUIVALENT (?) IN DATAMODElS FOR DEEP COPIES?
     
     function setUserModelEditRequest(userData){
-        userModelStable = userData
-        userModelMutable = Object.assign({}, userModelStable)
+        userModelStable = structuredClone(userData)
+        userModelMutable = structuredClone(userModelStable)
 
         events.publish("userDataLoaded", {userData: userModelMutable, origin:"edit"})
     }
 
     function setUserModelCancelRequest(){
-        userModelMutable = Object.assign({}, userModelStable);
+        userModelMutable = structuredClone(userModelStable);
 
         events.publish("userDataChangesCancelled")
     }
@@ -56,8 +55,8 @@ const userData = (function(){
     }
     
     function createNewUser(){
-        userModelStable = Object.assign({}, userModel);
-        userModelMutable = Object.assign({}, userModelStable);
+        userModelStable = structuredClone(userModel);
+        userModelMutable = structuredClone(userModelStable);
 
         events.publish("newUserModelBuilt", {userData: userModelMutable, origin:"add"})
     }

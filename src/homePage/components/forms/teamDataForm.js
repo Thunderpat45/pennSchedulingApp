@@ -1,205 +1,127 @@
 import {events} from "../../../events"
+import { selectorBuilder } from "../../../../src/selectorDOMBuilder"
+import { timeValueConverter } from "../../../../src/timeConverter";
 
-/*action: user interface creating/editing team name/size/ schedule requests
+const teamDataFormComponent = (function(){
+    
+    events.subscribe("teamAddRequested", renderTeamDataForm)
+    events.subscribe('teamDataLoaded', renderTeamDataForm)
+    events.subscribe("teamDataChangesCancelled", unrenderTeamDataForm);
+  
+    events.subscribe("optionsModified", rerenderTeamDataForm)
 
-teamDataModel object is modeled as such:
 
-obj = 
-    { 
-        teamName,
-        teamSize, 
-        rank:
-            {
-                myTeams,
-                allTeams
-            },
-        allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
-        coach,
+
+    events.subscribe("renderTeamDataValidationErrors", renderTeamDataValidationErrors)
+    events.subscribe("editTeamDataSaved", unrenderTeamDataForm);
+   events.subscribe('newTeamDataSaved', unrenderTeamDataForm)
+
+    const formDivWrapper = document.querySelector("#entryFormDiv")
+    const formDiv = document.querySelector("#entryForm");
+    const body = document.querySelector("body")
+
+    function rerenderTeamDataForm(teamData){
+        unrenderTeamDataForm()
+        renderTeamDataForm(teamData)
     }
 
-publishes:
-    requestForm page render requests FOR pageRenderer
-    mainPageDOM requests FOR mainPageData
-    update requests FOR teamRequestModel
-    team name/size, daySelector value changes for teamRequestModel
-    add/delete/reorder options, add/delete days for teamRequest Model
+    function renderTeamDataForm(teamData){
+        
+        const elements = setElements();
+        populateContent(elements, teamData);
+        setEventListeners(elements, teamData);
     
-subscribes to: 
-    allTeamsList FROM mainPageData
-    teamData generation/ teamData option/day additions/removals FROM teamRequestModel
-    selectors nodes FROM selectorDOMBuilder
-    
-*/
-const requestFormDOM = (function(){
-    
-    events.subscribe("workingModelPopulated", publishRequestFormRender)
-    events.subscribe("optionsModified", renderAllOpts)
-    events.subscribe("userSelectorsBuilt", setSelectorNodes)
-    events.subscribe("mainPageModelBuilt", setAllTeams);
+        formDiv.appendChild(elements.content);
 
-    
-    let allTeams;
+        const selectors = formDiv.querySelectorAll('.selector');
+        const saveButton = formDiv.querySelector('#saveTeamRequest')
+        if(Array.from(selectors).filter(function(selector){
+            return selector[selector.selectedIndex].value == "default"
+        }).length > 0){
+            saveButton.disabled = true;
+        }
 
-    const selectorNodes = {
-        startTime: null,
-        endTime: null,
-        teamSize: null,
-        dayOfWeek: null,
-        inWeiss: null
-    };
+        formDivWrapper.classList.toggle("formHidden");
+        elements.form.classList.toggle('toggleScrollBarOn')
+        body.style.overflowY = "hidden"
+    } 
 
-    function setAllTeams(mainPageData){
-       allTeams = mainPageData.allTeams;      
+    function unrenderTeamDataForm(){
+        if(formDiv.firstChild){
+            while(formDiv.firstChild){
+                formDiv.removeChild(formDiv.firstChild)
+            }
+        }
+
+        formDivWrapper.classList.add("formHidden");
+        body.style.overflowY = 'scroll'
     }
-
-    function setSelectorNodes(selectorElementObj){
-        for(let selectorElement in selectorElementObj){
-            switch(selectorElement){
-                case `dayOfWeek`:
-                case `startTime`:
-                case `endTime`:
-                case `teamSize`:
-                case `inWeiss`:
-                    selectorNodes[selectorElement] = selectorElementObj[selectorElement];
-                    break;
-                default:
-                    break;
-            }  
-        }  
-    }
-
-    function publishRequestFormRender(workingModel){
-        const requestPage = renderRequestFormPage(workingModel);
-        events.publish("pageRenderRequested", requestPage);
-    }
-
-
-    function renderRequestFormPage(workingModel){
-        const template = document.querySelector("#requestFormPageTemplate");
+   
+    function setElements(){
+        const template = document.querySelector("#teamFormTemplate");
         const content = document.importNode(template.content, true);
-
-        const teamName = content.querySelector("#formTeamName");
-        const teamSize = content.querySelector("#formTeamSize"); 
-        const allOpts = content.querySelector("#formAllOpts");
-        const addButton = content.querySelector("#addTrainingOption");
-        const updateButton = content.querySelector("#updateTeamRequest");
+    
+        const form = content.querySelector('#teamFormContainer')
+        const teamName = content.querySelector('#formTeamName');
+        const teamSize = content.querySelector('#formTeamSize');
+        const saveButton = content.querySelector("#saveTeamRequest");
         const cancelButton = content.querySelector("#cancelTeamRequest");
-
-        const teamNameNew = renderTeamName(teamName, workingModel);
-        const teamSizeNew = renderTeamSizeSelection(teamSize, workingModel);
-        const allOptsNew = renderAllOpts(workingModel);
-
-        teamName.replaceWith(teamNameNew);
-        teamSize.replaceWith(teamSizeNew);
-        allOpts.replaceWith(allOptsNew);
-
-        addButton.addEventListener("click", addOption);
-        updateButton.addEventListener("click", updateTeamRequest);
-        cancelButton.addEventListener("click", cancelTeamRequest);
-
-        return content;
-
-        function addOption(){
-            events.publish("addOpt")
-        }
-        
-        function updateTeamRequest(){
-            events.publish("updateTeamRequest")
-        }
-        
-        function cancelTeamRequest(){
-            events.publish("mainPageDOMRequested")
-        }    
-    }
+        const addOptionButton = content.querySelector('#addTrainingOption');
+        const formAllOpts = content.querySelector('#formAllOpts')
     
-
-    function renderTeamName(teamNameDOM, workingModel){
-        
-        teamNameDOM.value = workingModel.name;
-
-        teamNameDOM.addEventListener("blur", function modifyTeamNameValue(){ 
-            if(workingModel.name != teamNameDOM.value && blockTeamDuplication() == true){
-                alert(`Data already exists for ${teamNameDOM.value}. Use another team name or select edit for ${teamNameDOM.value}`);
-                teamNameDOM.value = workingModel.name;
-                teamNameDOM.focus();
-            }else if(workingModel.name != "" && teamNameDOM.value != workingModel.name){
-                const confirmation = confirm(`If you submit changes, this will change team name from ${workingModel.name} to ${teamNameDOM.value}. Proceed? `);
-                if(confirmation){
-                    events.publish("modifyTeamNameValue", teamNameDOM.value)
-                }else{
-                    teamNameDOM.value = workingModel.name;
-                }
-            }else if(workingModel.name != teamNameDOM.value){
-                events.publish("modifyTeamNameValue", teamNameDOM.value)
-            } 
-        })
-
-        return teamNameDOM;
-
-        function blockTeamDuplication(){
-            const teamCheck = allTeams.some(function(thisTeam){
-                return thisTeam.name.toLowerCase() == teamNameDOM.value.toLowerCase();
-            })
-            return teamCheck;
-        }
+        return {content, form, teamName, teamSize, saveButton, cancelButton, addOptionButton, formAllOpts}
     }
 
-    
-    function renderTeamSizeSelection(teamSizeDOM, workingModel){
-        const primaryClass = Array.from(teamSizeDOM.classList)[0];
-        
-        const selection = selectorNodes[`${primaryClass}`].cloneNode(true);  
-        selection.id = "formTeamSize";
+    function populateContent(elements, teamData){
 
-        const selectedOption= selection.querySelector(`option[value = "${workingModel.size}"]`);
+        elements.teamName.value = teamData.team.name
+
+        let selectedOption
+        let errorText
+
+        const teamSizeSelectorNew = selectorBuilder.runBuildSelector('teamSize');
+
+        if(teamSizeSelectorNew.querySelector(`option[value = "${teamData.team.size}"]`) != null){
+            selectedOption = teamSizeSelectorNew.querySelector(`option[value = "${teamData.team.size}"]`)
+        }else{
+            selectedOption = teamSizeSelectorNew.querySelector("option[value = 'default']");
+            errorText = createErrorText(teamData.teamSize, 'teamSize'); 
+        }
+        
         selectedOption.selected = true;
         if(selectedOption.value != "default"){
-            selection.firstChild.disabled = true;
+            teamSizeSelectorNew.firstChild.disabled = true;
         }
 
+        teamSizeSelectorNew.addEventListener('change', modifyTeamSizeValue)
+        teamSizeSelectorNew.addEventListener("click", disableDefaultOption)
 
-        selection.addEventListener("change", modifyTeamSizeValue)
-        selection.addEventListener("change", disableDefaultOption)
+        elements.teamSize.replaceWith(teamSizeSelectorNew)
+        if(errorText != undefined){
+            teamSizeSelectorNew.parentElement.appendChild(errorText)
+        }
         
-        teamSizeDOM.replaceWith(selection); //may be able to get rid of this
-
-        return selection
-
-        function modifyTeamSizeValue(){
-            const value = selection.value 
-            events.publish("modifyTeamSizeValue", value)
-        }
+        teamData.team.allOpts.forEach(function(option){
+            buildTeamOptionElement(elements, teamData, option)
+        })
 
         function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
             const values = Array.from(this.children);
             values[0].disabled = true;
         }
-    }
 
-    
-    function renderAllOpts(workingModel){ 
-        const allOptsNew = document.createElement("div");
-        allOptsNew.id = "formAllOpts"; 
-
-        workingModel.allOpts.forEach(function(optionDetails){
-            const optNum = workingModel.allOpts.indexOf(optionDetails) + 1; 
-            const option = buildOption(workingModel.allOpts, optionDetails, optNum);
-            allOptsNew.appendChild(option);
-        });
-        
-        const allOpts = document.querySelector("#formAllOpts");
-        if(allOpts != null){
-            allOpts.replaceWith(allOptsNew);
+        function modifyTeamSizeValue(){
+            const value = teamSizeSelectorNew.value 
+            events.publish("modifyTeamSizeValue", value)
         }
-        else{
-            return allOptsNew
-        }  
-    }  
+    }
+    function buildTeamOptionElement(elements, teamData, optionData){
+        const optNum = teamData.team.allOpts.indexOf(optionData) + 1; 
+        const option = buildOption(teamData, optionData, optNum);
+        elements.formAllOpts.appendChild(option);
+    } 
 
-
-    function buildOption(allOptsDetails, optionDetails, optNum){     
-        
-        events.subscribe("daysModified", renderModifiedDayDetails)
+    function buildOption(teamData, optionData, optNum){     
         
         const template = document.querySelector("#optionTemplate");
         const content = document.importNode(template.content, true);
@@ -211,16 +133,14 @@ const requestFormDOM = (function(){
 
         label.innerHTML = `Option ${optNum}`;
 
-        if(allOptsDetails.length >1){
+        if(teamData.team.allOpts.length >1){
             const deleteButton = document.createElement("button");
             const upButton = document.createElement("button");
             const upImage = document.createElement("i");
             const downButton = document.createElement("button");
             const downImage = document.createElement("i")
             
-            
             deleteButton.classList.add("deleteOpt");
-
             upButton.classList.add("myTeamsMoveUpButton");
             upImage.classList.add("arrow", "up")
             upButton.appendChild(upImage)
@@ -228,7 +148,6 @@ const requestFormDOM = (function(){
             downButton.classList.add("myTeamsMoveDownButton");
             downImage.classList.add("arrow", "down")
             downButton.appendChild(downImage)
-
 
             deleteButton.addEventListener("click", deleteOpt)
             upButton.addEventListener("click", moveOptionUp);
@@ -238,11 +157,11 @@ const requestFormDOM = (function(){
 
             arrowButtonsDiv.after(deleteButton)
 
-            if(optNum != 1 && optNum != allOptsDetails.length){
+            if(optNum != 1 && optNum != teamData.team.allOpts.length){
                 arrowButtonsDiv.appendChild(upButton)
                 arrowButtonsDiv.appendChild(downButton)
             }
-            if(optNum == allOptsDetails.length){
+            if(optNum == teamData.team.allOpts.length){
                 arrowButtonsDiv.appendChild(upButton)
             }
             if(optNum == 1){
@@ -252,45 +171,34 @@ const requestFormDOM = (function(){
 
         addDayButton.addEventListener("click", addDay);
         
-        renderAllDaysDetails(optionDetails, optNum, allDaysDOM); 
+        renderAllDaysDetails(teamData, optionData, optNum, allDaysDOM); 
 
         return content
         
         function addDay(){
-            events.publish("addDay", optNum)
+            events.publish("addDay", {optNum, origin: teamData.origin})
         }
 
         function deleteOpt(){
-            events.publish("deleteOpt", optNum)
+            events.publish("deleteOpt", {optNum, origin: teamData.origin})
         }
 
         function moveOptionUp(){
-            events.publish("modifyOptOrder", {optNum, modifier:-1}) 
+            events.publish("modifyOptOrder", {optNum, modifier:-1, origin: teamData.origin}) 
         }
 
         function moveOptionDown(){
-            events.publish("modifyOptOrder", {optNum, modifier:1})
-        }
-
-        function renderModifiedDayDetails(dayDetailsObj){
-            if(dayDetailsObj.publishedOptNum == optNum){
-                const allOpts = document.querySelector("#formAllOpts");
-                const thisOption = Array.from(allOpts.children)[optNum-1];
-                const allDaysDOM = thisOption.querySelector(".formAllDays");
-
-                renderAllDaysDetails(dayDetailsObj.publishedOptionDetails, dayDetailsObj.publishedOptNum, allDaysDOM)
-            }
+            events.publish("modifyOptOrder", {optNum, modifier:1, origin: teamData.origin})
         }
     }
 
-
-    function renderAllDaysDetails(optionDetails, optNum, allDaysDOM){
+    function renderAllDaysDetails(teamData, optionData, optNum, allDaysDOM){
         const allDaysDOMNew = document.createElement("div");  
         allDaysDOMNew.classList.add("formAllDays")
 
-        optionDetails.forEach(function(dayDetails){
-            const dayNum = optionDetails.indexOf(dayDetails) +1; 
-            const day = buildDay(optionDetails, dayDetails, optNum, dayNum);
+        optionData.forEach(function(dayData){
+            const dayNum = optionData.indexOf(dayData) +1; 
+            const day = buildDay(teamData, optionData, dayData, optNum, dayNum);
             allDaysDOMNew.appendChild(day);
         })
         allDaysDOM.replaceWith(allDaysDOMNew);
@@ -298,7 +206,7 @@ const requestFormDOM = (function(){
     }
 
 
-    function buildDay(optionDetails, dayDetails, optNum, dayNum){     
+    function buildDay(teamData, optionData, dayData, optNum, dayNum){     
         const template = document.querySelector("#dayTemplate");
         const content = document.importNode(template.content, true);
 
@@ -308,7 +216,7 @@ const requestFormDOM = (function(){
         
         label.innerHTML = `Day ${dayNum}`;
         
-        if(optionDetails.length>1){
+        if(optionData.length>1){
             const deleteButton = document.createElement("button");
             deleteButton.classList.add("deleteDay");
             deleteButton.innerText = "X"
@@ -317,19 +225,19 @@ const requestFormDOM = (function(){
             labelButtonDiv.insertBefore(deleteButton, label)
         }
         
-        const allDaysDetailsNew = buildDayDetails(dayDetails, optNum, dayNum);
+        const allDaysDetailsNew = buildDayDetails(dayData, optNum, dayNum);
 
         allDaysDetails.replaceWith(allDaysDetailsNew)
 
         return content
 
         function deleteDay(){
-            events.publish("deleteDay", {optNum, dayNum})
+            events.publish("deleteDay", {optNum, dayNum, origin: teamData.origin})
         } 
     }
     
 
-    function buildDayDetails(dayDetails, optNum, dayNum){        
+    function buildDayDetails(dayData, optNum, dayNum){        
         const template = document.querySelector("#dayDetailsTemplate");
         const content = document.importNode(template.content, true);
 
@@ -337,53 +245,119 @@ const requestFormDOM = (function(){
 
         selectors.forEach(function(selection){
             const primaryClass = Array.from(selection.classList)[0];
+    
+            const selectorNew = selectorBuilder.runBuildSelector(primaryClass);
+            let selectedOption
+            let errorText
             
-            const selectionNew = selectorNodes[`${primaryClass}`].cloneNode(true);
-            selectionNew.addEventListener("change", publishSelectionValueChange);
-            selectionNew.addEventListener("change", disableDefaultOption);
-            if(primaryClass == "startTime"){
-                selectionNew.addEventListener("click", modifyEndTimeDefaultValue)
+            if(selectorNew.querySelector(`option[value = "${dayData[primaryClass]}"]`) != null){
+                selectedOption = selectorNew.querySelector(`option[value = "${dayData[primaryClass]}"]`)
+            }else{
+                selectedOption = selectorNew.querySelector("option[value = 'default']");
+                errorText = createErrorText(dayData, primaryClass);
+                
             }
-
-            const selectedOption = selectionNew.querySelector(`option[value = "${dayDetails[primaryClass]}"]`);
             selectedOption.selected = true;
             if(selectedOption.value != "default"){
-                selectionNew.firstChild.disabled = true;
+                selectorNew.firstChild.disabled = true;
             }
-        
-            selection.replaceWith(selectionNew);
+            
+            selectorNew.addEventListener("change", publishSelectionValueChange);
+
+            selection.replaceWith(selectorNew);
+            if(errorText != undefined){
+                selectorNew.parentElement.appendChild(errorText)
+            }
 
             function publishSelectionValueChange(){
-                const selector = primaryClass;
-                const value = selectionNew.value
-                events.publish("modifyTeamSelectorValue", {optNum, dayNum, selector, value})
-            }
+                
+                const modifiedSelector = primaryClass;
+                const value = selectorNew.value
+                events.publish("modifyTeamSelectorValue", {optNum, dayNum, modifiedSelector, value})
 
-            function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
-                const values = Array.from(this.children);
-                values[0].disabled = true;
-            }
-
-
-            function modifyEndTimeDefaultValue(){
-                const startTimeSelectedValue = Number(this.value);
-                const endTimeValuesArray = Array.from(this.parentElement.nextElementSibling.lastElementChild.children);
-                endTimeValuesArray.forEach(function(time){
-                    const endTimeValue = Number(time.value);
-                    if(endTimeValue < startTimeSelectedValue + 30 || endTimeValue == "default"){
-                        time.disabled = true;
-                    }else{
-                        time.disabled = false;
-                    }
-                })
+                const selectors = formDiv.querySelectorAll('.selector');
+                const saveButton = formDiv.querySelector('#saveTeamRequest')
+                if(Array.from(selectors).filter(function(selector){
+                    return selector[selector.selectedIndex].value == "default"
+                }).length == 0){
+                    saveButton.disabled = false;
+                }
             }
         });
 
-        return content
-
-       
+        return content 
     }
 
+    function setEventListeners(elements, teamData){
+    
+       
+        elements.saveButton.addEventListener("click", saveTeamData);
+        elements.cancelButton.addEventListener("click", cancelTeamChanges);
+        elements.addOptionButton.addEventListener("click", addOption);
+
+        function addOption(){
+            events.publish("addOpt", teamData)
+         }
+
+        function saveTeamData(){
+            if(modifyTeamNameValue() == false){
+                return
+            }else{
+                events.publish("updateTeamClicked", teamData.origin)   
+            }    
+        }
+        function cancelTeamChanges(){
+           events.publish("cancelTeamChangesClicked")
+        }
+
+       
+
+        function modifyTeamNameValue(){ 
+            try{
+                if(teamData.team.name != "" && elements.teamName.value != teamData.team.name){
+                    const confirmation = confirm(`If you submit changes, this will change team name from ${teamData.team.name} to ${elements.teamName.value}. Proceed? `);
+                    if(confirmation){
+                        events.publish("modifyTeamNameValue", elements.teamName.value)
+                    }else{
+                        elements.teamName.value = teamData.team.name;
+                        throw false 
+                    }
+                }else if(teamData.team.name != elements.teamName.value){
+                    events.publish("modifyTeamNameValue", elements.teamName.value)
+                }
+            }catch(err){
+                return err
+            }
+        }
+    }
+
+    function createErrorText(data, selector){
+        const errorText = document.createElement("p");
+        errorText.innerText = `Your selected value of ${timeValueConverter.runConvertTotalMinutesToTime(data[selector])} for ${selector} has been invalidated by a change to the opening/closing times for the facility. Speak with your supervisor to address this or change this value.`;
+        return errorText;
+    }
+
+    function renderTeamDataValidationErrors(teamData){
+        
+        unrenderTeamDataForm();
+        renderTeamDataForm(teamData);
+        
+        const errorList = document.querySelector("#teamDataGeneralErrorList");
+
+        if(errorList.firstChild){
+            while(errorList.firstChild){
+                errorList.removeChild(errorList.firstChild)
+            }
+        }
+
+        teamData.errors.forEach(function(error){
+            const bullet = document.createElement("li");
+            bullet.innerText = error;
+            errorList.appendChild(bullet);
+        })
+    }
+
+   
 })();
 
-export{requestFormDOM}
+export{teamDataFormComponent}

@@ -18,13 +18,17 @@ import {allAdminTimeBlocksData} from "../src/adminHomePage/models/allAdminTimeBl
 import {singleAdminTimeBlockModel} from "../src/adminHomePage/models/timeBlockData"
 import { availabilityValidator } from "../src/validators/availabilityValidator"
 
+import { adminTeamsGridComponent } from "../src/adminHomePage/components/mainModulesRenders/teamGrid";
+import {adminMainPageAllTeamsData} from "../src/adminHomePage/models/allTeamsData"
+import {allTeamsOrderFormComponent} from "../src/adminHomePage/components/forms/allTeamsOrderForm"
+
 import {databasePost} from "../src/databasePost"
 
 window.onload = setScriptData;
 
 async function setScriptData(){
     try{
-        const adminPageJSON = await fetch('adminHome/adminData.json'); //change this to accept userId and season
+        const adminPageJSON = await fetch('adminHome/adminData'); //change this to accept userId and season
         const adminPageData = await adminPageJSON.json();
         console.log(adminPageData)
         events.publish("adminDataFetched", adminPageData);

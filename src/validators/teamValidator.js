@@ -1,56 +1,35 @@
-import {events} from "../events"
+import {events} from "../../src/events"
+import { timeValueConverter } from "../timeConverter";
 
-/*purpose: validator for single team dataModel updates
-
-userObject is modeled as such:
-obj = { 
-    teamName,
-    teamSize, 
-    rank:
-        {
-            myTeams,
-            allTeams
-        },
-    allOpts: [[{dayOfWeek, startTime, endTime, inWeiss}, {etc}], [{etc}, {etc}], []],
-    coach           
-}
-
-publishes:
-    successful validations FOR myTeamsModel
-   
-subscribes to: 
-    validation requests FROM teamRequestModel
-*/
-
-
-const requestValidator = (function(){
+const teamValidator = (function(){
 
     let facilityData
 
-    events.subscribe("validateTeamRequest", validateAllInputs);
-    events.subscribe("mainPageModelBuilt", setFacilityData)
+    //ensure startTime is NOT => endTime
 
-    function setFacilityData(mainPageModel){
-        facilityData = mainPageModel.facilitySelectors
+    events.subscribe('userDataFetched', setFacilityData)
+    events.subscribe("teamValidationRequested", validateAllInputs);
+
+    function setFacilityData(userData){
+        facilityData = userData.facilityData
     }
 
-    function validateAllInputs(teamDataObj){
+    function validateAllInputs(teamDataObj){ //make use of origin as necessary
         const errorArray = [];
 
-        validateName(teamDataObj.workingModel, errorArray);
-        validateSize(teamDataObj.workingModel, errorArray);
-        validateSchedulePreferences(teamDataObj.workingModel, errorArray);
+        validateName(teamDataObj.teamData, errorArray);
+        validateSize(teamDataObj.teamData, errorArray);
+        validateSchedulePreferences(teamDataObj.teamData, errorArray);
 
-        if(errorArray.length > 0){
-            const errorAlert = errorArray.join(" ");
-            alert(errorAlert);
+        if(errorArray.length == 0){
+            events.publish("teamDataValidated", teamDataObj)
         }else{
-            events.publish("workingModelValidated", {workingModel : teamDataObj.workingModel, teamRequest : teamDataObj.teamRequest});
+            events.publish("teamDataValidationFailed", {errors: errorArray, origin: teamDataObj.origin})
         }
     }
 
-    function validateName(workingModel, array){
-        const name = workingModel.name;
+    function validateName(teamData, array){
+        const name = teamData.name;
         const nameRegex = /[^A-Za-z0-9]/;
         try{
             if(nameRegex.test(name)){
@@ -63,8 +42,8 @@ const requestValidator = (function(){
         }
     }
 
-    function validateSize(workingModel,array){
-        const size = workingModel.size;
+    function validateSize(teamData,array){
+        const size = teamData.size;
         try{
             if(size == "default"){
                 throw("Team size must have a value.")
@@ -76,9 +55,9 @@ const requestValidator = (function(){
         }
     }
 
-    function validateSchedulePreferences(workingModel,array){
-        workingModel.allOpts.forEach(function(option){
-            const optNum = workingModel.allOpts.indexOf(option) + 1;
+    function validateSchedulePreferences(teamData,array){
+        teamData.allOpts.forEach(function(option){
+            const optNum = teamData.allOpts.indexOf(option) + 1;
             const validatedDayArray = [];
 
             option.forEach(function(day){
@@ -97,6 +76,14 @@ const requestValidator = (function(){
                         }catch(err){
                             array.push(err)
                         }  
+                    }
+
+                    try{
+                        if(day.startTime >= day.endTime){
+                            throw(`Option ${optNum} Day ${dayNum}'s startTime ${timeValueConverter.runConvertTotalMinutesToTime(day.startTime)} is equal to or later than endTime ${timeValueConverter.runConvertTotalMinutesToTime(day.endTime)}`)
+                        }
+                    }catch(err){
+                        array.push(err)
                     }
                 }
 
@@ -125,4 +112,4 @@ const requestValidator = (function(){
 
 })();
 
-export{requestValidator}
+export{teamValidator}

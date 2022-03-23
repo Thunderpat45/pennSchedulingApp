@@ -1,5 +1,5 @@
 import { events } from "../../../../src/events";
-import { selectorBuilder } from "../../../DOMBuilders/selectorDOMBuilder"
+import { selectorBuilder } from "../../../selectorDOMBuilder"
 
 const facilityDataFormComponent = (function(){
 

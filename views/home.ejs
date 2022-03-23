@@ -15,7 +15,8 @@
         <div>In Weiss</div> 
         <div>Buttons</div>
       </div>
-      <div id = "teamGrid"></div>
+      <div id = "teamGrid">
+
       <%const allTeamsLength = teams.length%>
       <%if(allTeamsLength>0){%>
         <%teams.forEach(function(team, index){%>
@@ -24,9 +25,9 @@
       <%}else{%>
         <p>You have no teams listed!</p>
       <%}%>
-      
+    </div>
       <button id = "teamGridAddTeam">Add Team</button>
-      <!--BUTTON HERE TO SAVE RANK CHANGES?-->
+      <button id = 'modifyMyTeamsOrder'>Modify Team Order</button>
     </div>
 
     <div id = "verifyDiv">
@@ -71,6 +72,44 @@
 		</div>
 	</template>
 
+  <template id = 'userPageTeamBlockTemplate'>
+    <div class = "teamGridTeam">
+      <div class = teamGridTeamDetailsWrapper>
+        <div class = "teamGridTeamNameSizeContainer">
+          <div class = "teamGridTeamName"></div>
+          <div class = "teamGridTeamSize"></div>
+          
+        </div>
+        <div class = "teamGridTeamOptionContainer">
+        </div>
+        <div class = "teamGridTeamButtons">
+          <div class = "verifyEditDeleteTeamDiv">
+            <button class = "teamGridTeamVerifyButton">Verify</button>
+            <button class = "teamGridTeamEditButton">Edit</button>
+            <button class = "teamGridTeamDeleteButton">X</button>
+          </div>	
+        </div> 
+      </div>
+      <div class = "teamGridTeamLastVerified"></div>
+    </div>
+  </template>
+
+  <template id = 'userPageTeamOptionBlockTemplate'>
+    <div class = "teamGridTeamOption">
+      <div class = "teamGridTeamOptionNumber"></div>
+      <div class = "teamGridTeamDayContainer">
+      </div>
+    </div>
+  </template>
+
+  <template id = 'userPageTeamDayBlockTemplate'>
+    <div class = "teamGridTeamDayOfWeek"></div>
+    <div class = "teamGridTeamStartTime"></div>
+    <div class = "teamGridTimeAppender"> - </div>
+    <div class = "teamGridTeamEndTime"></div>
+    <div class = "teamGridTeamInWeiss"></div>
+  </template>
+
   <!--form templates-->
   <template id = "availabilityDayTimeBlockFormTemplate">
 		<div id = "availabilityDayTimeBlockForm">
@@ -94,6 +133,108 @@
 			</div>
 		</div>
 	</template>
+
+  <template id = "teamFormTemplate">
+      <div id = "teamFormContainer">
+        <div id = "teamFormTitle">
+          <h2>Add Team Requests</h2>
+        </div>
+          <div id = "teamForm">
+            <div id = "formTeamNameDiv">
+              <label for = "formTeamName">Team Name</label><br>
+              <input type = "text" id = "formTeamName" name ="formTeamName" maxlength="25"><br>
+            </div>
+            <div id = "formTeamSizeDiv">
+              <label for = "formTeamSize">Team Size</label><br>
+              <select id = "formTeamSize" name ="formTeamSize" class = "teamSize"><br></select>
+            </div>
+            <div id = "formAllOpts"></div>
+            <div id = "addTrainingOptionDiv">
+              <button id = "addTrainingOption">Add Training Option</button>
+            </div>
+            <div id = "modifierButtons">
+              <button id = "saveTeamRequest">Save</button>
+              <button id = "cancelTeamRequest">Cancel</button>
+            </div>
+            <div id = "teamDataGeneralErrorDiv">
+              <ul id = "teamDataGeneralErrorList"></ul>
+            </div>
+          </div>
+      </div>
+  </template>
+  
+  <template id = "optionTemplate">
+    <div class = "formOpt">
+      <div class = "labelButtonDiv">
+        <div class = "optionButtonsDiv">
+          <div class = "arrowButtonsDiv"></div>
+        </div>
+        <h2 class = "optLabel"></h2>
+      </div>
+      <div class = "formAllDays"></div>
+      <button class = "addTrainingDay">Add Training Day</button>
+      <!--up and down buttons here?-->
+    </div>
+  </template>
+  
+  <template id = "dayTemplate">
+    <div class = "formDay">
+      <div class = "labelDeleteDayButton">
+        <h3 class = "dayLabel"></h3>
+      </div>
+      <div class = "formAllDayDetails"></div>
+    </div>
+  </template>
+  
+  <template id = "dayDetailsTemplate">
+    <div class = "formAllDayDetails">
+      <div class = "dayOfWeekDiv">
+        <p>Day of Week</p>
+        <select class = "dayOfWeek selector"></select>
+      </div>
+      <div class = "inWeissDiv">
+        <p>In Weiss</p>
+        <select class = "inWeiss selector"></select>
+      </div>
+      <div class = "startTimeDiv">
+        <p>Start Time</p>
+        <select class = "startTime selector"></select>
+      </div>
+      <div class = "endTimeDiv">
+        <p>End Time</p>
+        <select class = "endTime selector">	</select>
+      </div>
+      
+    </div>
+  </template>
+
+  <template id = "teamOrderFormTemplate">
+    <div id = "teamOrderForm">
+      <div id = "teamOrderFormTitle">
+        <h2>Edit Teams Order</h2>
+      </div>
+        <div id = "teamOrderFormTeams">
+        </div>
+        <button id = 'saveTeamOrderButton'>Save</button>
+        <button id = 'cancelTeamOrderChangesButton'>Cancel</button>
+    </div>
+  </template>
+
+  <template id = 'teamOrderFormTeamTemplate'>
+    <div class = 'teamOrderFormTeam'>
+      <div class = 'teamOrderFormTeamName'></div>
+      <div class = 'teamOrderFormTeamSize'></div>
+      <div class = 'teamOrderFormTeamOrderButtons'>    
+        <button class = "moveOptionUpButton">
+          <i class = "arrow up"></i>
+        </button>
+        <button class = "moveOptionDownButton">
+          <i class = "arrow down"></i>
+        </button>     
+      </div> 
+      </div>
+    </div>
+  </template>
 
   <%- contentFor('script')%>
   <script src = "/javascripts/homePage.js"></script>

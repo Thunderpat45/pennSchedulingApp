@@ -1,26 +1,41 @@
-import {events} from "../src/events"
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./src/databasePost.js":
+/*!*****************************!*\
+  !*** ./src/databasePost.js ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "databasePost": () => (/* binding */ databasePost)
+/* harmony export */ });
+/* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../src/events */ "./src/events.js");
+
 
 const databasePost = (function(){
 
-    events.subscribe("userUpdateRequested", updateUserData);
-    events.subscribe("newUserAdditionRequested", addUserData);
-    events.subscribe("deleteUserRequested", deleteUserData);
-    events.subscribe('adminBlockUpdateRequested', updateAdminBlockData);
-    events.subscribe('newAdminBlockAdditionRequested', addAdminBlockData)
-    events.subscribe('adminBlockDeleteRequested', deleteAdminBlockData);
-    events.subscribe('availabilityBlockUpdateRequested', updateUserBlockData);
-    events.subscribe('newAvailabilityBlockAdditionRequested', addUserBlockData)
-    events.subscribe('availabilityBlockDeleteRequested', deleteUserBlockData);
-    events.subscribe('teamUpdateRequested', updateTeamData);
-    events.subscribe('newTeamAdditionRequested', addTeamData)
-    events.subscribe('teamDataDeleteRequested', deleteTeamData)
-    events.subscribe('teamVerificationUpdateRequested', updateTeamVerificationData);
-    events.subscribe('userAllTeamsVerificationUpdateRequested', updateUserVerificationData);
-    events.subscribe("adminFacilityDataUpdateRequested", updateFacilityData);
-    events.subscribe('teamEnabledUpdateRequested', updateTeamEnabledStatus)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userUpdateRequested", updateUserData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("newUserAdditionRequested", addUserData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("deleteUserRequested", deleteUserData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminBlockUpdateRequested', updateAdminBlockData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('newAdminBlockAdditionRequested', addAdminBlockData)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminBlockDeleteRequested', deleteAdminBlockData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('availabilityBlockUpdateRequested', updateUserBlockData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('newAvailabilityBlockAdditionRequested', addUserBlockData)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('availabilityBlockDeleteRequested', deleteUserBlockData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('teamUpdateRequested', updateTeamData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('newTeamAdditionRequested', addTeamData)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('teamDataDeleteRequested', deleteTeamData)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('teamVerificationUpdateRequested', updateTeamVerificationData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('userAllTeamsVerificationUpdateRequested', updateUserVerificationData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataUpdateRequested", updateFacilityData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('teamEnabledUpdateRequested', updateTeamEnabledStatus)
 
-    events.subscribe('myTeamsOrderDataUpdateRequested', updateMyTeamsOrder)
-    events.subscribe('allTeamsOrderDataUpdateRequested', updateAllTeamsOrder);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('myTeamsOrderDataUpdateRequested', updateMyTeamsOrder)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('allTeamsOrderDataUpdateRequested', updateAllTeamsOrder);
 
     //events.subscribe('loginAttemptRequested', postLoginAttempt)
    
@@ -36,7 +51,7 @@ const databasePost = (function(){
                 body: JSON.stringify(databaseBoundObject)
     
             });
-            events.publish("facilityDataSaved")
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("facilityDataSaved")
         }catch(err){
             console.log(err)
         }//fix the id to be dynamic
@@ -61,9 +76,9 @@ const databasePost = (function(){
             }else if(userDataResponse.status == 400){
                 const errors = await userDataResponse.json();
                 const origin = "edit"
-                events.publish("userDataValidationFailed", {errors, origin})
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataValidationFailed", {errors, origin})
             }else if(userDataResponse.status == 200){ 
-                events.publish("editUserDataSaved")
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editUserDataSaved")
             }
            
         }catch(err){
@@ -88,10 +103,10 @@ const databasePost = (function(){
             }else if(userDataResponse.status == 400){
                 const errors = await userDataResponse.json()
                 const origin = "add"
-                events.publish("userDataValidationFailed", {errors, origin})
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataValidationFailed", {errors, origin})
             }else if(userDataResponse.status == 200){
                 const newUser = await userDataResponse.json();  
-                events.publish("newUserDataSaved", newUser)
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newUserDataSaved", newUser)
             }
         }catch(err){
             console.log(err)
@@ -117,7 +132,7 @@ const databasePost = (function(){
                 const errors = await userDataResponse.json();
                 alert(errors);
             }else if(userDataResponse.status == 200){
-                events.publish("userDataDeleted", userId)
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataDeleted", userId)
             }
         }catch(err){
             console.log(err)
@@ -142,9 +157,9 @@ const databasePost = (function(){
             }else if(blockDataResponse.status == 400){
                 const errors = await blockDataResponse.json();
                 const origin = "edit"
-                events.publish("adminAvailabilityDataValidationFailed", {errors, origin})
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityDataValidationFailed", {errors, origin})
             }else if(blockDataResponse.status == 200){ 
-                events.publish("editAdminBlockDataSaved") //find receiver
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editAdminBlockDataSaved") //find receiver
             }
            
         }catch(err){
@@ -169,10 +184,10 @@ const databasePost = (function(){
             }else if(blockDataResponse.status == 400){
                 const errors = await blockDataResponse.json()
                 const origin = "add"
-                events.publish("adminAvailabilityDataValidationFailed", {errors, origin})
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityDataValidationFailed", {errors, origin})
             }else if(blockDataResponse.status == 200){
                 const newAdminBlock = await blockDataResponse.json(); 
-                events.publish("newAdminBlockDataSaved", newAdminBlock) //find listener
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newAdminBlockDataSaved", newAdminBlock) //find listener
             }
         }catch(err){
             console.log(err)
@@ -198,7 +213,7 @@ const databasePost = (function(){
                 const errors = await blockDataResponse.json();
                 alert(errors);
             }else if(blockDataResponse.status == 200){
-                events.publish("adminBlockDataDeleted", blockData)
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminBlockDataDeleted", blockData)
             }
         }catch(err){
             console.log(err)
@@ -226,9 +241,9 @@ const databasePost = (function(){
                 const errors = await blockDataResponse.json();
                 console.log(errors)
                 const origin = "edit"
-                events.publish("userAvailabilityValidationFailed", {errors, origin})
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userAvailabilityValidationFailed", {errors, origin})
             }else if(blockDataResponse.status == 200){ 
-                events.publish("editAvailabilityBlockDataSaved") 
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editAvailabilityBlockDataSaved") 
             }
            
         }catch(err){
@@ -253,10 +268,10 @@ const databasePost = (function(){
             }else if(blockDataResponse.status == 400){
                 const errors = await blockDataResponse.json()
                 const origin = "add"
-                events.publish("userAvailabilityValidationFailed", {errors, origin})
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userAvailabilityValidationFailed", {errors, origin})
             }else if(blockDataResponse.status == 200){
                 const newAdminBlock = await blockDataResponse.json(); 
-                events.publish("newAvailabilityBlockDataSaved", newAdminBlock)
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newAvailabilityBlockDataSaved", newAdminBlock)
             }
         }catch(err){
             console.log(err)
@@ -281,7 +296,7 @@ const databasePost = (function(){
                 const errors = await blockDataResponse.json();
                 alert(errors);
             }else if(blockDataResponse.status == 200){
-                events.publish("availabilityBlockDataDeleted", blockData)
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("availabilityBlockDataDeleted", blockData)
             }
         }catch(err){
             console.log(err)
@@ -306,9 +321,9 @@ const databasePost = (function(){
             }else if(teamDataResponse.status == 400){
                 const errors = await teamDataResponse.json();
                 const origin = "edit"
-                events.publish("teamDataValidationFailed", {errors, origin})
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamDataValidationFailed", {errors, origin})
             }else if(teamDataResponse.status == 200){ 
-                events.publish("editTeamDataSaved")
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editTeamDataSaved")
             }
            
         }catch(err){
@@ -333,10 +348,10 @@ const databasePost = (function(){
             }else if(teamDataResponse.status == 400){
                 const errors = await teamDataResponse.json()
                 const origin = "add"
-                events.publish("teamDataValidationFailed", {errors, origin})
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamDataValidationFailed", {errors, origin})
             }else if(teamDataResponse.status == 200){
                 const newTeam = await teamDataResponse.json();  
-                events.publish("newTeamDataSaved", newTeam)
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newTeamDataSaved", newTeam)
             }
         }catch(err){
             console.log(err)
@@ -362,7 +377,7 @@ const databasePost = (function(){
                 const errors = await teamDataResponse.json();
                 alert(errors);
             }else if(teamDataResponse.status == 200){
-                events.publish("teamDataDeleted", teamId)
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamDataDeleted", teamId)
             }
         }catch(err){
             console.log(err)
@@ -387,7 +402,7 @@ const databasePost = (function(){
             }else if(teamDataResponse.status == 400){
                 throw('400 error!')
             }else if(teamDataResponse.status == 200){  
-                events.publish("teamVerificationSaved", databaseBoundObject)
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamVerificationSaved", databaseBoundObject)
             }
         }catch(err){
             console.log(err)
@@ -412,7 +427,7 @@ const databasePost = (function(){
             }else if(teamDataResponse.status == 400){
                 throw('400 error!')
             }else if(teamDataResponse.status == 200){  
-                events.publish("allTeamsVerificationSaved", timeData)
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("allTeamsVerificationSaved", timeData)
             }
         }catch(err){
             console.log(err)
@@ -436,7 +451,7 @@ const databasePost = (function(){
             }else if(teamDataResponse.status == 400){
                 throw('400 error!')
             }else if(teamDataResponse.status == 200){  
-                events.publish("myTeamsOrderChangeSaved")
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("myTeamsOrderChangeSaved")
             }
         }catch(err){
             console.log(err)
@@ -460,7 +475,7 @@ const databasePost = (function(){
             }else if(teamDataResponse.status == 400){
                 throw('400 error!')
             }else if(teamDataResponse.status == 200){  
-                events.publish("allTeamsOrderChangeSaved")
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("allTeamsOrderChangeSaved")
             }
         }catch(err){
             console.log(err)
@@ -485,7 +500,7 @@ const databasePost = (function(){
             }else if(teamDataResponse.status == 400){
                 throw('400 error!')
             }else if(teamDataResponse.status == 200){  
-                events.publish("teamEnableStatusChangeSaved")
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamEnableStatusChangeSaved")
             }
         }catch(err){
             console.log(err)
@@ -520,4 +535,234 @@ const databasePost = (function(){
 
 })();
 
-export {databasePost}
+
+
+/***/ }),
+
+/***/ "./src/events.js":
+/*!***********************!*\
+  !*** ./src/events.js ***!
+  \***********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "events": () => (/* binding */ events)
+/* harmony export */ });
+
+
+const events = {
+    events: {},
+    
+    subscribe: function(eventName, fn){
+        this.events[eventName] = this.events[eventName] || [];
+        this.events[eventName].push(fn);
+    },
+
+    unsubscribe: function (eventName, fn){
+        if(this.events[eventName]){
+            for(let i = 0; i< this.events[eventName].length; i++){
+                if(this.events[eventName][i] === fn){
+                    this.events[eventName].splice(i, 1);
+                    break;
+                }
+            }
+        }
+    },
+
+    publish: function (eventName, data){
+        if(this.events[eventName]){
+            this.events[eventName].forEach(function(fn){
+                fn(data);
+            })
+        }
+    }
+}
+
+
+
+
+
+/***/ }),
+
+/***/ "./src/loginPage/loginPageRender.js":
+/*!******************************************!*\
+  !*** ./src/loginPage/loginPageRender.js ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "loginPageRender": () => (/* binding */ loginPageRender)
+/* harmony export */ });
+
+const loginPageRender = (function(){
+
+    const form = document.querySelector('#logInForm')
+    const userNameEntry = document.querySelector('#logInUserName');
+    const passWordEntry = document.querySelector('#logInPassword');
+    const submitButton = document.querySelector('#loginAttemptButton');
+    const errorList = document.querySelector('#errorList')
+
+    setEventListeners();
+
+    function setEventListeners(){
+
+        submitButton.addEventListener('click', submitLogInAttempt)
+
+        async function submitLogInAttempt(e){
+            unrenderErrorList()
+
+            const errors = testSubmitInput()
+            if(errors.length > 0){
+                e.preventDefault();
+                errors.forEach(function(error){
+                    const errorNode = document.createElement('li');
+                    errorNode.innerText = error
+                    errorList.appendChild(errorNode)
+                })
+            }else{
+                try{
+                    form.submit();
+                }catch(err){
+                    if(err.status == 404){ //check these
+                        throw('404 error!')
+                    }else if(err.status == 400){
+                        throw('400 error!')
+                    }else if(err.status == 401){
+                        const errorMessage = await err.json();
+                        const errorArray = [errorMessage]
+                        renderLoginPage(errorArray)
+                    }
+                }
+            }
+        }
+    }
+
+    function testSubmitInput(){
+        const errorArray = []
+    
+        const regex = /[^A-Za-z0-9]/;
+        if(regex.test(userNameEntry.value) || regex.test(passWordEntry.value)){
+                const errorText = 'Invalid username/password combination';
+                errorArray.push(errorText)
+        }
+
+        if(!userNameEntry.value){
+                const errorText = 'Username must have value';
+                errorArray.push(errorText)
+        }
+
+        if(!passWordEntry.value){
+                const errorText = 'Password must have value';
+                errorArray.push(errorText)
+        }
+
+        return errorArray
+    }   
+
+    function renderLoginPage(errors){
+        userNameEntry.value = "";
+        passWordEntry.value = "";
+
+        unrenderErrorList()
+
+        if(errors.length>0){
+            errors.forEach(function(error){
+                const errorNode = document.createElement('li');
+                errorNode.innerText = error
+                errorList.appendChild(errorNode)
+            })
+        }
+
+    }
+
+    function unrenderErrorList(){
+        if(errorList.firstChild){
+            while(errorList.firstChild){
+                errorList.removeChild(errorList.firstChild)
+            }
+        }
+    }
+
+})()
+
+
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+/*!**********************!*\
+  !*** ./src/login.js ***!
+  \**********************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../src/events */ "./src/events.js");
+/* harmony import */ var _src_databasePost__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../src/databasePost */ "./src/databasePost.js");
+/* harmony import */ var _src_loginPage_loginPageRender__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../src/loginPage/loginPageRender */ "./src/loginPage/loginPageRender.js");
+
+
+
+
+})();
+
+/******/ })()
+;
+//# sourceMappingURL=logInPage.js.map

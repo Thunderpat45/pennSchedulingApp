@@ -276,20 +276,15 @@ main, .page{
 	font-size: 1rem;
 }
 
-#fillFormPage{
+#teamFormContainer{
+	border: #011F5b solid;
+	border-width: 1rem;
 	display:grid;
 }
 
-#fillFormPageContainer{
-	width: 80%;
-	border: #011F5b solid;
-	margin: 5rem auto;
-	border-width: 1rem;
-}
 
 
-
-#fillformTitle, #availabilityTitle{
+#teamFormTitle, #availabilityTitle{
 	text-align: center;
 	padding: 1rem;
 	border-bottom: #011F5b solid .5rem;
@@ -302,7 +297,8 @@ main, .page{
 	color: white;
 }
 
-#teamRequestForm{
+#teamForm{
+	max-height: 12rem;
 	background-color: grey;
 	opacity: .9;
 	padding: 5rem;
@@ -763,6 +759,10 @@ main, .page{
 	display:none;
 }
 
-.toggleScrollBar{
+.toggleScrollBarOff{
 	overflow: hidden;
+}
+
+.toggleScrollBarOn{
+	overflow-y: scroll;
 }

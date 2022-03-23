@@ -1,5 +1,5 @@
-import {events} from "../events"
-import {timeValueConverter} from "../timeConverter"
+import {events} from "./events"
+import {timeValueConverter} from "./timeConverter"
 
 const selectorBuilder = (function(){ 
 
@@ -41,6 +41,7 @@ const selectorBuilder = (function(){
     
     events.subscribe("adminDataFetched", setSelectorRanges);
     events.subscribe('userDataFetched', setSelectorRanges)
+    events.subscribe('setNewSelectorRanges', setSelectorRanges)
     
     function setSelectorRanges(dBdata){
         let facilityData

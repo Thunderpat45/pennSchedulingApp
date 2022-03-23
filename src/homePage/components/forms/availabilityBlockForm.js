@@ -1,5 +1,5 @@
 import { events } from "../../../../src/events";
-import { selectorBuilder } from "../../../../src/DOMBuilders/selectorDOMBuilder"
+import { selectorBuilder } from "../../../../src/selectorDOMBuilder"
 import { timeValueConverter } from "../../../../src/timeConverter";
 
 
@@ -44,7 +44,7 @@ const availabilityTimeBlockDataFormComponent = (function(){
             }
         }
 
-        formDivWrapper.classList.toggle("formHidden");
+        formDivWrapper.classList.add("formHidden");
     }
     
     

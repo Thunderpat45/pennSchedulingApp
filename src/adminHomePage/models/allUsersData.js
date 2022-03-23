@@ -13,9 +13,8 @@ const allUsersData = (function(){
 	
 
 	function setDataNewPageRender(adminAllUsers){
-        allUsersDataStable = adminAllUsers.allUsers;
-		allUsersDataMutable = [];
-        createAllUsersDeepCopy(allUsersDataMutable, allUsersDataStable)
+        allUsersDataStable = structuredClone(adminAllUsers.allUsers);
+		allUsersDataMutable = structuredClone(allUsersDataStable)
     }
 
     function setDataNewDatabasePost(userData){
@@ -28,14 +27,8 @@ const allUsersData = (function(){
 			allUsersDataMutable.push(userData);
 		}
 		
-        createAllUsersDeepCopy(allUsersDataStable, allUsersDataMutable);
+        allUsersDataStable= structuredClone(allUsersDataMutable);
 		events.publish("renderUpdatedUserData", allUsersDataMutable)
-    }
-
-    function createAllUsersDeepCopy(newArr, copyArr){
-		copyArr.forEach(function(user){
-			newArr.push(Object.assign({}, user));
-		})
     }
 
 	function deleteUser(userId){
@@ -60,7 +53,7 @@ const allUsersData = (function(){
 		})
 
 		allUsersDataMutable = newUsersList;
-		createAllUsersDeepCopy(allUsersDataStable, allUsersDataMutable);
+		allUsersDataStable= structuredClone(allUsersDataMutable);
 		events.publish("renderUpdatedUserData", allUsersDataMutable)
 	}
 

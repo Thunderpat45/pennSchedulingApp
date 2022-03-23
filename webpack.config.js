@@ -5,7 +5,8 @@ module.exports = {
     mode: 'development',
     entry:{
         adminHomePage: './src/adminHomePage.js',
-        // userHomePage: './src/userHomePage.js'
+        homePage: './src/homePage.js',
+        logInPage: './src/login.js'
     }, 
     output: {
         filename:'[name].js',

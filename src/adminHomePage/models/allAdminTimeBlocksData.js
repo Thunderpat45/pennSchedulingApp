@@ -14,26 +14,8 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
     events.subscribe('adminBlockDataDeleted', setDataBlockDataDeleted)
 
     function setDataNewPageRender(adminData){
-        allAdminAvailabilityDataStable = adminData.adminTimeBlocks;
-        createAdminAvailabilityDeepCopy(allAdminAvailabilityDataMutable, allAdminAvailabilityDataStable);
-    }
-
-    function createAdminAvailabilityDeepCopy(newObj, copyObj){
-        for(let prop in newObj){
-            delete newObj[prop]
-        }
-
-        for(let day in copyObj){
-            newObj[day] = [];
-            copyObj[day].forEach(function(timeBlock){
-                const {admin, day, season, _id} = timeBlock
-                const timeBlockCopy = Object.assign({}, {admin, day, season, _id});
-                timeBlockCopy.availability = Object.assign({}, timeBlock.availability)
-                newObj[day].push(timeBlockCopy);
-                
-
-            });
-        }
+        allAdminAvailabilityDataStable = structuredClone(adminData.adminTimeBlocks);
+        allAdminAvailabilityDataMutable= structuredClone(allAdminAvailabilityDataStable);
     }
 
     function editAdminAvailabilityBlock(timeBlockObj){
@@ -64,13 +46,12 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
 			allAdminAvailabilityDataMutable[blockData.day].push(blockData);
 		}
 		
-        createAdminAvailabilityDeepCopy(allAdminAvailabilityDataStable, allAdminAvailabilityDataMutable);
+        allAdminAvailabilityDataStable= structuredClone(allAdminAvailabilityDataMutable);
 		events.publish("renderUpdatedAdminBlockData", {day: blockData.day, blocks: allAdminAvailabilityDataMutable[blockData.day]})
     }
 
     function renderAllDays(facilityData){
-        const tempObj = {};
-        createAdminAvailabilityDeepCopy(tempObj, allAdminAvailabilityDataMutable)
+        const tempObj = structuredClone(allAdminAvailabilityDataMutable)
         for(let day in tempObj){
             tempObj[day].forEach(function(timeBlock){
                 const index = tempObj[day].indexOf(timeBlock)
@@ -99,7 +80,7 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
 		})
 
 		allAdminAvailabilityDataMutable[day] = newBlocksList;
-		createAdminAvailabilityDeepCopy(allAdminAvailabilityDataStable, allAdminAvailabilityDataMutable);
+		allAdminAvailabilityDataStable= structuredClone(allAdminAvailabilityDataMutable);
 		events.publish("renderUpdatedAdminBlockData", {day, blocks: allAdminAvailabilityDataMutable[day]})
 	}
 

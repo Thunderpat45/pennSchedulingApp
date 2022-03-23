@@ -28,19 +28,15 @@ const singleAdminTimeBlockModel = (function(){
     }
 
     function addAdminAvailabilityBlock(day){
-        adminAvailabilityDataStable = Object.assign({}, timeBlockDefault);
-        adminAvailabilityDataStable.day = day;
-
-        adminAvailabilityDataMutable = Object.assign({}, adminAvailabilityDataStable);
-        adminAvailabilityDataMutable.availability = Object.assign({}, adminAvailabilityDataStable.availability)
+        adminAvailabilityDataStable = structuredClone(timeBlockDefault);
+        adminAvailabilityDataMutable = structuredClone(adminAvailabilityDataStable);
 
         events.publish("adminAvailabilityBlockAddRequested", {timeBlock: adminAvailabilityDataMutable, origin: "add"});
     }
 
     function setAdminAvailabilityDataEditRequest(timeBlock){
-        adminAvailabilityDataStable =  timeBlock;
-        adminAvailabilityDataMutable = Object.assign({}, adminAvailabilityDataStable)
-        adminAvailabilityDataMutable.availability = Object.assign({}, adminAvailabilityDataStable.availability)
+        adminAvailabilityDataStable = structuredClone(timeBlock);
+        adminAvailabilityDataMutable = structuredClone(adminAvailabilityDataStable)
 
         events.publish("adminBlockDataLoaded", {timeBlock: adminAvailabilityDataMutable, origin:"edit"})
     }

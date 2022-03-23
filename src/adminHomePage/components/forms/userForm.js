@@ -93,18 +93,6 @@ const userDataFormComponent = (function(){
             }catch(err){
                 return err
             }
-            
-            if(userData.name != "" && userElements.name.value != userData.name){
-                const confirmation = confirm(`If you submit changes, this will change the user name from ${userData.name} to ${userElements.name.value}. Proceed? `);
-                if(confirmation){
-                    events.publish("modifyUserNameValue", userElements.name.value)
-                }else{
-                    userElements.name.value = userData.name;
-                    return false 
-                }
-            }else if(userData.name != userElements.name.value){
-                events.publish("modifyUserNameValue", userElements.name.value)
-            } 
         }
 
         function updateUserPrivilege(){

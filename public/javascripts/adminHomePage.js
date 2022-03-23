@@ -2,170 +2,6 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./src/DOMBuilders/selectorDOMBuilder.js":
-/*!***********************************************!*\
-  !*** ./src/DOMBuilders/selectorDOMBuilder.js ***!
-  \***********************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "selectorBuilder": () => (/* binding */ selectorBuilder)
-/* harmony export */ });
-/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events.js");
-/* harmony import */ var _timeConverter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../timeConverter */ "./src/timeConverter.js");
-
-
-
-const selectorBuilder = (function(){ 
-
-    //default values must be input (into database?) for facilityOpen/Close/MaxCapacity BEFORE first time running, or startTime/endTime/teamSize will have errors!
-    const selectionRanges = { 
-        startTime: {
-            start: null,
-            end: null,
-            increment: 15
-        },
-        endTime: {
-            start: null,
-            end: null,
-            increment: 15
-        },
-        teamSize: {
-            start: 5,
-            end: null,
-            increment: 5
-        },
-        facilityOpen:{ //4am to 8pm, default value 6am (360)?
-            start: 240,
-            end: 1200,
-            increment: 15
-        },
-        facilityClose:{ //5am to 9pm, default value 8pm (1200)?
-            start: 300,
-            end: 1260,
-            increment: 15
-        },
-        facilityMaxCapacity:{//range 10-150, default value 120?
-            start: 10,
-            end: 150,
-            increment: 5
-        },
-        dayOfWeek: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], 
-        inWeiss: ["yes", "no"],
-    };
-    
-    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminDataFetched", setSelectorRanges);
-    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('userDataFetched', setSelectorRanges)
-    
-    function setSelectorRanges(dBdata){
-        let facilityData
-        if(Object.prototype.hasOwnProperty.call(dBdata, 'facilityData')){
-            facilityData = dBdata.facilityData
-        }else{
-            facilityData = dBdata
-        }
-        selectionRanges.startTime.start = facilityData.facilityOpen;
-        selectionRanges.endTime.start = facilityData.facilityOpen + 30;
-        selectionRanges.startTime.end = facilityData.facilityClose - 30;
-        selectionRanges.endTime.end = facilityData.facilityClose;
-        selectionRanges.teamSize.end = facilityData.facilityMaxCapacity;
-    }
-
-    function runBuildSelector(primaryClass){
-        return buildSelector(primaryClass)
-    }
-
-    
-
-    function buildSelector(primaryClass){
-        const selection = document.createElement("select");
-        selection.classList.add(primaryClass);
-        selection.classList.add("selector");
-            const defaultOption = document.createElement("option");
-            defaultOption.value = "default";
-            defaultOption.innerText = "--";
-        selection.appendChild(defaultOption);
-
-        switch(primaryClass){
-            case "dayOfWeek":
-            case "inWeiss": 
-                buildArraySelectorOptions(primaryClass, selection);
-                break;
-            
-            case "teamSize":
-                buildRangeSelectorOptions(primaryClass, selection);
-                break;   
-            case "endTime":
-            case "facilityClose":
-            case "facilityMaxCapacity":
-                buildRangeSelectorOptions(primaryClass, selection);
-                break;
-            
-            case "startTime":
-            case "facilityOpen":
-                buildRangeSelectorOptions(primaryClass, selection);
-                selection.addEventListener("change", modifyEndTimeDefaultValue);
-                break;
-        }
-
-        selection.addEventListener("change", disableDefaultOption)
-
-        return selection
-    }
-
-    function buildArraySelectorOptions(primaryClass, selector){
-        const optionValues = selectionRanges[primaryClass];
-        optionValues.forEach(function(optionValue){
-            const option = document.createElement("option");
-            option.value = optionValue;
-            option.innerText = optionValue;
-            selector.appendChild(option); 
-        })
-    }
-
-    function buildRangeSelectorOptions(primaryClass, selector){
-        const optionValues = selectionRanges[primaryClass];
-        for(let i = optionValues.start; i<=optionValues.end; i += optionValues.increment){
-            const option = document.createElement("option");
-            option.value = i;
-            if(primaryClass == "teamSize" || primaryClass == "facilityMaxCapacity"){
-                option.innerText = i;
-            }else{
-                option.innerText = _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(i); //toString() should not be necessary
-            }selector.appendChild(option);
-        }
-    }
-
-        //these are all not working, may need to use event delegation within the modules themselves
-
-    function modifyEndTimeDefaultValue(){
-        const startTimeSelectedValue = Number(this.value);
-        const endTimeValuesArray = Array.from(this.parentElement.nextElementSibling.lastElementChild.children);
-        endTimeValuesArray.forEach(function(time){
-            const endTimeValue = Number(time.value);
-            if(endTimeValue < startTimeSelectedValue + 30 || endTimeValue == "default"){
-                time.disabled = true;
-            }else{
-                time.disabled = false;
-            }
-        })
-    }
-
-    function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
-        const values = Array.from(this.children);
-        values[0].disabled = true;
-    }
-
-    return {runBuildSelector}
-
-})();
-
-
-
-
-/***/ }),
-
 /***/ "./src/adminHomePage/components/adminHomeRender.js":
 /*!*********************************************************!*\
   !*** ./src/adminHomePage/components/adminHomeRender.js ***!
@@ -190,6 +26,9 @@ const adminHomeMain = (function(){
         setFacilityDataListeners()
         setUserDataListeners();
         setAdminTimeBlocksEventListeners();
+        setTeamListeners();
+        setAllTeamOrderEventListener()
+        //setScheduleEventListener()
     }
 
     function setFacilityDataListeners(){
@@ -271,66 +110,41 @@ const adminHomeMain = (function(){
         })
     }
 
+    function setTeamListeners(){
+        const teams = Array.from(document.querySelectorAll("#adminMainPageTeamGrid > div"));
+        teams.forEach(function(team){
+            const _id = team.dataset.teamid;
+            const disableButton = team.querySelector('.adminMainPageTeamGridTeamDisableButton')
+
+            disableButton.addEventListener('click', publishEnabledStatusChange)
+
+            function publishEnabledStatusChange(){
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish('enabledStatusChangeClicked', _id)
+            }
+        })
+    }
+
+    function setAllTeamOrderEventListener(){
+        const modifyAllTeamOrderButton = document.querySelector('#modifyAdminRanksButton');
+
+        modifyAllTeamOrderButton.addEventListener('click', requestTeamOrderChange)
+
+        function requestTeamOrderChange(){
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish('adminTeamOrderChangeClicked')
+        }
+    }
+
+     // function runScheduler(){
+    //     events.publish("runSchedulerRequested") 
+    // }
+
+
 })()
 
 
 
-  // let season //?
+   
     
-    // events.subscribe("adminMainPageModelBuilt", setSeason)
-    // events.subscribe("adminMainPageModelBuilt", ANOTHERFUNCTIONHERE?);
-    // events.subscribe("adminAvailabilityModelModified", renderAdminAllTimeBlocks);
-    // events.subscribe("adminFacilityModelModified", renderFacilityDataGrid)
-    
-    // function setSeason(adminMainPageData){
-    //     season = adminMainPageData.season
-    // }
-
-    // function changeSeason(){
-            
-    // }
-
-    // function runScheduler(){
-    //     events.publish("runSchedulerRequested") 
-    // }
-
-    // //find subscribers to changeSeasons and runScheduler, issue NOT TO BE ADDRESSED:  scheduler could be run with unsaved modifications to adminAvail and facilityData
-    // function buildAdminMainPageDOM(adminMainPageData){
-       
-        
-    
-     
-        
-    //     const adminFacilityData = content.querySelector("#facilityDataGridContainer");
-    //     const adminAddTimeBlock = content.querySelector("#setAllUsersAvailabilityGridContainer");
-        
-    
-    //     const adminAllUsersNew = renderAdminAllUsersGrid(adminAllUsers, adminMainPageData.allUsers);
-    //     const adminFacilityDataNew = renderFacilityDataGrid({adminFacilityDataContainer: adminFacilityData, adminMainPageData: adminMainPageData.facilitySelectors, pageRenderOrigin: "template"});
-    //     const adminAddTimeBlockNew = renderAdminTimeBlocker({adminTimeBlockDiv: adminAddTimeBlock, adminMainPageData: adminMainPageData.adminTimeBlocks, pageRenderOrigin: "template"});
-    
-    //     adminAllUsers.replaceWith(adminAllUsersNew); 
-    //     adminFacilityData.replaceWith(adminFacilityDataNew);
-    //     adminAddTimeBlock.replaceWith(adminAddTimeBlockNew);
-    
-    //     seasonButtons.forEach(function(button){
-    //         if(!button.disabled){
-    //             button.addEventListener("click", changeSeason)
-    //         }else{
-                
-               
-    //         }
-    //     })
-
-    //     schedulerButton.addEventListener("click", runScheduler)   
-    // }
-
-    // function setElements(){
-        
-        
-    //     const seasonButtons = Array.from(content.querySelectorAll("#adminSeasonButtons > button"));
-    //     const schedulerButton = content.querySelector("#runScheduleBuilderButton");
-    // }
 
 /***/ }),
 
@@ -345,7 +159,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "adminTimeBlockDataFormComponent": () => (/* binding */ adminTimeBlockDataFormComponent)
 /* harmony export */ });
 /* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../src/events */ "./src/events.js");
-/* harmony import */ var _src_DOMBuilders_selectorDOMBuilder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../../src/DOMBuilders/selectorDOMBuilder */ "./src/DOMBuilders/selectorDOMBuilder.js");
+/* harmony import */ var _src_selectorDOMBuilder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../../src/selectorDOMBuilder */ "./src/selectorDOMBuilder.js");
 /* harmony import */ var _src_timeConverter__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../src/timeConverter */ "./src/timeConverter.js");
 
 
@@ -418,7 +232,7 @@ const adminTimeBlockDataFormComponent = (function(){
         selectorElements.timeBlockSelectors.forEach(function(selector){
             const primaryClass = Array.from(selector.classList)[0];
     
-            const selectorNew = _src_DOMBuilders_selectorDOMBuilder__WEBPACK_IMPORTED_MODULE_1__.selectorBuilder.runBuildSelector(primaryClass);
+            const selectorNew = _src_selectorDOMBuilder__WEBPACK_IMPORTED_MODULE_1__.selectorBuilder.runBuildSelector(primaryClass);
             let selectedOption
             
             if(selectorNew.querySelector(`option[value = "${timeBlockData.timeBlock.availability[primaryClass]}"]`) != null){
@@ -507,6 +321,130 @@ const adminTimeBlockDataFormComponent = (function(){
 
 /***/ }),
 
+/***/ "./src/adminHomePage/components/forms/allTeamsOrderForm.js":
+/*!*****************************************************************!*\
+  !*** ./src/adminHomePage/components/forms/allTeamsOrderForm.js ***!
+  \*****************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "allTeamsOrderFormComponent": () => (/* binding */ allTeamsOrderFormComponent)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../events */ "./src/events.js");
+
+
+const allTeamsOrderFormComponent = (function(){
+    
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("allTeamsOrderChangeRequested", renderAllTeamsOrderForm)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("allTeamsDataChangesCancelled", unrenderAllTeamsOrderForm);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('allTeamsOrderChangeSaved', unrenderAllTeamsOrderForm);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('allTeamsOrderDataUpdated', rerenderAllTeamsOrderForm)
+
+    const formDivWrapper = document.querySelector("#entryFormDiv")
+    const formDiv = document.querySelector("#entryForm");
+    const body = document.querySelector("body")
+
+    function rerenderAllTeamsOrderForm(teamsData){
+        unrenderAllTeamsOrderForm()
+        renderAllTeamsOrderForm(teamsData)
+    }
+
+    function renderAllTeamsOrderForm(teamsData){
+        
+        const elements = setElements();
+        populateContent(elements, teamsData);
+        setEventListeners(elements, teamsData);
+    
+        formDiv.appendChild(elements.content);
+
+        formDivWrapper.classList.toggle("formHidden");
+        elements.form.classList.toggle('toggleScrollBarOn')
+        body.style.overflowY = "hidden"
+    } 
+
+    function unrenderAllTeamsOrderForm(){
+        if(formDiv.firstChild){
+            while(formDiv.firstChild){
+                formDiv.removeChild(formDiv.firstChild)
+            }
+        }
+
+        formDivWrapper.classList.add("formHidden");
+        body.style.overflowY = 'scroll'
+    }
+   
+    function setElements(){
+        const template = document.querySelector("#adminTeamOrderFormTemplate");
+        const content = document.importNode(template.content, true);
+
+        const form = content.querySelector('#adminTeamOrderForm')
+        const teamList = content.querySelector('#adminTeamOrderFormTeams')
+        const saveButton = content.querySelector("#saveAdminTeamOrderButton");
+        const cancelButton = content.querySelector("#cancelAdminTeamOrderChangesButton");
+    
+        return {content, form, teamList, saveButton, cancelButton}
+    }
+
+    function populateContent(elements, teamsData){
+
+        if(teamsData.length >=1){
+            teamsData.forEach(function(team){
+                const teamTemplate = document.querySelector('#adminTeamOrderFormTeamTemplate');
+                const teamContent = document.importNode(teamTemplate.content, true);
+
+                const name = teamContent.querySelector('.adminTeamOrderFormTeamName');
+                const size = teamContent.querySelector('.adminTeamOrderFormTeamSize');
+                const uprankButton = teamContent.querySelector('.moveOptionUpButton');
+                const downrankButton = teamContent.querySelector('.moveOptionDownButton');
+
+                name.innerText = `Team: ${team.name}`;
+                size.innerText = `Size: ${team.size}`;
+
+                uprankButton.addEventListener('click', moveTeamRankUp);
+                downrankButton.addEventListener('click', moveTeamRankDown);
+
+                if(teamsData.length > 1 && team.rank.allTeams== 0){
+                    uprankButton.remove()
+                }else if(teamsData.length > 1 && team.rank.allTeams == teamsData.length-1){
+                    downrankButton.remove()
+                }else if(teamsData.length ==1){
+                    uprankButton.remove();
+                    downrankButton.remove();
+                }
+
+                elements.teamList.appendChild(teamContent)
+
+                function moveTeamRankUp(){
+                    _events__WEBPACK_IMPORTED_MODULE_0__.events.publish('modifyAllTeamsOrderClicked', {team: team, modifier: -1})
+                }
+                function moveTeamRankDown(){
+                    _events__WEBPACK_IMPORTED_MODULE_0__.events.publish('modifyAllTeamsOrderClicked', {team: team, modifier: 1})
+                }
+            })
+        }else{
+            elements.teamList.innerText = 'No teams here!'
+            elements.saveButton.disabled = true;
+        }
+    }
+
+    function setEventListeners(elements){       
+        elements.saveButton.addEventListener("click", saveTeamOrderData);
+        elements.cancelButton.addEventListener("click", cancelTeamOrderChanges);
+
+        function saveTeamOrderData(){
+            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateAllTeamsOrderClicked")      
+        }
+        function cancelTeamOrderChanges(){
+           _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("cancelAllTeamsOrderChangesClicked")
+        }
+    }
+})();
+
+
+
+/***/ }),
+
 /***/ "./src/adminHomePage/components/forms/facilityDataForm.js":
 /*!****************************************************************!*\
   !*** ./src/adminHomePage/components/forms/facilityDataForm.js ***!
@@ -518,7 +456,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "facilityDataFormComponent": () => (/* binding */ facilityDataFormComponent)
 /* harmony export */ });
 /* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../src/events */ "./src/events.js");
-/* harmony import */ var _DOMBuilders_selectorDOMBuilder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../DOMBuilders/selectorDOMBuilder */ "./src/DOMBuilders/selectorDOMBuilder.js");
+/* harmony import */ var _selectorDOMBuilder__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../selectorDOMBuilder */ "./src/selectorDOMBuilder.js");
 
 
 
@@ -568,7 +506,7 @@ const facilityDataFormComponent = (function(){
         selectorElements.facilitySelectors.forEach(function(selector){
             const primaryClass = Array.from(selector.classList)[0];
 
-            const selectorNew = _DOMBuilders_selectorDOMBuilder__WEBPACK_IMPORTED_MODULE_1__.selectorBuilder.runBuildSelector(primaryClass);
+            const selectorNew = _selectorDOMBuilder__WEBPACK_IMPORTED_MODULE_1__.selectorBuilder.runBuildSelector(primaryClass);
             
             const selectedOption = selectorNew.querySelector(`option[value = "${facilityDataObj.facilityData[primaryClass]}"]`);
             selectedOption.selected = true;
@@ -744,18 +682,6 @@ const userDataFormComponent = (function(){
             }catch(err){
                 return err
             }
-            
-            if(userData.name != "" && userElements.name.value != userData.name){
-                const confirmation = confirm(`If you submit changes, this will change the user name from ${userData.name} to ${userElements.name.value}. Proceed? `);
-                if(confirmation){
-                    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserNameValue", userElements.name.value)
-                }else{
-                    userElements.name.value = userData.name;
-                    return false 
-                }
-            }else if(userData.name != userElements.name.value){
-                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserNameValue", userElements.name.value)
-            } 
         }
 
         function updateUserPrivilege(){
@@ -811,14 +737,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "adminTimeBlockDataGridComponent": () => (/* binding */ adminTimeBlockDataGridComponent)
 /* harmony export */ });
-/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../events */ "./src/events.js");
+/* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../src/events */ "./src/events.js");
 /* harmony import */ var _timeConverter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../timeConverter */ "./src/timeConverter.js");
 
 
 
 const adminTimeBlockDataGridComponent = (function(){
 
-    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("renderUpdatedAdminBlockData", renderAdminTimeBlockDay)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("renderUpdatedAdminBlockData", renderAdminTimeBlockDay)
 
     function renderAdminTimeBlockDay(adminTimeBlockDayData){
         const {day, blocks} = adminTimeBlockDayData
@@ -889,12 +815,12 @@ const adminTimeBlockDataGridComponent = (function(){
         timeBlockElement.deleteButton.addEventListener("click", deleteAdminTimeBlock);
     
         function editAdminTimeBlock(){
-            _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editAdminAvailabilityClicked", timeBlockData)
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editAdminAvailabilityClicked", timeBlockData)
         }
         function deleteAdminTimeBlock(){
             const confirmation = confirm("Delete this time block?");
             if(confirmation){
-                _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteAdminAvailabilityClicked", timeBlockData)
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("deleteAdminAvailabilityClicked", timeBlockData)
             }
             
         }
@@ -944,6 +870,91 @@ const facilityDataGridComponent = (function(){
         facilityElements.openTimeText.innerText = `Open Time: ${_timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(facilityData.facilityOpen)}`; //adjust the semi-colon distance for these in original render
         facilityElements.closeTimeText.innerText = `Close Time: ${_timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(facilityData.facilityClose)}`
         facilityElements.maxCapacityText.innerText = `Max Capacity: ${facilityData.facilityMaxCapacity}`
+    }
+})()
+
+
+
+
+/***/ }),
+
+/***/ "./src/adminHomePage/components/mainModulesRenders/teamGrid.js":
+/*!*********************************************************************!*\
+  !*** ./src/adminHomePage/components/mainModulesRenders/teamGrid.js ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "adminTeamsGridComponent": () => (/* binding */ adminTeamsGridComponent)
+/* harmony export */ });
+/* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../src/events */ "./src/events.js");
+
+
+const adminTeamsGridComponent = (function(){
+
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('modifyTeamGrid', renderAdminTeams)
+
+    function renderAdminTeams(allTeamsData){ 
+        const teamsDiv = document.querySelector("#adminMainPageTeamGrid");
+        const teamsDivNew = document.createElement("div")
+        teamsDivNew.id = "adminMainPageTeamGrid"
+
+        allTeamsData.forEach(function(team){
+            const teamRow = buildTeamRow(team);
+            teamsDivNew.appendChild(teamRow);
+        })
+
+        teamsDiv.replaceWith(teamsDivNew);
+    }
+
+    function buildTeamRow(teamData){ 
+        const elements = setTemplateElements()
+        setElementsContent(elements, teamData);
+        setEventListeners(elements, teamData);
+
+        if(teamData.enabled == false){ //check this out
+            elements.div.classList.toggle('toggleDisable');
+            elements.disableButton.innerText = "Enable"      
+        }
+
+        return elements.content 
+    }
+
+    function setTemplateElements(){
+        const template = document.querySelector("#adminMainPageTeamTemplate");
+        const content = document.importNode(template.content, true);
+
+        const div = content.querySelector(".adminMainPageTeamGridTeam")
+        
+        const name = content.querySelector(".adminMainPageTeamGridTeamName");
+        const coach = content.querySelector(".adminMainPageTeamGridTeamCoach");
+        const size = content.querySelector(".adminMainPageTeamGridTeamSize");
+        const rank = content.querySelector(".adminMainPageTeamGridTeamRank");
+
+        const disableButton = content.querySelector(".adminMainPageTeamGridTeamDisableButton");
+
+        return {content, div, name, coach, size, rank, disableButton}
+    }
+
+    function setElementsContent(teamElement, teamData){
+        console.log(teamData)
+        teamElement.div.setAttribute("data-teamId", teamData._id)
+        teamElement.name.innerText = teamData.name;
+        teamElement.coach.innerText = teamData.coach.name;
+        teamElement.size.innerText = `${teamData.size} athletes`;
+        teamElement.rank.innerText = teamData.rank.allTeams +1;
+    }
+
+    function setEventListeners(teamElement, teamData){
+        
+        const {_id} = teamData
+
+        teamElement.disableButton.addEventListener("click", toggleDisable);
+
+        function toggleDisable(){
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("enabledStatusChangeClicked", _id)
+        }
     }
 })()
 
@@ -1069,26 +1080,8 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminBlockDataDeleted', setDataBlockDataDeleted)
 
     function setDataNewPageRender(adminData){
-        allAdminAvailabilityDataStable = adminData.adminTimeBlocks;
-        createAdminAvailabilityDeepCopy(allAdminAvailabilityDataMutable, allAdminAvailabilityDataStable);
-    }
-
-    function createAdminAvailabilityDeepCopy(newObj, copyObj){
-        for(let prop in newObj){
-            delete newObj[prop]
-        }
-
-        for(let day in copyObj){
-            newObj[day] = [];
-            copyObj[day].forEach(function(timeBlock){
-                const {admin, day, season, _id} = timeBlock
-                const timeBlockCopy = Object.assign({}, {admin, day, season, _id});
-                timeBlockCopy.availability = Object.assign({}, timeBlock.availability)
-                newObj[day].push(timeBlockCopy);
-                
-
-            });
-        }
+        allAdminAvailabilityDataStable = structuredClone(adminData.adminTimeBlocks);
+        allAdminAvailabilityDataMutable= structuredClone(allAdminAvailabilityDataStable);
     }
 
     function editAdminAvailabilityBlock(timeBlockObj){
@@ -1119,13 +1112,12 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
 			allAdminAvailabilityDataMutable[blockData.day].push(blockData);
 		}
 		
-        createAdminAvailabilityDeepCopy(allAdminAvailabilityDataStable, allAdminAvailabilityDataMutable);
+        allAdminAvailabilityDataStable= structuredClone(allAdminAvailabilityDataMutable);
 		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedAdminBlockData", {day: blockData.day, blocks: allAdminAvailabilityDataMutable[blockData.day]})
     }
 
     function renderAllDays(facilityData){
-        const tempObj = {};
-        createAdminAvailabilityDeepCopy(tempObj, allAdminAvailabilityDataMutable)
+        const tempObj = structuredClone(allAdminAvailabilityDataMutable)
         for(let day in tempObj){
             tempObj[day].forEach(function(timeBlock){
                 const index = tempObj[day].indexOf(timeBlock)
@@ -1154,10 +1146,96 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
 		})
 
 		allAdminAvailabilityDataMutable[day] = newBlocksList;
-		createAdminAvailabilityDeepCopy(allAdminAvailabilityDataStable, allAdminAvailabilityDataMutable);
+		allAdminAvailabilityDataStable= structuredClone(allAdminAvailabilityDataMutable);
 		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedAdminBlockData", {day, blocks: allAdminAvailabilityDataMutable[day]})
 	}
 
+})()
+
+
+
+/***/ }),
+
+/***/ "./src/adminHomePage/models/allTeamsData.js":
+/*!**************************************************!*\
+  !*** ./src/adminHomePage/models/allTeamsData.js ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "adminMainPageAllTeamsData": () => (/* binding */ adminMainPageAllTeamsData)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../events */ "./src/events.js");
+
+
+const adminMainPageAllTeamsData = (function(){
+	//no obvious work to be done here except connect teamOrder change to database, have changes written to EVERY TEAM and ensure recursion is necessary
+	let allTeamsDataStable;
+	let allTeamsDataMutable;
+
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminDataFetched", setDataNewPageRender);
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("allTeamsOrderChangeSaved", setDataNewTeamOrder); //add prompt for successful database post
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("cancelAllTeamsOrderChangesClicked", cancelTeamOrderChanges) //add prompt for change cancellation
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateAllTeamsOrderClicked", saveTeamOrderChanges) //add promprt for save changes
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyAllTeamsOrderClicked", modifyTeamOrder);
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("enabledStatusChangeClicked", toggleTeamEnabled);
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('teamEnableStatusChangeSaved', setDataTeamEnableStatusChange)
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminTeamOrderChangeClicked', sendTeamData)
+
+	function setDataNewPageRender(adminAllTeams){
+        allTeamsDataStable = structuredClone(adminAllTeams.teams); //make sure this is correct property for database initial database fetch
+        allTeamsDataMutable = structuredClone(allTeamsDataStable)
+    }
+
+	function modifyTeamOrder(teamObj){
+		const thisTeamIndex = allTeamsDataMutable.findIndex(function(team){
+            return team._id == teamObj.team._id
+        })
+        
+        const thisTeam = allTeamsDataMutable.splice(thisTeamIndex, 1)[0]
+
+        allTeamsDataMutable.splice(thisTeamIndex + teamObj.modifier, 0, thisTeam);
+        allTeamsDataMutable.forEach(function(thisTeam){
+            thisTeam.rank.allTeams = allTeamsDataMutable.findIndex(function(teams){
+                return teams._id == thisTeam._id
+            })
+        })     
+		_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("allTeamsOrderDataUpdated", allTeamsDataMutable);
+	}
+
+	function toggleTeamEnabled(_id){
+		const teamData = allTeamsDataMutable.filter(function(team){
+			return team._id == _id
+		})[0]
+
+		teamData.enabled = !teamData.enabled
+		_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamEnabledUpdateRequested", _id)
+	}
+
+	function saveTeamOrderChanges(){
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish('allTeamsOrderDataUpdateRequested', allTeamsDataMutable)
+    }
+
+	function setDataTeamEnableStatusChange(){
+		allTeamsDataStable = structuredClone(allTeamsDataMutable);
+		_events__WEBPACK_IMPORTED_MODULE_0__.events.publish('modifyTeamGrid', allTeamsDataMutable)
+	}
+
+	function sendTeamData(){
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish('allTeamsOrderChangeRequested', allTeamsDataMutable)
+    }
+
+	function cancelTeamOrderChanges(){
+        allTeamsDataMutable = structuredClone(allTeamsDataStable);
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("allTeamsDataChangesCancelled")
+    }
+
+    function setDataNewTeamOrder(){
+        allTeamsDataStable = structuredClone(allTeamsDataMutable)
+        _events__WEBPACK_IMPORTED_MODULE_0__.events.publish('modifyTeamGrid', allTeamsDataMutable)
+    }
+	
 })()
 
 
@@ -1190,9 +1268,8 @@ const allUsersData = (function(){
 	
 
 	function setDataNewPageRender(adminAllUsers){
-        allUsersDataStable = adminAllUsers.allUsers;
-		allUsersDataMutable = [];
-        createAllUsersDeepCopy(allUsersDataMutable, allUsersDataStable)
+        allUsersDataStable = structuredClone(adminAllUsers.allUsers);
+		allUsersDataMutable = structuredClone(allUsersDataStable)
     }
 
     function setDataNewDatabasePost(userData){
@@ -1205,14 +1282,8 @@ const allUsersData = (function(){
 			allUsersDataMutable.push(userData);
 		}
 		
-        createAllUsersDeepCopy(allUsersDataStable, allUsersDataMutable);
+        allUsersDataStable= structuredClone(allUsersDataMutable);
 		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedUserData", allUsersDataMutable)
-    }
-
-    function createAllUsersDeepCopy(newArr, copyArr){
-		copyArr.forEach(function(user){
-			newArr.push(Object.assign({}, user));
-		})
     }
 
 	function deleteUser(userId){
@@ -1237,7 +1308,7 @@ const allUsersData = (function(){
 		})
 
 		allUsersDataMutable = newUsersList;
-		createAllUsersDeepCopy(allUsersDataStable, allUsersDataMutable);
+		allUsersDataStable= structuredClone(allUsersDataMutable);
 		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedUserData", allUsersDataMutable)
 	}
 
@@ -1277,13 +1348,12 @@ const adminMainPageFacilityDataModel = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('facilityDataValidationFailed', renderFacilityDataValidationErrors)
 
     function setDataNewPageRender(adminData){
-        adminFacilityDataStable = adminData.facilityData; 
-        adminFacilityDataMutable = Object.create({});
-        createFacilityDataDeepCopy(adminFacilityDataMutable, adminFacilityDataStable);
+        adminFacilityDataStable= structuredClone(adminData.facilityData); 
+        adminFacilityDataMutable = structuredClone(adminFacilityDataStable);
     }
 
     function setDataNewDatabasePost(){
-        createFacilityDataDeepCopy(adminFacilityDataStable, adminFacilityDataMutable);
+        adminFacilityDataStable= structuredClone(adminFacilityDataMutable);
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("setNewSelectorRanges", adminFacilityDataMutable)
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedFacilityData", adminFacilityDataMutable);
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("facilityDataAvailabiltyUpdateComparisonRequested", adminFacilityDataMutable)
@@ -1313,7 +1383,7 @@ const adminMainPageFacilityDataModel = (function(){
     }
     
     function cancelFacilityDataChanges(){
-        createFacilityDataDeepCopy(adminFacilityDataMutable, adminFacilityDataStable);
+        adminFacilityDataMutable= structuredClone(adminFacilityDataStable);
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminFacilityDataChangesCancelled")
     }
 
@@ -1368,19 +1438,15 @@ const singleAdminTimeBlockModel = (function(){
     }
 
     function addAdminAvailabilityBlock(day){
-        adminAvailabilityDataStable = Object.assign({}, timeBlockDefault);
-        adminAvailabilityDataStable.day = day;
-
-        adminAvailabilityDataMutable = Object.assign({}, adminAvailabilityDataStable);
-        adminAvailabilityDataMutable.availability = Object.assign({}, adminAvailabilityDataStable.availability)
+        adminAvailabilityDataStable = structuredClone(timeBlockDefault);
+        adminAvailabilityDataMutable = structuredClone(adminAvailabilityDataStable);
 
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityBlockAddRequested", {timeBlock: adminAvailabilityDataMutable, origin: "add"});
     }
 
     function setAdminAvailabilityDataEditRequest(timeBlock){
-        adminAvailabilityDataStable =  timeBlock;
-        adminAvailabilityDataMutable = Object.assign({}, adminAvailabilityDataStable)
-        adminAvailabilityDataMutable.availability = Object.assign({}, adminAvailabilityDataStable.availability)
+        adminAvailabilityDataStable = structuredClone(timeBlock);
+        adminAvailabilityDataMutable = structuredClone(adminAvailabilityDataStable)
 
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminBlockDataLoaded", {timeBlock: adminAvailabilityDataMutable, origin:"edit"})
     }
@@ -1473,17 +1539,16 @@ const userData = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("newUserDataSaved", addUserDataToAllUsers);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataValidationFailed", renderUserValidationErrors);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataValidated", updateUserData)
-        //USE ARRAY.MAP AND OBJ EQUIVALENT (?) IN DATAMODElS FOR DEEP COPIES?
     
     function setUserModelEditRequest(userData){
-        userModelStable = userData
-        userModelMutable = Object.assign({}, userModelStable)
+        userModelStable = structuredClone(userData)
+        userModelMutable = structuredClone(userModelStable)
 
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataLoaded", {userData: userModelMutable, origin:"edit"})
     }
 
     function setUserModelCancelRequest(){
-        userModelMutable = Object.assign({}, userModelStable);
+        userModelMutable = structuredClone(userModelStable);
 
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataChangesCancelled")
     }
@@ -1498,8 +1563,8 @@ const userData = (function(){
     }
     
     function createNewUser(){
-        userModelStable = Object.assign({}, userModel);
-        userModelMutable = Object.assign({}, userModelStable);
+        userModelStable = structuredClone(userModel);
+        userModelMutable = structuredClone(userModelStable);
 
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newUserModelBuilt", {userData: userModelMutable, origin:"add"})
     }
@@ -1563,28 +1628,25 @@ const databasePost = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminBlockDeleteRequested', deleteAdminBlockData);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('availabilityBlockUpdateRequested', updateUserBlockData);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('newAvailabilityBlockAdditionRequested', addUserBlockData)
-    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('availabilityBlockDeleteRequested', deleteUserBlockData)
-   
-    // events.subscribe("adminAllTeamsDataUpdated", changeAllTeamsData)
-    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataUpdateRequested", updateFacilityData)
-   
-    // events.subscribe("myTeamsDataUpdated", changeMyTeamsData)
-    // events.subscribe("verifyUpToDateClicked", changeVerificationData)//
-    // events.subscribe("pageChangeRequested", alertAndLogCurrentObject);
-    // events.subscribe("userSeasonChangeRequested", changeUserSeason); //
-    // events.subscribe("adminSeasonChangeRequested", changeAdminSeason);;
-    
-    
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('availabilityBlockDeleteRequested', deleteUserBlockData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('teamUpdateRequested', updateTeamData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('newTeamAdditionRequested', addTeamData)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('teamDataDeleteRequested', deleteTeamData)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('teamVerificationUpdateRequested', updateTeamVerificationData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('userAllTeamsVerificationUpdateRequested', updateUserVerificationData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataUpdateRequested", updateFacilityData);
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('teamEnabledUpdateRequested', updateTeamEnabledStatus)
 
-    function alertAndLogCurrentObject(databaseBoundObject){
-        console.log(databaseBoundObject)
-        alert(databaseBoundObject)
-    }
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('myTeamsOrderDataUpdateRequested', updateMyTeamsOrder)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('allTeamsOrderDataUpdateRequested', updateAllTeamsOrder);
+
+    //events.subscribe('loginAttemptRequested', postLoginAttempt)
+   
 
     async function updateFacilityData(databaseBoundObject){ 
         try{
-            await fetch('adminHome/postAdminFacilitySettings.json', {
-                method:'POST',
+            await fetch('adminHome/facilitySettings', {
+                method:'PUT',
                 headers:{
                     'Content-Type': 'application/json'
           
@@ -1602,8 +1664,8 @@ const databasePost = (function(){
     async function updateUserData(databaseBoundObject){
         const {_id} = databaseBoundObject;
         try{
-            const userDataResponse = await fetch(`adminHome/user/${_id}/update.json`, { //change the hard-coded id's into userspecific id's SOON
-                method:'POST',
+            const userDataResponse = await fetch(`adminHome/user/${_id}`, { //change the hard-coded id's into userspecific id's SOON
+                method:'PUT',
                 headers:{
                     'Content-Type': 'application/json'
           
@@ -1629,7 +1691,7 @@ const databasePost = (function(){
 
     async function addUserData(databaseBoundObject){
         try{
-            const userDataResponse = await fetch('adminHome/user/add.json', {
+            const userDataResponse = await fetch('adminHome/user', {
                 method:'POST',
                 headers:{
                     'Content-Type': 'application/json'
@@ -1657,8 +1719,8 @@ const databasePost = (function(){
     async function deleteUserData(userId){
         const idObj = {_id: userId}
         try{
-            const userDataResponse = await fetch(`adminHome/user/${userId}/delete.json`, { //change the hard-coded id's into userspecific id's SOON
-                method:'POST',
+            const userDataResponse = await fetch(`adminHome/user/${userId}`, { //change the hard-coded id's into userspecific id's SOON
+                method:'DELETE',
                 headers:{
                     'Content-Type': 'application/json'
           
@@ -1683,8 +1745,8 @@ const databasePost = (function(){
     async function updateAdminBlockData(databaseBoundObject){
         const {_id} = databaseBoundObject;
         try{
-            const blockDataResponse = await fetch(`adminHome/timeBlock/${_id}/update.json`, { //change the path
-                method:'POST',
+            const blockDataResponse = await fetch(`adminHome/timeBlock/${_id}`, { //change the path
+                method:'PUT',
                 headers:{
                     'Content-Type': 'application/json'
           
@@ -1710,7 +1772,7 @@ const databasePost = (function(){
 
     async function addAdminBlockData(databaseBoundObject){
         try{
-            const blockDataResponse = await fetch('adminHome/timeBlock/add.json', {  //get rid of hard coded season as soon as possible
+            const blockDataResponse = await fetch('adminHome/timeBlock', {  //get rid of hard coded season as soon as possible
                 method:'POST',
                 headers:{
                     'Content-Type': 'application/json'
@@ -1738,8 +1800,8 @@ const databasePost = (function(){
     async function deleteAdminBlockData(blockData){
         const idObj = {_id: blockData._id}
         try{
-            const blockDataResponse = await fetch(`adminHome/timeBlock/${blockData._id}/delete.json`, { //change the hard-coded id's into userspecific id's SOON
-                method:'POST',
+            const blockDataResponse = await fetch(`adminHome/timeBlock/${blockData._id}`, { //change the hard-coded id's into userspecific id's SOON
+                method:'DELETE',
                 headers:{
                     'Content-Type': 'application/json'
           
@@ -1765,8 +1827,8 @@ const databasePost = (function(){
     async function updateUserBlockData(databaseBoundObject){
         const {_id} = databaseBoundObject;
         try{
-            const blockDataResponse = await fetch(`home/timeBlock/${_id}/update.json`, { //change the path
-                method:'POST',
+            const blockDataResponse = await fetch(`home/timeBlock/${_id}`, { //change the path
+                method:'PUT',
                 headers:{
                     'Content-Type': 'application/json'
           
@@ -1794,7 +1856,7 @@ const databasePost = (function(){
 
     async function addUserBlockData(databaseBoundObject){
         try{
-            const blockDataResponse = await fetch('home/timeBlock/add.json', { 
+            const blockDataResponse = await fetch('home/timeBlock', { 
                 method:'POST',
                 headers:{
                     'Content-Type': 'application/json'
@@ -1821,8 +1883,8 @@ const databasePost = (function(){
 
     async function deleteUserBlockData(blockData){
         try{
-            const blockDataResponse = await fetch(`home/timeBlock/${blockData._id}/delete.json`, { //change the hard-coded id's into userspecific id's SOON
-                method:'POST',
+            const blockDataResponse = await fetch(`home/timeBlock/${blockData._id}`, { //change the hard-coded id's into userspecific id's SOON
+                method:'DELETE',
                 headers:{
                     'Content-Type': 'application/json'
           
@@ -1844,525 +1906,235 @@ const databasePost = (function(){
         }
     }
 
-    ///
-
-    function changeAllTeamsData(databaseBoundObject){
-        alertAndLogCurrentObject(databaseBoundObject)
-        const sortedTeams = databaseBoundObject.sort(function(a,b){
-            return a.rank.allTeams - b.rank.allTeams
-        })
-        adminTestObj.allTeams = sortedTeams
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", adminTestObj)
-    }
-
-    function changeAllUsersArray(databaseBoundObject){
-        alertAndLogCurrentObject(databaseBoundObject)
-        adminTestObj.allUsers = databaseBoundObject;
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", adminTestObj)
-    }
-
-    function changeAdminSeason(databaseBoundObject){
-        alertAndLogCurrentObject(databaseBoundObject)
-        adminTestObj.season = databaseBoundObject
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", adminTestObj)
-    }
-
-    function changeUserSeason(databaseBoundObject){
-        alertAndLogCurrentObject(databaseBoundObject)
-        userTestObj.season = databaseBoundObject
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", userTestObj)
-    }
-
-
-    function changeVerificationData(databaseBoundObject){
-        alertAndLogCurrentObject(databaseBoundObject)
-        userTestObj.lastVerified = databaseBoundObject
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", userTestObj)
-    }
-
-    function changeAvailabilityData(databaseBoundObject){
-        alertAndLogCurrentObject(databaseBoundObject)
-        userTestObj.availability = databaseBoundObject
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", userTestObj)
-    }
-
-    function changeMyTeamsData(databaseBoundObject){
-        alertAndLogCurrentObject(databaseBoundObject)
-        const sortedTeams = databaseBoundObject.sort(function(a,b){
-            return a.rank.myTeams - b.rank.myTeams
-        })
-        userTestObj.teams = sortedTeams
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("dataLoadedFromDatabase", userTestObj)
-    }
-
-    let userTestObj = {
-        name: "Brindle",
-        privilegeLevel:false,
-        availability:{
-            Sun:[{startTime: "420", endTime: "540", admin: "no"}],
-            Mon:[],
-            Tue:[],
-            Wed:[],
-            Thu:[],
-            Fri:[],
-            Sat:[]
-        },
-        teams:
-        [
-            {
-            name:"basketballWomen",
-            coach: "Brindle",
-            rank:
-                {
-                    myTeams: 0,
-                    allTeams:6
+    async function updateTeamData(databaseBoundObject){
+        const {_id} = databaseBoundObject;
+        try{
+            const teamDataResponse = await fetch(`home/team/${_id}`, { //change the hard-coded id's into userspecific id's SOON
+                method:'PUT',
+                headers:{
+                    'Content-Type': 'application/json'
+          
                 },
-            size: 15,
-            allOpts:
-                [
-                    [
-                        {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
-                        {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
-                        {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
-                    ],
-                ]
-            },
-            
-            {
-                name:"basketballMen",
-                coach: "Brindle",
-                rank:
-                    {
-                        myTeams: 1,
-                        allTeams:5
-                    },
-                size: 25,
-                allOpts:
-                
-                    [
-                        [
-                            {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
-                            {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
-                            {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
-                        ],
-                    ]
-            },
+                body: JSON.stringify(databaseBoundObject)
     
-            {
-            name: "football",
-            coach:"Brindle",
-            rank:
-                {
-                    myTeams: 2,
-                    allTeams:1
+            });
+
+            if(teamDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(teamDataResponse.status == 400){
+                const errors = await teamDataResponse.json();
+                const origin = "edit"
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamDataValidationFailed", {errors, origin})
+            }else if(teamDataResponse.status == 200){ 
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editTeamDataSaved")
+            }
+           
+        }catch(err){
+            console.log(err)
+        }//fix the id to be dynamic
+    }
+
+    async function addTeamData(databaseBoundObject){
+        try{
+            const teamDataResponse = await fetch('home/team', {
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+          
                 },
-            size: 110,
-            allOpts:
-                [
-                    [
-                        {dayOfWeek:"Tue", startTime: 870, endTime:915, inWeiss:"yes"},
-                        {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
-                        {dayOfWeek:"Fri", startTime: 945, endTime:975, inWeiss:"yes"},
-                    ],
+                body: JSON.stringify(databaseBoundObject)
     
-                    [
-                        {dayOfWeek:"Wed", startTime: 870, endTime:915, inWeiss:"yes"},
-                        {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
-                        {dayOfWeek:"Sat", startTime: 945, endTime:975, inWeiss:"yes"},
-                    ],
-                ]
-            },
-        ],
-        lastVerified: null,
-        adminPageSet:null,
-        season:"fall",
-        allTeams:
-            [
-                {
-                name: "football",
-                coach:"Brindle",
-                rank:
-                    {
-                        myTeams: 2,
-                        allTeams:1
-                    },
-                size: 110,
-                allOpts:
-                    [
-                        [
-                            {dayOfWeek:"Tue", startTime: 870, endTime:915, inWeiss:"yes"},
-                            {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
-                            {dayOfWeek:"Fri", startTime: 945, endTime:975, inWeiss:"yes"},
-                        ],
-                    ]
-                },
-    
-                {
-                name:"basketballWomen",
-                coach: "Brindle",
-                rank:
-                    {
-                        myTeams: 2,
-                        allTeams:6
-                    },
-                size: 15,
-                allOpts:
-                    
-                    [
-                        [
-                            {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
-                            {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
-                            {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
-                        ],
-                    ]
-                },
-                
-                {
-                    name:"basketballMen",
-                    coach: "Brindle",
-                    rank:
-                        {
-                            myTeams: 1,
-                            allTeams:5
-                        },
-                    size: 25,
-                    allOpts:
-                    
-                        [
-                            [
-                                {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
-                                {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
-                                {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
-                            ],
-                        ]
-                    },
-    
-                    {
-                    name:"sprintFootball",
-                    coach: "Dolan",
-                    rank:
-                        {
-                            myTeams: 4,
-                            allTeams:4
-                        },
-                    size: 50,
-                    allOpts:
-                    
-                        [
-                            [
-                                {dayOfWeek:"Tue", startTime: 960, endTime:1020, inWeiss:"yes"},
-                                {dayOfWeek:"Sat", startTime: 540, endTime:600, inWeiss:"yes"},
-                            ],
-                        ]
-                    },
-            ],
-        facilitySelectors:{
-            facilityOpen:360,
-            facilityClose: 1200,
-            facilityMaxCapacity:150
+            });
+
+            if(teamDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(teamDataResponse.status == 400){
+                const errors = await teamDataResponse.json()
+                const origin = "add"
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamDataValidationFailed", {errors, origin})
+            }else if(teamDataResponse.status == 200){
+                const newTeam = await teamDataResponse.json();  
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newTeamDataSaved", newTeam)
+            }
+        }catch(err){
+            console.log(err)
         }
-    
     }
-    
-    let adminTestObj = {
-        name: "Brindle",
-        privilegeLevel:true,
-        availability:{
-            Sun:[{startTime: "420", endTime: "540", admin: "no"}],
-            Mon:[],
-            Tue:[],
-            Wed:[],
-            Thu:[],
-            Fri:[],
-            Sat:[]
-        },
-        teams:
-            [
-                {
-                name:"basketballWomen",
-                coach: "Brindle",
-                rank:
-                    {
-                        myTeams: 0,
-                        allTeams:0
-                    },
-                size: 15,
-                
-                allOpts:
-                    
-                    [
-                        [
-                            {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
-                            {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
-                            {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
-                        ],
-                    ]
+
+    async function deleteTeamData(teamId){
+        const idObj = {_id: teamId}
+        try{
+            const teamDataResponse = await fetch(`home/team/${teamId}`, { //change the hard-coded id's into userspecific id's SOON
+                method:'DELETE',
+                headers:{
+                    'Content-Type': 'application/json'
+          
                 },
-                
-                {
-                name:"basketballMen",
-                coach: "Brindle",
-                rank:
-                    {
-                        myTeams: 1,
-                        allTeams:1
-                    },
-                size: 25,
-                allOpts:
-                
-                    [
-                        [
-                            {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
-                            {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
-                            {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
-                        ],
-                    ]
-                },
-            ],
-        lastVerified: null,
-        adminPageSet:"admin",
-        season:"fall",
+                body: JSON.stringify(idObj)
     
-        allTeams:
-            [
-                {
-                name:"basketballWomen",
-                coach: "Brindle",
-                rank:
-                    {
-                        myTeams: 0,
-                        allTeams:0
-                    },
-                size: 15,
-                enabled: true,
-                allOpts:
-                    [
-                        [
-                            {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
-                            {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
-                            {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
-                        ],
-                    ]
-                },
-            
-                {
-                name:"basketballMen",
-                coach: "Brindle",
-                enabled: true,
-                rank:
-                    {
-                        myTeams: 1,
-                        allTeams:1
-                    },
-                size: 25,
-                allOpts:
-                
-                    [
-                        [
-                            {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
-                            {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
-                            {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
-                        ],
-                    ]
-                },
-    
-                {
-                name: "football",
-                coach:"Rivera",
-                enabled: false,
-                rank:
-                    {
-                        myTeams: 0,
-                        allTeams:2
-                    },
-                size: 110,
-                allOpts:
-                    [
-                        [
-                            {dayOfWeek:"Tue", startTime: 870, endTime:915, inWeiss:"yes"},
-                            {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
-                            {dayOfWeek:"Fri", startTime: 945, endTime:975, inWeiss:"yes"},
-                        ],
-                    ]
-                },
-    
-                {
-                name:"sprintFootball",
-                coach: "Dolan",
-                rank:
-                    {
-                        myTeams: 0,
-                        allTeams:3
-                    },
-                size: 50,
-                enabled: true,
-                allOpts:
-                
-                    [
-                        [
-                            {dayOfWeek:"Tue", startTime: 960, endTime:1020, inWeiss:"yes"},
-                            {dayOfWeek:"Sat", startTime: 540, endTime:600, inWeiss:"yes"},
-                        ],
-                    ]
-            },
-        ],
-        facilitySelectors:{
-            facilityOpen:360,
-            facilityClose: 1200,
-            facilityMaxCapacity:120
-        },
-    
-        allUsers:
-        [
-            {
-            name: "Brindle",
-            color: "#00ff00",
-            privilegeLevel:true,
-            availability:{
-                Sun:[{startTime: "420", endTime: "540", admin: "no"}],
-                Mon:[],
-                Tue:[],
-                Wed:[],
-                Thu:[],
-                Fri:[],
-                Sat:[]
-            },
-            teams:
-                [
-                    {
-                    name:"basketballWomen",
-                    coach: "Brindle",
-                    rank:
-                        {
-                        myTeams: 0,
-                        allTeams:0
-                        },
-                    size: 15,
-                    allOpts:
-                        [
-                            [
-                                {dayOfWeek:"Tue", startTime: 420, endTime:495, inWeiss:"yes"},
-                                {dayOfWeek:"Thu", startTime: 420, endTime:495, inWeiss:"yes"},
-                                {dayOfWeek:"Fri", startTime: 420, endTime:495, inWeiss:"yes"},
-                            ],
-                        ]
-                    },
-    
-                    {
-                    name:"basketballMen",
-                    coach: "Brindle",
-                    rank:
-                        {
-                            myTeams: 1,
-                            allTeams:1
-                        },
-                    size: 25,
-                    allOpts:
-    
-                        [
-                            [
-                                {dayOfWeek:"Tue", startTime: 930, endTime:990, inWeiss:"yes"},
-                                {dayOfWeek:"Thu", startTime: 915, endTime:975, inWeiss:"yes"},
-                                {dayOfWeek:"Fri", startTime: 870, endTime:930, inWeiss:"yes"},
-                            ],
-                        ]
-                    },
-                ],
-            lastVerified: null,
-            adminPageSet:"admin",
-            season:"fall"
-            },
-    
-            {    
-            name: "Rivera",
-            color: "#0000ff",
-            privilegeLevel:false,
-            availability:{
-                Sun:[{startTime: "420", endTime: "540", admin: "no"}],
-                Mon:[],
-                Tue:[],
-                Wed:[],
-                Thu:[],
-                Fri:[],
-                Sat:[]
-            },
-            teams:
-                [
-                    {
-                    name: "football",
-                    coach:"Rivera",
-                    rank:
-                        {
-                            myTeams: 0,
-                            allTeams:2
-                        },
-                    size: 110,
-                    allOpts:
-                        [
-                            [
-                                {dayOfWeek:"Tue", startTime: 870, endTime:915, inWeiss:"yes"},
-                                {dayOfWeek:"Thu", startTime: 870, endTime:915, inWeiss:"yes"},
-                                {dayOfWeek:"Fri", startTime: 945, endTime:975, inWeiss:"yes"},
-                            ],
-                        ]
-                    },
-                ],
-            lastVerified: null,
-            adminPageSet:null,
-            season:"fall",
-            },
-    
-            {    
-            name: "Dolan",
-            privilegeLevel:false,
-            color: "#ffa500",
-            availability:{
-                Sun:[{startTime: "420", endTime: "540", admin: "no"}],
-                Mon:[],
-                Tue:[],
-                Wed:[],
-                Thu:[],
-                Fri:[],
-                Sat:[]
-            },
-            teams:
-                [
-                    {
-                    name:"sprintFootball",
-                    coach: "Dolan",
-                    rank:
-                        {
-                            myTeams: 0,
-                            allTeams:3
-                        },
-                    size: 50,
-                    allOpts:
-    
-                        [
-                            [
-                                {dayOfWeek:"Tue", startTime: 960, endTime:1020, inWeiss:"yes"},
-                                {dayOfWeek:"Sat", startTime: 540, endTime:600, inWeiss:"yes"},
-                            ],
-                        ]
-                    },
-                ],
-            lastVerified: null,
-            adminPageSet:null,
-            season:"fall"
+            });
+
+            if(teamDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(teamDataResponse.status == 400){
+                const errors = await teamDataResponse.json();
+                alert(errors);
+            }else if(teamDataResponse.status == 200){
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamDataDeleted", teamId)
             }
-        ],
-    
-        adminTimeBlocks:
-            {
-            Sun:[],
-            Mon:[{startTime: "420", endTime: "540", admin: "yes"}],
-            Tue:[],
-            Wed:[],
-            Thu:[{startTime: "780", endTime: "840", admin: "yes"}],
-            Fri:[],
-            Sat:[]
-            }
+        }catch(err){
+            console.log(err)
+        }
     }
+
+    async function updateTeamVerificationData(databaseBoundObject){
+        const {_id} = databaseBoundObject;
+        try{
+            const teamDataResponse = await fetch(`home/team/${_id}/verification`, {
+                method:'PATCH',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(teamDataResponse.status == 404){ //expand on http statuses?
+                throw('404 error!')
+            }else if(teamDataResponse.status == 400){
+                throw('400 error!')
+            }else if(teamDataResponse.status == 200){  
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamVerificationSaved", databaseBoundObject)
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    async function updateUserVerificationData(timeData){
+        const timeDataObj = {lastVerified: timeData}
+        try{
+            const teamDataResponse = await fetch(`home/allTeamsVerification`, {
+                method:'PATCH',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(timeDataObj)
+    
+            });
+
+            if(teamDataResponse.status == 404){
+                throw('404 error!')
+            }else if(teamDataResponse.status == 400){
+                throw('400 error!')
+            }else if(teamDataResponse.status == 200){  
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("allTeamsVerificationSaved", timeData)
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    async function updateMyTeamsOrder(databaseBoundObject){
+        try{
+            const teamDataResponse = await fetch(`home/allTeamsOrder`, {
+                method:'PATCH',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(teamDataResponse.status == 404){
+                throw('404 error!')
+            }else if(teamDataResponse.status == 400){
+                throw('400 error!')
+            }else if(teamDataResponse.status == 200){  
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("myTeamsOrderChangeSaved")
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    async function updateAllTeamsOrder(databaseBoundObject){
+        try{
+            const teamDataResponse = await fetch(`adminHome/allTeamsOrder`, {
+                method:'PATCH',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(databaseBoundObject)
+    
+            });
+
+            if(teamDataResponse.status == 404){
+                throw('404 error!')
+            }else if(teamDataResponse.status == 400){
+                throw('400 error!')
+            }else if(teamDataResponse.status == 200){  
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("allTeamsOrderChangeSaved")
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    async function updateTeamEnabledStatus(_id){
+        const idObj = {_id}
+        try{
+            const teamDataResponse = await fetch(`adminHome/team/${_id}/enabledStatus`, {
+                method:'PATCH',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+                body: JSON.stringify(idObj)
+    
+            });
+
+            if(teamDataResponse.status == 404){
+                throw('404 error!')
+            }else if(teamDataResponse.status == 400){
+                throw('400 error!')
+            }else if(teamDataResponse.status == 200){  
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamEnableStatusChangeSaved")
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    // async function postLoginAttempt(databaseBoundObject){
+    //     try{
+    //         const logInAttemptResponse = await fetch(`/logIn`, {
+    //             method:'POST',
+    //             headers:{
+    //                 'Content-Type': 'application/json'
+          
+    //             },
+    //             body: JSON.stringify(databaseBoundObject)
+    
+    //         });
+
+    //         if(logInAttemptResponse.status == 404){ //check these
+    //             throw('404 error!')
+    //         }else if(logInAttemptResponse.status == 400){
+    //             throw('400 error!')
+    //         }else if(logInAttemptResponse.status == 401){
+    //             const errorMessage = await logInAttemptResponse.json();
+    //             const errorArray = [errorMessage]
+    //             events.publish('renderLoginPageRequested', errorArray)
+    //         }
+    //     }catch(err){
+    //         console.log(err)
+    //     }
+    // }
 
 })();
 
@@ -2410,6 +2182,171 @@ const events = {
     }
 }
 
+
+
+
+
+/***/ }),
+
+/***/ "./src/selectorDOMBuilder.js":
+/*!***********************************!*\
+  !*** ./src/selectorDOMBuilder.js ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "selectorBuilder": () => (/* binding */ selectorBuilder)
+/* harmony export */ });
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./events */ "./src/events.js");
+/* harmony import */ var _timeConverter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./timeConverter */ "./src/timeConverter.js");
+
+
+
+const selectorBuilder = (function(){ 
+
+    //default values must be input (into database?) for facilityOpen/Close/MaxCapacity BEFORE first time running, or startTime/endTime/teamSize will have errors!
+    const selectionRanges = { 
+        startTime: {
+            start: null,
+            end: null,
+            increment: 15
+        },
+        endTime: {
+            start: null,
+            end: null,
+            increment: 15
+        },
+        teamSize: {
+            start: 5,
+            end: null,
+            increment: 5
+        },
+        facilityOpen:{ //4am to 8pm, default value 6am (360)?
+            start: 240,
+            end: 1200,
+            increment: 15
+        },
+        facilityClose:{ //5am to 9pm, default value 8pm (1200)?
+            start: 300,
+            end: 1260,
+            increment: 15
+        },
+        facilityMaxCapacity:{//range 10-150, default value 120?
+            start: 10,
+            end: 150,
+            increment: 5
+        },
+        dayOfWeek: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], 
+        inWeiss: ["yes", "no"],
+    };
+    
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminDataFetched", setSelectorRanges);
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('userDataFetched', setSelectorRanges)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('setNewSelectorRanges', setSelectorRanges)
+    
+    function setSelectorRanges(dBdata){
+        let facilityData
+        if(Object.prototype.hasOwnProperty.call(dBdata, 'facilityData')){
+            facilityData = dBdata.facilityData
+        }else{
+            facilityData = dBdata
+        }
+        selectionRanges.startTime.start = facilityData.facilityOpen;
+        selectionRanges.endTime.start = facilityData.facilityOpen + 30;
+        selectionRanges.startTime.end = facilityData.facilityClose - 30;
+        selectionRanges.endTime.end = facilityData.facilityClose;
+        selectionRanges.teamSize.end = facilityData.facilityMaxCapacity;
+    }
+
+    function runBuildSelector(primaryClass){
+        return buildSelector(primaryClass)
+    }
+
+    
+
+    function buildSelector(primaryClass){
+        const selection = document.createElement("select");
+        selection.classList.add(primaryClass);
+        selection.classList.add("selector");
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "default";
+            defaultOption.innerText = "--";
+        selection.appendChild(defaultOption);
+
+        switch(primaryClass){
+            case "dayOfWeek":
+            case "inWeiss": 
+                buildArraySelectorOptions(primaryClass, selection);
+                break;
+            
+            case "teamSize":
+                buildRangeSelectorOptions(primaryClass, selection);
+                break;   
+            case "endTime":
+            case "facilityClose":
+            case "facilityMaxCapacity":
+                buildRangeSelectorOptions(primaryClass, selection);
+                break;
+            
+            case "startTime":
+            case "facilityOpen":
+                buildRangeSelectorOptions(primaryClass, selection);
+                selection.addEventListener("change", modifyEndTimeDefaultValue);
+                break;
+        }
+
+        selection.addEventListener("change", disableDefaultOption)
+
+        return selection
+    }
+
+    function buildArraySelectorOptions(primaryClass, selector){
+        const optionValues = selectionRanges[primaryClass];
+        optionValues.forEach(function(optionValue){
+            const option = document.createElement("option");
+            option.value = optionValue;
+            option.innerText = optionValue;
+            selector.appendChild(option); 
+        })
+    }
+
+    function buildRangeSelectorOptions(primaryClass, selector){
+        const optionValues = selectionRanges[primaryClass];
+        for(let i = optionValues.start; i<=optionValues.end; i += optionValues.increment){
+            const option = document.createElement("option");
+            option.value = i;
+            if(primaryClass == "teamSize" || primaryClass == "facilityMaxCapacity"){
+                option.innerText = i;
+            }else{
+                option.innerText = _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(i); //toString() should not be necessary
+            }selector.appendChild(option);
+        }
+    }
+
+        //these are all not working, may need to use event delegation within the modules themselves
+
+    function modifyEndTimeDefaultValue(){
+        const startTimeSelectedValue = Number(this.value);
+        const endTimeValuesArray = Array.from(this.parentElement.nextElementSibling.lastElementChild.children);
+        endTimeValuesArray.forEach(function(time){
+            const endTimeValue = Number(time.value);
+            if(endTimeValue < startTimeSelectedValue + 30 || endTimeValue == "default"){
+                time.disabled = true;
+            }else{
+                time.disabled = false;
+            }
+        })
+    }
+
+    function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+        const values = Array.from(this.children);
+        values[0].disabled = true;
+    }
+
+    return {runBuildSelector}
+
+})();
 
 
 
@@ -2772,7 +2709,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _src_adminHomePage_models_allAdminTimeBlocksData__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../src/adminHomePage/models/allAdminTimeBlocksData */ "./src/adminHomePage/models/allAdminTimeBlocksData.js");
 /* harmony import */ var _src_adminHomePage_models_timeBlockData__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../src/adminHomePage/models/timeBlockData */ "./src/adminHomePage/models/timeBlockData.js");
 /* harmony import */ var _src_validators_availabilityValidator__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../src/validators/availabilityValidator */ "./src/validators/availabilityValidator.js");
-/* harmony import */ var _src_databasePost__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../src/databasePost */ "./src/databasePost.js");
+/* harmony import */ var _src_adminHomePage_components_mainModulesRenders_teamGrid__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../src/adminHomePage/components/mainModulesRenders/teamGrid */ "./src/adminHomePage/components/mainModulesRenders/teamGrid.js");
+/* harmony import */ var _src_adminHomePage_models_allTeamsData__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ../src/adminHomePage/models/allTeamsData */ "./src/adminHomePage/models/allTeamsData.js");
+/* harmony import */ var _src_adminHomePage_components_forms_allTeamsOrderForm__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ../src/adminHomePage/components/forms/allTeamsOrderForm */ "./src/adminHomePage/components/forms/allTeamsOrderForm.js");
+/* harmony import */ var _src_databasePost__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ../src/databasePost */ "./src/databasePost.js");
+
+
+
+
 
 
 
@@ -2799,7 +2743,7 @@ window.onload = setScriptData;
 
 async function setScriptData(){
     try{
-        const adminPageJSON = await fetch('adminHome/adminData.json'); //change this to accept userId and season
+        const adminPageJSON = await fetch('adminHome/adminData'); //change this to accept userId and season
         const adminPageData = await adminPageJSON.json();
         console.log(adminPageData)
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminDataFetched", adminPageData);

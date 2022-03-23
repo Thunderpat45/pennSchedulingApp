@@ -11,7 +11,8 @@ const teamSchema = new Schema({
         myTeams: Number,
         allTeams: Number
     },
-    color: {type: Schema.Types.ObjectId, ref:'User'},
+    lastVerified:String,
+    // color: {type: Schema.Types.ObjectId, ref:'User'},
     enabled: Boolean,
     //overlapTolerance?
     allOpts: 

@@ -25,8 +25,7 @@
                     
                 </div>
 
-				<button id ="saveAdminRankChangesButton">Save Rank Changes</button>
-				<button id ="cancelAdminRankChangesButton">Cancel Rank Changes</button>				
+				<button id ="modifyAdminRanksButton">Modify Team Order</button>		
 			</div>
 			<div id = "runScheduleBuilderDiv">
 				<button id = "runScheduleBuilderButton">Run Schedule Builder</button>
@@ -203,6 +202,34 @@
 				</div>
 			</div>
 	</template>
+
+	<template id = "adminTeamOrderFormTemplate">
+		<div id = "adminTeamOrderForm">
+		  <div id = "adminTeamOrderFormTitle">
+			<h2>Edit Teams Order</h2>
+		  </div>
+			<div id = "adminTeamOrderFormTeams">
+			</div>
+			<button id = 'saveAdminTeamOrderButton'>Save</button>
+			<button id = 'cancelAdminTeamOrderChangesButton'>Cancel</button>
+		</div>
+	  </template>
+	
+	  <template id = 'adminTeamOrderFormTeamTemplate'>
+		<div class = 'adminTeamOrderFormTeam'>
+		  <div class = 'adminTeamOrderFormTeamName'></div>
+		  <div class = 'adminTeamOrderFormTeamSize'></div>
+		  <div class = 'adminTeamOrderFormTeamOrderButtons'>    
+			<button class = "moveOptionUpButton">
+			  <i class = "arrow up"></i>
+			</button>
+			<button class = "moveOptionDownButton">
+			  <i class = "arrow down"></i>
+			</button>     
+		  </div> 
+		  </div>
+		</div>
+	  </template>
 
 	<%- contentFor('script') %>
 

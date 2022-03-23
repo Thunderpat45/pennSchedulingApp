@@ -28,9 +28,8 @@ const availabilityData = (function(){
     } 
 
     function setAvailabilityDataEditRequest(timeBlock){
-        availabilityModelStable =  timeBlock;
-        availabilityModelMutable = Object.assign({}, availabilityModelStable)
-        availabilityModelMutable.availability = Object.assign({}, availabilityModelStable.availability)
+        availabilityModelStable = structuredClone(timeBlock);
+        availabilityModelMutable = structuredClone(availabilityModelStable)
 
         events.publish("availabilityBlockDataLoaded", {timeBlock: availabilityModelMutable, origin:"edit"})
     }
@@ -42,11 +41,10 @@ const availabilityData = (function(){
     }
 
     function addAvailabilityBlock(day){
-        availabilityModelStable = Object.assign({}, timeBlockDefault);
+        availabilityModelStable = structuredClone(timeBlockDefault);
         availabilityModelStable.day = day;
 
-        availabilityModelMutable = Object.assign({}, availabilityModelStable);
-        availabilityModelMutable.availability = Object.assign({}, availabilityModelStable.availability)
+        availabilityModelMutable = structuredClone(availabilityModelStable);
 
         events.publish("availabilityBlockAddRequested", {timeBlock: availabilityModelMutable, origin: "add"});
     }

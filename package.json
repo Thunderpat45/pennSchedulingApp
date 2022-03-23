@@ -21,24 +21,27 @@
   },
   "homepage": "https://github.com/Thunderpat45/pennSchedulingApp#readme",
   "devDependencies": {
-    "eslint": "^8.6.0",
+    "eslint": "^8.11.0",
     "exports-loader": "^3.1.0",
     "expose-loader": "^3.1.0",
-    "prettier": "2.5.1",
-    "webpack": "^5.65.0",
-    "webpack-cli": "^4.9.1"
+    "prettier": "2.6.0",
+    "webpack": "^5.70.0",
+    "webpack-cli": "^4.9.2"
   },
   "dependencies": {
     "-": "^0.0.1",
-    "cookie-parser": "~1.4.4",
-    "debug": "~2.6.9",
-    "dotenv": "^14.3.2",
+    "cookie-parser": "~1.4.6",
+    "debug": "~4.3.4",
+    "dotenv": "^16.0.0",
     "ejs": "^3.1.6",
-    "express": "^4.17.2",
+    "express": "^4.17.3",
     "express-ejs-layouts": "^2.5.1",
     "express-generator": "^4.2.0",
-    "http-errors": "~1.6.3",
-    "mongoose": "^6.1.7",
-    "morgan": "~1.9.1"
+    "express-session": "^1.17.2",
+    "http-errors": "~2.0.0",
+    "mongoose": "^6.2.7",
+    "morgan": "~1.10.0",
+    "passport": "^0.5.2",
+    "passport-local": "^1.0.0"
   }
 }

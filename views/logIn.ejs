@@ -1,19 +1,28 @@
 <div id = "logInFormWrapper">
-    <form id = "logInForm">
+    <form id = "logInForm" action = '/logIn' method = 'post'>
         <h2>Sign In</h2>
         <div id = "logInUserNameDiv">
             <h3>Name</h3>
-            <div id = "logInUserName">
-                <input type = "text">
+            <div id = "logInUserNameDiv">
+                <input id = 'logInUserName' type = "text" name = 'username'>
             </div>
         </div>
         <div>
             <h3>Password</h3>
             <div id = "logInPasswordDiv">
-                <input type = "text">
+                <input id = 'logInPassword' type = "text" name = 'password'>
             </div>
         </div> 
-        <button type = "submit">Submit</button>
+        <button id = 'loginAttemptButton' type = 'submit'>Log In</button>
+        <div id = 'errorListDiv'>
+            <ul id ='errorList'>
+                <%if(error != null){%>
+                    <li><%= error%></li>
+                <%}%>
+            </ul>
+        </div>
+    </form>
 </div>
 
-</form>
+<%- contentFor('script')%>
+  <script src = "/javascripts/logInPage.js"></script>

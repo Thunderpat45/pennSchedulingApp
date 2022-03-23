@@ -11,7 +11,11 @@
         <%}else{%>
             <div class = "adminUserGridUserPrivilege">Privilege: User</div>
         <%}%>
-		<div class = "adminUserGridUserLastVerified"><%=`Last Verified: ${user.lastVerified}`%></div>
+		<%if(user.lastVerified != null){%>
+            <div class = "adminUserGridUserLastVerified"><%=`Last Verified: ${user.lastVerified}`%></div>
+        <%}else{%>
+            <div class = "adminUserGridUserLastVerified"><%=`Last Verified: N/A`%></div>
+        <%}%>
 		<div class = "adminUserGridUserButtonDiv">
 			<button class = "adminUserGridUserEditButton">Edit User</button>
 			<button class = "adminUserGridUserDeleteButton">Delete User</button>

@@ -11,6 +11,9 @@ const adminHomeMain = (function(){
         setFacilityDataListeners()
         setUserDataListeners();
         setAdminTimeBlocksEventListeners();
+        setTeamListeners();
+        setAllTeamOrderEventListener()
+        //setScheduleEventListener()
     }
 
     function setFacilityDataListeners(){
@@ -92,63 +95,38 @@ const adminHomeMain = (function(){
         })
     }
 
+    function setTeamListeners(){
+        const teams = Array.from(document.querySelectorAll("#adminMainPageTeamGrid > div"));
+        teams.forEach(function(team){
+            const _id = team.dataset.teamid;
+            const disableButton = team.querySelector('.adminMainPageTeamGridTeamDisableButton')
+
+            disableButton.addEventListener('click', publishEnabledStatusChange)
+
+            function publishEnabledStatusChange(){
+                events.publish('enabledStatusChangeClicked', _id)
+            }
+        })
+    }
+
+    function setAllTeamOrderEventListener(){
+        const modifyAllTeamOrderButton = document.querySelector('#modifyAdminRanksButton');
+
+        modifyAllTeamOrderButton.addEventListener('click', requestTeamOrderChange)
+
+        function requestTeamOrderChange(){
+            events.publish('adminTeamOrderChangeClicked')
+        }
+    }
+
+     // function runScheduler(){
+    //     events.publish("runSchedulerRequested") 
+    // }
+
+
 })()
 
 export {adminHomeMain}
 
-  // let season //?
+   
     
-    // events.subscribe("adminMainPageModelBuilt", setSeason)
-    // events.subscribe("adminMainPageModelBuilt", ANOTHERFUNCTIONHERE?);
-    // events.subscribe("adminAvailabilityModelModified", renderAdminAllTimeBlocks);
-    // events.subscribe("adminFacilityModelModified", renderFacilityDataGrid)
-    
-    // function setSeason(adminMainPageData){
-    //     season = adminMainPageData.season
-    // }
-
-    // function changeSeason(){
-            
-    // }
-
-    // function runScheduler(){
-    //     events.publish("runSchedulerRequested") 
-    // }
-
-    // //find subscribers to changeSeasons and runScheduler, issue NOT TO BE ADDRESSED:  scheduler could be run with unsaved modifications to adminAvail and facilityData
-    // function buildAdminMainPageDOM(adminMainPageData){
-       
-        
-    
-     
-        
-    //     const adminFacilityData = content.querySelector("#facilityDataGridContainer");
-    //     const adminAddTimeBlock = content.querySelector("#setAllUsersAvailabilityGridContainer");
-        
-    
-    //     const adminAllUsersNew = renderAdminAllUsersGrid(adminAllUsers, adminMainPageData.allUsers);
-    //     const adminFacilityDataNew = renderFacilityDataGrid({adminFacilityDataContainer: adminFacilityData, adminMainPageData: adminMainPageData.facilitySelectors, pageRenderOrigin: "template"});
-    //     const adminAddTimeBlockNew = renderAdminTimeBlocker({adminTimeBlockDiv: adminAddTimeBlock, adminMainPageData: adminMainPageData.adminTimeBlocks, pageRenderOrigin: "template"});
-    
-    //     adminAllUsers.replaceWith(adminAllUsersNew); 
-    //     adminFacilityData.replaceWith(adminFacilityDataNew);
-    //     adminAddTimeBlock.replaceWith(adminAddTimeBlockNew);
-    
-    //     seasonButtons.forEach(function(button){
-    //         if(!button.disabled){
-    //             button.addEventListener("click", changeSeason)
-    //         }else{
-                
-               
-    //         }
-    //     })
-
-    //     schedulerButton.addEventListener("click", runScheduler)   
-    // }
-
-    // function setElements(){
-        
-        
-    //     const seasonButtons = Array.from(content.querySelectorAll("#adminSeasonButtons > button"));
-    //     const schedulerButton = content.querySelector("#runScheduleBuilderButton");
-    // }

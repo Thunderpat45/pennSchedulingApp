@@ -13,26 +13,8 @@ const allAvailabilityDataModel = (function(){
     events.subscribe('availabilityBlockDataDeleted', setDataBlockDataDeleted)
 
     function setDataNewPageRender(userData){
-        allAvailabilityDataStable = userData.availabilityTimeBlocks;
-        createAvailabilityDeepCopy(allAvailabilityDataMutable, allAvailabilityDataStable);
-    }
-
-    function createAvailabilityDeepCopy(newObj, copyObj){
-        for(let prop in newObj){
-            delete newObj[prop]
-        }
-
-        for(let day in copyObj){
-            newObj[day] = [];
-            copyObj[day].forEach(function(timeBlock){ //edit
-                const {admin, day, season, _id, coach} = timeBlock
-                const timeBlockCopy = Object.assign({}, {admin, day, season, _id, coach});
-                timeBlockCopy.availability = Object.assign({}, timeBlock.availability)
-                newObj[day].push(timeBlockCopy);
-                
-
-            });
-        }
+        allAvailabilityDataStable = structuredClone(userData.availabilityTimeBlocks);
+        allAvailabilityDataMutable = structuredClone(allAvailabilityDataStable);
     }
 
     function editAvailabilityBlock(timeBlockObj){
@@ -58,7 +40,7 @@ const allAvailabilityDataModel = (function(){
 			allAvailabilityDataMutable[blockData.day].push(blockData);
 		}
 		
-        createAvailabilityDeepCopy(allAvailabilityDataStable, allAvailabilityDataMutable);
+        allAvailabilityDataStable= structuredClone(allAvailabilityDataMutable);
 		events.publish("renderUpdatedAvailabilityBlockData", {day: blockData.day, blocks: allAvailabilityDataMutable[blockData.day]})
     }
 
@@ -69,7 +51,7 @@ const allAvailabilityDataModel = (function(){
 		})
 
 		allAvailabilityDataMutable[day] = newBlocksList;
-		createAvailabilityDeepCopy(allAvailabilityDataStable, allAvailabilityDataMutable);
+		allAvailabilityDataStable = structuredClone(allAvailabilityDataMutable);
 		events.publish("renderUpdatedAvailabilityBlockData", {day, blocks: allAvailabilityDataMutable[day]})
 	}
 

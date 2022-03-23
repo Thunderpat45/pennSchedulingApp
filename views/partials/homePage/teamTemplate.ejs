@@ -1,36 +1,21 @@
 
-    <div class = "teamGridTeam">
+    <div class = "teamGridTeam" data-teamId = "<%=`${team._id}`%>">
       <div class = teamGridTeamDetailsWrapper>
         <div class = "teamGridTeamNameSizeContainer">
           <div class = "teamGridTeamName"><%=team.name%></div>
-          <div class = "teamGridTeamSize"><%=`${team.size} athletes`%></div>
-          
+          <%if(team.size > facilityData.facilityMaxCapacity){%>
+            <div class = "teamGridTeamSize"><%=`Team size ${team.size} is larger than facilty max capacity. Speak to supervisor about capacity changes.`%></div>
+          <%}else{%>
+            <div class = "teamGridTeamSize"><%=`${team.size} athletes`%></div>
+          <%}%>
         </div>
         <div class = "teamGridTeamOptionContainer">
             <%team.allOpts.forEach(function(option, index){%>
               <% const optNum = index + 1%>
-              <%- include('./teamOptionTemplate', {optNum: optNum, option: option, timeConverter:timeConverter})%>
+              <%- include('./teamOptionTemplate', {optNum: optNum, option: option, timeConverter:timeConverter, facilityData:facilityData})%>
             <%})%>
         </div>
         <div class = "teamGridTeamButtons">
-          <div class = "teamRankButtons">
-              <%if(allTeamsLength >0 && index == 0){%>
-                <button class = "moveOptionDownButton">
-                  <i class = "arrow down"></i>
-                </button>
-              <%}else if(allTeamsLength >0 && index == allTeamsLength - 1){%>
-                <button class = "moveOptionUpButton">
-                  <i class = "arrow up"></i>
-                </button>
-              <%}else if(allTeamsLength >0){%>
-                <button class = "moveOptionUpButton">
-                  <i class = "arrow up"></i>
-                </button>
-                <button class = "moveOptionDownButton">
-                  <i class = "arrow down"></i>
-                </button>
-              <%}%>
-          </div>
           <div class = "verifyEditDeleteTeamDiv">
             <button class = "teamGridTeamVerifyButton">Verify</button>
             <button class = "teamGridTeamEditButton">Edit</button>
@@ -38,5 +23,13 @@
           </div>	
         </div>
       </div>
-      <div class = "teamGridTeamLastVerified">Last Verified: <%=team.lastVerified%> </div>
+      <%if(team.lastVerified != null){%>
+        <div class = "teamGridTeamLastVerified">Last Verified: <%=team.lastVerified%> </div>
+      <%}else{%>
+        <div class = "teamGridTeamLastVerified">Last Verified: N/A </div>
+      <%}%>
     </div>
+
+
+
+      

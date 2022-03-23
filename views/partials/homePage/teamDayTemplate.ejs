@@ -1,7 +1,23 @@
 
 
     <div class = "teamGridTeamDayOfWeek"><%= day.dayOfWeek%></div>
-    <div class = "teamGridTeamStartTime"><%= timeConverter.runConvertTotalMinutesToTime(day.startTime)%></div>
+    <%if(day.startTime < facilityData.facilityOpen || day.startTime > facilityData.facilityClose){%>
+        <div class = "teamGridTeamStartTime"><%= `Start time ${timeConverter.runConvertTotalMinutesToTime(day.startTime)} is outside facility hours. Speak to supervisor about time changes.`%></div>
+    <%}else{%>
+        <div class = "teamGridTeamStartTime"><%= timeConverter.runConvertTotalMinutesToTime(day.startTime)%></div>
+    <%}%>
     <div class = "teamGridTimeAppender"> - </div>
-    <div class = "teamGridTeamEndTime"><%= timeConverter.runConvertTotalMinutesToTime(day.endTime)%></div>
+    <%if(day.endTime < facilityData.facilityOpen || day.endTime > facilityData.facilityClose){%>
+        <div class = "teamGridTeamEndTime"><%= `End time ${timeConverter.runConvertTotalMinutesToTime(day.endTime)} is outside facility hours. Speak to supervisor about time changes.`%></div>
+    <%}else{%>
+        <div class = "teamGridTeamEndTime"><%= timeConverter.runConvertTotalMinutesToTime(day.endTime)%></div>
+    <%}%>
     <div class = "teamGridTeamInWeiss"><%= day.inWeiss%></div>
+
+
+
+       
+
+       
+        
+       

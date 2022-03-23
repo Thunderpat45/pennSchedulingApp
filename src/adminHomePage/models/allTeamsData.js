@@ -1,4 +1,4 @@
-import { events } from "../events";
+import { events } from "../../events";
 
 const adminMainPageAllTeamsData = (function(){
 	//no obvious work to be done here except connect teamOrder change to database, have changes written to EVERY TEAM and ensure recursion is necessary
@@ -6,61 +6,67 @@ const adminMainPageAllTeamsData = (function(){
 	let allTeamsDataMutable;
 
 	events.subscribe("adminDataFetched", setDataNewPageRender);
-	events.subscribe("", setDataNewDatabasePost); //add prompt for successful database post
-	events.subscribe("", cancelTeamRankChanges) //add prompt for change cancellation
-	events.subscribe("", saveTeamRankChanges) //add promprt for save changes
-	events.subscribe("modifyAdminTeamOrder", modifyTeamOrder);
-	events.subscribe("modifyTeamEnabled", toggleTeamEnabled)
+	events.subscribe("allTeamsOrderChangeSaved", setDataNewTeamOrder); //add prompt for successful database post
+	events.subscribe("cancelAllTeamsOrderChangesClicked", cancelTeamOrderChanges) //add prompt for change cancellation
+	events.subscribe("updateAllTeamsOrderClicked", saveTeamOrderChanges) //add promprt for save changes
+	events.subscribe("modifyAllTeamsOrderClicked", modifyTeamOrder);
+	events.subscribe("enabledStatusChangeClicked", toggleTeamEnabled);
+	events.subscribe('teamEnableStatusChangeSaved', setDataTeamEnableStatusChange)
+	events.subscribe('adminTeamOrderChangeClicked', sendTeamData)
 
 	function setDataNewPageRender(adminAllTeams){
-        allTeamsDataStable = adminAllTeams.allTeams; //make sure this is correct property for database initial database fetch
-        createAllTeamsDeepCopy(allTeamsDataMutable, allTeamsDataStable)
+        allTeamsDataStable = structuredClone(adminAllTeams.teams); //make sure this is correct property for database initial database fetch
+        allTeamsDataMutable = structuredClone(allTeamsDataStable)
     }
 
-    function setDataNewDatabasePost(){
-        createAllTeamsDeepCopy(allTeamsDataStable, allTeamsDataMutable);
-    }
+	function modifyTeamOrder(teamObj){
+		const thisTeamIndex = allTeamsDataMutable.findIndex(function(team){
+            return team._id == teamObj.team._id
+        })
+        
+        const thisTeam = allTeamsDataMutable.splice(thisTeamIndex, 1)[0]
 
-    function createAllTeamsDeepCopy(newArr, copyArr){
-        newArr = copyArr.concat();
-        newArr.forEach(function(team){
-			newArr[team] = Object.assign({}, copyArr[team]);
-			newArr[team].rank = Object.assign({}, copyArr[team].rank)
-		})
-    }
-
-	function modifyTeamOrder(teamOrderObj){
-		const {index, modifier} = teamOrderObj;
-
-		const team = allTeamsDataMutable.splice(index, 1)[0];
-		allTeamsDataMutable.splice(index + modifier, 0, team);
-		allTeamsDataMutable.forEach(function(team){
-			team.rank.allTeams = allTeamsDataMutable.findIndex(function(thisTeam){
-				return thisTeam.name == team.name
-			})
-		})
-		events.publish("", allTeamsDataMutable); //change this to render request
+        allTeamsDataMutable.splice(thisTeamIndex + teamObj.modifier, 0, thisTeam);
+        allTeamsDataMutable.forEach(function(thisTeam){
+            thisTeam.rank.allTeams = allTeamsDataMutable.findIndex(function(teams){
+                return teams._id == thisTeam._id
+            })
+        })     
+		events.publish("allTeamsOrderDataUpdated", allTeamsDataMutable);
 	}
 
-	function toggleTeamEnabled(teamIndexObj){
-		const {_id} = teamIndexObj
+	function toggleTeamEnabled(_id){
 		const teamData = allTeamsDataMutable.filter(function(team){
 			return team._id == _id
 		})[0]
-		teamData.enabled = !teamData.enabled;
-		events.publish("teamEnabledUpdateRequested", {_id, teamData}) //find db post for this, create listener tag
+
+		teamData.enabled = !teamData.enabled
+		events.publish("teamEnabledUpdateRequested", _id)
 	}
 
-	function saveTeamRankChanges(){
-		events.publish("", allTeamsDataMutable) //find db post for this
+	function saveTeamOrderChanges(){
+        events.publish('allTeamsOrderDataUpdateRequested', allTeamsDataMutable)
+    }
+
+	function setDataTeamEnableStatusChange(){
+		allTeamsDataStable = structuredClone(allTeamsDataMutable);
+		events.publish('modifyTeamGrid', allTeamsDataMutable)
 	}
 
-	function cancelTeamRankChanges(){
-		createAllTeamsDeepCopy(allTeamsDataMutable, allTeamsDataStable);
-		events.publish("", allTeamsDataMutable) //change this to same render erequest as modifyTeamOrder
-	}
+	function sendTeamData(){
+        events.publish('allTeamsOrderChangeRequested', allTeamsDataMutable)
+    }
 
+	function cancelTeamOrderChanges(){
+        allTeamsDataMutable = structuredClone(allTeamsDataStable);
+        events.publish("allTeamsDataChangesCancelled")
+    }
 
+    function setDataNewTeamOrder(){
+        allTeamsDataStable = structuredClone(allTeamsDataMutable)
+        events.publish('modifyTeamGrid', allTeamsDataMutable)
+    }
+	
 })()
 
 export {adminMainPageAllTeamsData}

@@ -3,10 +3,10 @@ import {timeValueConverter} from "../../../timeConverter";
 
 const availabilityTimeBlockDataGridComponent = (function(){
 
-    events.subscribe("renderUpdatedAvailabilityBlockData", renderAdminTimeBlockDay)
+    events.subscribe("renderUpdatedAvailabilityBlockData", renderAvailabilityTimeBlockDay)
 
-    function renderAdminTimeBlockDay(adminTimeBlockDayData){
-        const {day, blocks} = adminTimeBlockDayData
+    function renderAvailabilityTimeBlockDay(availabilityTimeBlockDayData){
+        const {day, blocks} = availabilityTimeBlockDayData
     
         const availabilityBlocksDiv = document.querySelector("#userPageAddAvailabilityBlockGrid");
         const dayDiv = Array.from(availabilityBlocksDiv.querySelectorAll("div")).find(function(div){

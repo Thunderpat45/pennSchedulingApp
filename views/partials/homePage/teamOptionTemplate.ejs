@@ -3,7 +3,7 @@
       <div class = "teamGridTeamOptionNumber"><%=`Option ${optNum}`%></div>
       <div class = "teamGridTeamDayContainer">
         <%option.forEach(function(day){%>
-            <%- include('./teamDayTemplate', {option: option, day:day, timeConverter:timeConverter})%>
+            <%- include('./teamDayTemplate', {option: option, day:day, timeConverter:timeConverter, facilityData:facilityData})%>
         <%})%>
       </div>
     </div>

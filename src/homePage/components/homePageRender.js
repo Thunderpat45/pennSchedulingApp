@@ -3,9 +3,62 @@ import {events} from "../../../src/events"
 const homeRender = (function(){
 
     events.subscribe("userDataSet", setHomeEventListeners);
+    events.subscribe('allTeamsVerificationSaved', setDataAllTeamsVerified)
 
     function setHomeEventListeners(){
         setAvailabilityEventListeners();
+        setTeamsEventListeners();
+    }
+
+    function setTeamsEventListeners(){
+        
+        const addTeamButton = document.querySelector("#teamGridAddTeam");
+        const verifyAllTeamsButton = document.querySelector("#verifyButton");
+        const modifyAllTeamsOrderButton = document.querySelector("#modifyMyTeamsOrder")
+
+        const allTeams = Array.from(document.querySelector('#teamGrid').children);
+
+        if(allTeams[0].innerText != "You have no teams listed!"){
+            allTeams.forEach(function(team){
+                const _id = team.dataset.teamid;
+                const editTeamButton = team.querySelector(".teamGridTeamEditButton");
+                const deleteTeamButton = team.querySelector(".teamGridTeamDeleteButton");
+                const verifyTeamButton = team.querySelector(".teamGridTeamVerifyButton");
+
+                editTeamButton.addEventListener("click", editTeam);
+                deleteTeamButton.addEventListener("click", deleteTeam);
+                verifyTeamButton.addEventListener("click", verifyTeam);
+
+                function editTeam(){
+                    events.publish('editTeamClicked', _id)
+                }
+
+                function deleteTeam(){
+                    const confirmation = confirm('Delete this team?');
+                    if(confirmation){
+                        events.publish('deleteTeamClicked', _id)
+                    }
+                }
+
+                function verifyTeam(){
+                    events.publish('verifyTeamClicked', _id)
+                }
+            })
+        }
+
+        addTeamButton.addEventListener("click", addTeam);
+        verifyAllTeamsButton.addEventListener("click", verifyAllTeams);
+        modifyAllTeamsOrderButton.addEventListener("click", modifyAllTeamsOrder);
+
+        function addTeam(){
+            events.publish('addTeamClicked')
+        }
+        function verifyAllTeams(){
+            events.publish('verifyAllTeamsClicked')
+        }
+        function modifyAllTeamsOrder(){
+            events.publish('teamOrderChangeClicked')
+        }
     }
 
     function setAvailabilityEventListeners(){
@@ -47,6 +100,11 @@ const homeRender = (function(){
                 events.publish("addAvailabilityTimeBlockClicked", dayString)
             }
         })
+    }
+
+    function setDataAllTeamsVerified(timeData){
+        const lastVerifiedContent = document.querySelector('#verifyInfo');
+        lastVerifiedContent.innerText = `The last time you verified all teams were up-to-date was: ${timeData}`;
     }
 
 })()
