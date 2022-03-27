@@ -30,6 +30,7 @@ const singleAdminTimeBlockModel = (function(){
     function addAdminAvailabilityBlock(day){
         adminAvailabilityDataStable = structuredClone(timeBlockDefault);
         adminAvailabilityDataMutable = structuredClone(adminAvailabilityDataStable);
+        adminAvailabilityDataMutable.day = day
 
         events.publish("adminAvailabilityBlockAddRequested", {timeBlock: adminAvailabilityDataMutable, origin: "add"});
     }

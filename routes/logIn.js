@@ -14,18 +14,32 @@ router.get('/', function(req, res, next) {
 })
 
 router.post('/logIn', async function(req,res,next){
-    const {username} = req.body;
-    const thisUser = await user.findOne({name: username});
-    
     try{ 
+        if(!Object.hasOwnProperty.call(req.body, 'username') || !Object.hasOwnProperty.call(req.body, 'password')){
+            throw('Invalid request content')
+        }
+        for(let prop in req.body){
+            if(prop != 'username' & prop!= 'password'){
+                throw('Invalid request content')
+            }
+        }
+        const {username, password} = req.body;
+        const testRegex = /[^A-Za-z0-9]/;
+        if(testRegex.test(username) || typeof username != 'string' || username.length > 30 ||username.length ==0|| testRegex.test(password) || typeof password != 'string' || password.length> 30 || password.length ==0){
+            throw('Invalid username/password combination')
+        }
+        const thisUser = await user.findOne({name: username});
+
         passport.authenticate('local', {
             failureRedirect: '/',
         }, function(err,user){
             if(err){
+                console.log(err)
                 return next(err)
             }else if(!user){
                 console.log('Oops!')
                 const error = 'Invalid username/password combination.'
+                console.log(error)
                 return res.render('logIn', {
                     layout: "./layouts/logInLayout",
                     error:error
@@ -35,7 +49,6 @@ router.post('/logIn', async function(req,res,next){
                     if(err){
                         return next(err)
                     }
-                    console.log(req.isAuthenticated())
                     return res.redirect(`/user/${thisUser._id}/fall/home`)
                 })   
             }
@@ -43,6 +56,10 @@ router.post('/logIn', async function(req,res,next){
         
     }catch(err){
         console.log(err)
+        res.render('logIn', {
+            layout: "./layouts/logInLayout",
+            error:err
+        })
     }
 })
 

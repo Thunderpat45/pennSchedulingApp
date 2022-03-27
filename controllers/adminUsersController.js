@@ -13,7 +13,10 @@ const adminControllerFunctions = {
             const errorArray = [];
             const blockData = req.body;
             const facilityData = await facilitySettings.find({});
-            const timeBlocks = await availabilities.find({$and: [{day: blockData.day}, {season:season},
+
+            testAvailabilityData(facilityData, blockData)
+
+            const timeBlocks = await availabilities.find({$and: [{admin: true},{day: blockData.day}, {season:season},
                 {$or:[
                     {$and:[
                         {'availability.startTime': {$lte: blockData.availability.startTime}}, 
@@ -44,6 +47,7 @@ const adminControllerFunctions = {
             await newBlock.save();
             res.json(newBlock._id);
         }catch(err){
+            console.log(err)
             res.status(400)
             res.json(err)
         }
@@ -55,7 +59,10 @@ const adminControllerFunctions = {
             const errorArray = [];
             const blockData = req.body;
             const facilityData = await facilitySettings.find({});
-            const timeBlocks = await availabilities.find({$and: [{day: blockData.day}, {season:season},
+
+            testAvailabilityData(facilityData, blockData)
+
+            const timeBlocks = await availabilities.find({$and: [{_id: {$ne: blockData._id}}, {day: blockData.day}, {season:season},
                 {$or:[
                     {$and:[
                         {'availability.startTime': {$lte: blockData.availability.startTime}}, 
@@ -69,7 +76,6 @@ const adminControllerFunctions = {
                 ]}]}]},
                         'day availability');
 
-            console.log(timeBlocks)
             if(timeBlocks.length>0){
                 errorArray.push('Overlap with another admin time block on the same day.')
             }
@@ -85,6 +91,7 @@ const adminControllerFunctions = {
             await availabilities.findOneAndReplace({_id: blockData._id}, blockData)
             res.send("Literally anything")
         }catch(err){
+            console.log(err)
             res.status(400)
             res.json(err)
         }
@@ -235,17 +242,14 @@ const adminControllerFunctions = {
     getAdminHome: async function(req,res, next){ //userDependent, seasonal!, should act on cancel buttons too
         try{
             const {season, userId} = req.params
-            console.log(`Admin season : ${season}, adminId : ${userId}`)
             const facilityData = await facilitySettings.findById('6202a107cfebcecf4ca9aecd');
             const users = await user.find();
             const thisUser = await user.findById(userId)
             const adminAvailability = await availabilities.find({admin: true, season: season})
             const adminTimeBlocks = sortAvailabilities(adminAvailability);
             const teams = await team.find({season: season}).populate('coach').sort({'rank.allTeams':1})
-            
             const data = {facilityData, users, adminTimeBlocks, season, thisUser, teams}
-            console.log(thisUser)
-            console.log(thisUser.privilegeLevel)
+          
             renderAdminHome(data)
         }catch(err){
             console.log(err)
@@ -381,6 +385,62 @@ const adminControllerFunctions = {
     getSchedule:function(req,res, next){ 
         res.send('NOT IMPLEMENTED: Get Schedule');
     },
+}
+
+function testAvailabilityData(facilityData, availabilityData){
+    const testRegex = /[^A-Za-z0-9]/
+    const stringRegex = /[^A-Za-z]/
+    const numberRegex = /[^0-9]/
+
+    if(!Object.hasOwnProperty.call(availabilityData, 'availability') || !Object.hasOwnProperty.call(availabilityData, 'admin') ||
+    !Object.hasOwnProperty.call(availabilityData, 'season') || !Object.hasOwnProperty.call(availabilityData, 'day')){
+        console.log('what the hey?')
+        throw('Invalid request data')
+    }
+    for(let prop in availabilityData){
+        switch(prop){
+            case 'availability':
+                if(typeof availabilityData[prop] != 'object' || !Object.hasOwnProperty.call(availabilityData[prop], 'startTime') || !Object.hasOwnProperty.call(availabilityData[prop], 'endTime') || 
+                typeof availabilityData[prop].startTime != 'string' || typeof availabilityData[prop].endTime != 'string' || availabilityData[prop].startTime < facilityData.facilityOpen || 
+                availabilityData[prop].startTime > facilityData.facilityClose || availabilityData[prop].endTime <= facilityData.facilityOpen || availabilityData[prop].endTime > facilityData.facilityClose ||
+                numberRegex.test(availabilityData[prop].startTime) || numberRegex.test(availabilityData[prop].endTime)){
+                    console.log(availabilityData[prop])
+                    throw('Invalid data request')
+                }
+                break;
+            case '_id':
+                if(typeof availabilityData[prop] != 'string' || availabilityData[prop].length > 40 || testRegex.test(availabilityData[prop])){
+                    console.log(availabilityData[prop])
+                    throw('Invalid data request')
+                }
+                break;
+            case 'admin':
+                if(typeof availabilityData[prop] != 'boolean'){
+                    console.log(availabilityData[prop])
+                    throw('Invalid data request')
+                }
+                break;
+            case 'season':
+                if(availabilityData[prop] != 'fall' && availabilityData[prop]!= 'spring'){
+                    console.log(availabilityData[prop])
+                    throw('Invalid data request')
+                }
+                break;
+            case 'day':
+                if(typeof availabilityData[prop]!= 'string' || availabilityData[prop].length != 3 || stringRegex.test(availabilityData[prop])){
+                    console.log(availabilityData[prop])
+                    throw('Invalid data request')
+                }
+                break;
+            case '__v':
+                if(typeof availabilityData[prop]!= 'number'){
+                    throw('Invalid request data')
+                }
+                break;
+            default:
+                throw('Invalid request data')
+        }
+    }
 }
 
 

@@ -3,13 +3,8 @@ const adminUserRouter = express.Router({mergeParams:true});
 
 const adminUsersController = require('../controllers/adminUsersController');
 
-function authenticator(req, res, next){
-    if(req.isAuthenticated()){
-      return next()
-    }else{
-      res.redirect('/')
-    }
-  }
+adminUserRouter.use(authorizeAdminUser)
+adminUserRouter.use(validateInputs)
 
 //main page general functions
 adminUserRouter.get('/', adminUsersController.getAdminHome);
@@ -39,5 +34,27 @@ adminUserRouter.delete('/user/:modifyUserId', adminUsersController.postUserDelet
 adminUserRouter.put('/facilitySettings', adminUsersController.postAdminFacilitySettings);
 adminUserRouter.get(':userId/:season/adminHome/schedule', adminUsersController.getSchedule);
 
+function authorizeAdminUser(req, res, next){
+    const {userId, season} = req.params
+    const {_id, privilegeLevel} = req.session.passport.user
+
+    if(req.isAuthenticated() && userId == _id && privilegeLevel == true){
+        return next()
+    }else{
+        res.redirect(`/user/${_id}/${season}/home`)
+    }
+}
+
+function validateInputs(req, res, next){
+    const testRegex = /[^A-Za-z0-9]/;
+    const {userId, season} = req.params
+    const sessionId = req.session.passport.user._id
+
+    if(testRegex.test(userId) || testRegex.test(season)){
+        res.redirect(`/user/${sessionId}/fall/adminHome`)
+    }else{
+        return next()
+    }
+}
 
 module.exports = adminUserRouter;

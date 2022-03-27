@@ -1440,6 +1440,7 @@ const singleAdminTimeBlockModel = (function(){
     function addAdminAvailabilityBlock(day){
         adminAvailabilityDataStable = structuredClone(timeBlockDefault);
         adminAvailabilityDataMutable = structuredClone(adminAvailabilityDataStable);
+        adminAvailabilityDataMutable.day = day
 
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityBlockAddRequested", {timeBlock: adminAvailabilityDataMutable, origin: "add"});
     }
@@ -1842,7 +1843,6 @@ const databasePost = (function(){
             }else if(blockDataResponse.status == 400){
                
                 const errors = await blockDataResponse.json();
-                console.log(errors)
                 const origin = "edit"
                 _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userAvailabilityValidationFailed", {errors, origin})
             }else if(blockDataResponse.status == 200){ 

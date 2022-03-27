@@ -12,7 +12,11 @@ const userControllerFunctions = {
         try{
             const errorArray = [];
             const blockData = req.body;
+
             const facilityData = await facilitySettings.find({});
+            
+            testAvailabilityData(facilityData, blockData)
+
             const timeBlocks = await availabilities.find({$and: [{coach: userId}, {day: blockData.day}, {season:season},
                 {$or:[
                     {$and:[
@@ -53,12 +57,15 @@ const userControllerFunctions = {
     },
 
     postTimeBlockUpdate: async function(req,res, next){ //userDependent, seasonal!
-        const {userId, season} = req.params
+        const {userId, season, timeBlockId} = req.params
         try{
             const errorArray = [];
             const blockData = req.body;
             const facilityData = await facilitySettings.find({});
-            const timeBlocks = await availabilities.find({$and: [{coach: userId}, {day: blockData.day}, {season:season},
+
+            testAvailabilityData(facilityData, blockData)
+            
+            const timeBlocks = await availabilities.find({$and: [{_id: {$ne: timeBlockId}},{coach: userId}, {day: blockData.day}, {season:season},
                 {$or:[
                     {$and:[
                         {'availability.startTime': {$lte: blockData.availability.startTime}}, 
@@ -86,10 +93,9 @@ const userControllerFunctions = {
             }
             await availabilities.findOneAndReplace({_id: blockData._id}, blockData)
 
-            
-
             res.send("Literally anything")
         }catch(err){
+            console.log(err)
             res.status(400)
             res.json(err)
         }
@@ -99,6 +105,26 @@ const userControllerFunctions = {
         try{
             const userId = req.params.userId
             const blockData = req.body;
+
+            if(!Object.hasOwnProperty.call(blockData, 'day') || !Object.hasOwnProperty.call(blockData, '_id')){
+                console.log('what the hey?')
+                throw('Invalid request data')
+            }
+            for(let prop in blockData){
+                if(prop != 'day' && prop != '_id'){ 
+                    console.log(prop)
+                    throw('Invalid request data')
+                }
+            }
+            const testRegex = /[^A-Za-z0-9]/
+            const stringRegex = /[^A-Za-z]/
+
+            if(blockData.day.length != 3 || typeof blockData.day != 'string' || stringRegex.test(blockData.day) || blockData._id.length > 40 || typeof blockData._id != 'string' || testRegex.test(blockData._id)){
+                console.log('GI JOE')
+                throw('Invalid request data')
+            }
+
+
             await availabilities.deleteOne({_id: blockData._id})
             await user.findByIdAndUpdate(userId, {$pull:{[`availability.${blockData.day}`]: blockData._id }})
             res.send('Literally anything')
@@ -112,6 +138,9 @@ const userControllerFunctions = {
         try{
             const thisUser = req.params.userId
             const thisTeam = req.body;
+
+            console.log(thisTeam)
+
             const errorArray = [];
 
             const thisUserAllTeams = await team.find({coach: thisUser})
@@ -151,6 +180,8 @@ const userControllerFunctions = {
     postTeamUpdate: async function(req,res, next){ //userDependent, seasonal!
         try{
             const thisTeam = req.body;
+
+            console.log(thisTeam)
             const errorArray = [];
 
             const teams = await team.find({name: thisTeam.name}, 'name coach');
@@ -184,6 +215,8 @@ const userControllerFunctions = {
         const userId = req.params.userId
         const teamId = req.body._id;
 
+        console.log(teamId)
+
         try{
             await team.deleteOne({_id: teamId})
             await user.findByIdAndUpdate(userId, {$pull:{[`teams`]: teamId}})
@@ -197,8 +230,9 @@ const userControllerFunctions = {
 
     postTeamVerify: async function(req,res, next){ //userDependent, seasonal!
         const {_id, lastVerified} = req.body;
+
+        console.log(`id: ${_id}, lastVerified: ${lastVerified}`)
         try{
-            console.log(req.isAuthenticated())
             await team.findByIdAndUpdate(_id, {lastVerified: lastVerified})
             res.send('Literally anything')
         }catch(err){
@@ -211,7 +245,6 @@ const userControllerFunctions = {
     getHome: async function(req,res, next){ //userDependent, seasonal! should act on cancel buttons too
         const {userId, season} = req.params
         try{
-            console.log(req.isAuthenticated())
             const facilityData = await facilitySettings.findById('6202a107cfebcecf4ca9aecd');
             const availabilityData = await availabilities.find({$and:[{$or:[{coach: userId}, {admin:true}]},{season:season}]})
             const availabilityTimeBlocks = sortAvailabilities(availabilityData);
@@ -223,7 +256,6 @@ const userControllerFunctions = {
             renderHomePage(data);
         }catch(err){
             console.log(err)
-            res.redirect()//
         }
         
         function renderHomePage(data){
@@ -271,6 +303,8 @@ const userControllerFunctions = {
     postAllTeamsVerified: async function(req,res, next){ //userDependent
         const {userId} = req.params;
         const {lastVerified} = req.body
+
+        console.log(lastVerified)
         try{
             await user.findByIdAndUpdate(userId, {lastVerified: lastVerified})
             res.send('Literally anything')
@@ -284,6 +318,9 @@ const userControllerFunctions = {
     postMyTeamsOrder: async function(req,res, next){ // userDependent, seasonal!
         try{
             const myTeams = req.body;
+
+            console.log(myTeams)
+
             await Promise.all(myTeams.map(async function(teams){
                 await team.findByIdAndUpdate(teams._id, {'rank.myTeams': teams.rank.myTeams})
             }))
@@ -304,6 +341,7 @@ const userControllerFunctions = {
 
     getUserDataAll: async function(req,res,next){
         const {userId, season} = req.params
+
         try{
             const thisUser = await user.findOne({_id: userId});
             const availabilityData = await availabilities.find({$and:[{$or:[{coach: userId}, {admin:true}]},{season:season}]})
@@ -342,6 +380,59 @@ const userControllerFunctions = {
         }
     },
 
+}
+
+function testAvailabilityData(facilityData, availabilityData){
+    const testRegex = /[^A-Za-z0-9]/
+    const stringRegex = /[^A-Za-z]/
+    const numberRegex = /[^0-9]/
+
+    if(!Object.hasOwnProperty.call(availabilityData, 'availability')||!Object.hasOwnProperty.call(availabilityData, 'admin') ||
+    !Object.hasOwnProperty.call(availabilityData, 'season') || !Object.hasOwnProperty.call(availabilityData, 'day')){
+        console.log(availabilityData)
+        console.log('what the hey?')
+        throw('Invalid request data')
+    }
+    for(let prop in availabilityData){
+        switch(prop){
+            case 'availability':
+                if(typeof availabilityData[prop] != 'object' || !Object.hasOwnProperty.call(availabilityData[prop], 'startTime') || !Object.hasOwnProperty.call(availabilityData[prop], 'endTime') || 
+                typeof availabilityData[prop].startTime != 'string' || typeof availabilityData[prop].endTime != 'string' || availabilityData[prop].startTime < facilityData.facilityOpen || 
+                availabilityData[prop].startTime > facilityData.facilityClose || availabilityData[prop].endTime <= facilityData.facilityOpen || availabilityData[prop].endTime > facilityData.facilityClose ||
+                numberRegex.test(availabilityData[prop].startTime) || numberRegex.test(availabilityData[prop].endTime)){
+                    throw('Invalid data request')
+                }
+                break;
+            case '_id':
+            case 'coach':
+                if(typeof availabilityData[prop] != 'string' || availabilityData[prop].length > 40 || testRegex.test(availabilityData[prop])){
+                    throw('Invalid data request')
+                }
+                break;
+            case 'admin':
+                if(typeof availabilityData[prop] != 'boolean'){
+                    throw('Invalid data request')
+                }
+                break;
+            case 'season':
+                if(availabilityData[prop] != 'fall' && availabilityData[prop]!= 'spring'){
+                    throw('Invalid data request')
+                }
+                break;
+            case 'day':
+                if(typeof availabilityData[prop]!= 'string' || availabilityData[prop].length != 3 || stringRegex.test(availabilityData[prop])){
+                    throw('Invalid data request')
+                }
+                break;
+            case '__v':
+                if(typeof availabilityData[prop]!= 'number'){
+                    throw('Invalid request data')
+                }
+                break;
+            default:
+                throw('Invalid request data')
+        }
+    }
 }
 
 module.exports = userControllerFunctions

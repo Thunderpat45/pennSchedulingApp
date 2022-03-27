@@ -224,7 +224,6 @@ const databasePost = (function(){
             }else if(blockDataResponse.status == 400){
                
                 const errors = await blockDataResponse.json();
-                console.log(errors)
                 const origin = "edit"
                 events.publish("userAvailabilityValidationFailed", {errors, origin})
             }else if(blockDataResponse.status == 200){ 

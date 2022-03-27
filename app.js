@@ -73,16 +73,9 @@ app.use(ejsLayouts)
 
 
 app.use('/', logInRouter);
-app.use(authenticator)
 app.use('/user', baseUserRouter);
 
-function authenticator(req, res, next){
-  if(req.isAuthenticated()){
-    return next()
-  }else{
-    res.redirect('/')
-  }
-}
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
