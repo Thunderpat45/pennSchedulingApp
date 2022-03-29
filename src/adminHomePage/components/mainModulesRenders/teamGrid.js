@@ -47,7 +47,6 @@ const adminTeamsGridComponent = (function(){
     }
 
     function setElementsContent(teamElement, teamData){
-        console.log(teamData)
         teamElement.div.setAttribute("data-teamId", teamData._id)
         teamElement.name.innerText = teamData.name;
         teamElement.coach.innerText = teamData.coach.name;

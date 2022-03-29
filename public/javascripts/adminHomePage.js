@@ -628,11 +628,13 @@ const userDataFormComponent = (function(){
         const name = content.querySelector("#userGeneratorName");                  
         const privilege = content.querySelector("#userGeneratorPrivilege");
         const color = content.querySelector("#userGeneratorColor");
+        const password = content.querySelector('#userGeneratorPassword');
+        const passwordDiv = content.querySelector('#userGeneratorPasswordDiv')
 
         const saveButton = content.querySelector("#userGeneratorSaveButton");
         const cancelButton = content.querySelector("#userGeneratorCancelButton"); 
 
-        return {content, name, privilege, color, saveButton, cancelButton}
+        return {content, name, privilege, color, saveButton, cancelButton, password, passwordDiv}
     }
 
     function populateFields(userElements, userData){
@@ -646,6 +648,10 @@ const userDataFormComponent = (function(){
     function setEventListeners(userElements, userValues){
         const userData = userValues.userData;
         const origin = userValues.origin
+
+        if(origin == 'edit'){
+            userElements.passwordDiv.remove();
+        }
        
         userElements.saveButton.addEventListener("click", saveUserData);
         userElements.cancelButton.addEventListener("click", cancelUserChanges);
@@ -658,6 +664,7 @@ const userDataFormComponent = (function(){
             }else{
                 verifyColorChange();
                 updateUserPrivilege();
+                verifyPasswordValue();
                 _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("updateUserDataClicked", origin)   
             }       
         }
@@ -682,6 +689,12 @@ const userDataFormComponent = (function(){
             }catch(err){
                 return err
             }
+        }
+
+        function verifyPasswordValue(){
+            if(userElements.password){
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish('modifyUserPasswordValue', userElements.password.value)
+            } 
         }
 
         function updateUserPrivilege(){
@@ -938,7 +951,6 @@ const adminTeamsGridComponent = (function(){
     }
 
     function setElementsContent(teamElement, teamData){
-        console.log(teamData)
         teamElement.div.setAttribute("data-teamId", teamData._id)
         teamElement.name.innerText = teamData.name;
         teamElement.coach.innerText = teamData.coach.name;
@@ -1532,6 +1544,7 @@ const userData = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyUserNameValue", setName);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyUserPrivilegeLevelValue", setPrivilegeLevel)
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyUserColorValue", setColor)
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('modifyUserPasswordValue', setPassword)
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataEditRequested", setUserModelEditRequest);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("addUserClicked", createNewUser);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateUserDataClicked", validateChanges);
@@ -1580,6 +1593,10 @@ const userData = (function(){
 
     function setPrivilegeLevel(privilege){
         userModelMutable.privilegeLevel = privilege;
+    }
+
+    function setPassword(password){
+        userModelMutable.password = password;
     }
 
     function validateChanges(origin){
@@ -2591,6 +2608,7 @@ const userDataValidator = (function(){
 
         validateUserName(userData, errorArray); 
         validateColor(userData, errorArray)
+        validatePassword(userData, errorArray)
 
         if(errorArray.length > 0){
             _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataValidationFailed", {errors: errorArray, origin});
@@ -2612,6 +2630,21 @@ const userDataValidator = (function(){
             array.push(err)
         }
     }
+
+    function validatePassword(userModel, array){
+        const password = userModel.password;
+        const passwordRegex = /[^A-Za-z0-9]/;
+        try{
+            if(passwordRegex.test(password)){
+                throw("Passwords can only include letters and numbers (no spaces or symbols).");
+            }else if(password == ""){
+                throw("Password must have a value.");
+            }
+        }catch(err){
+            array.push(err)
+        }
+    }
+
 
     function validateColor(userModel, array){
         const color = userModel.color;

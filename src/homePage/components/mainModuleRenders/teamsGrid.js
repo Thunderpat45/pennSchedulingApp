@@ -54,7 +54,7 @@ const myTeamsDataGridComponent = (function(){
     function setElementsContent(teamElement, teamData){
         teamElement.div.setAttribute("data-teamId", teamData._id)
         teamElement.name.innerText = `${teamData.name}`;
-        teamElement.size.innerText = `Size: ${teamData.size}`;
+        teamElement.size.innerText = `${teamData.size} athletes`;
         teamElement.lastVerified.innerText = `Last Verified: ${teamData.lastVerified}`; //fix this for undefined case
         
         teamData.allOpts.forEach(function(option){

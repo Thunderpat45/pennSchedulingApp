@@ -23,6 +23,7 @@ const userData = (function(){
     events.subscribe("modifyUserNameValue", setName);
     events.subscribe("modifyUserPrivilegeLevelValue", setPrivilegeLevel)
     events.subscribe("modifyUserColorValue", setColor)
+    events.subscribe('modifyUserPasswordValue', setPassword)
     events.subscribe("userDataEditRequested", setUserModelEditRequest);
     events.subscribe("addUserClicked", createNewUser);
     events.subscribe("updateUserDataClicked", validateChanges);
@@ -71,6 +72,10 @@ const userData = (function(){
 
     function setPrivilegeLevel(privilege){
         userModelMutable.privilegeLevel = privilege;
+    }
+
+    function setPassword(password){
+        userModelMutable.password = password;
     }
 
     function validateChanges(origin){

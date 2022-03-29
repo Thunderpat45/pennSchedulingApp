@@ -5,9 +5,13 @@ const facilitySettings = require('../models/facilitySettingsModel');
 const user = require('../models/userModel');
 const availabilities = require('../models/availabilityModel');
 
+const testRegex = /[^A-Za-z0-9]/
+const stringRegex = /[^A-Za-z]/
+const numberRegex = /[^0-9]/
+
 const adminControllerFunctions = {
     
-    postAdminTimeBlockCreation: async function(req, res, next){
+    postAdminTimeBlockCreation: async function(req, res, next){//sanitized
         const {season} = req.params
         try{
             const errorArray = [];
@@ -53,7 +57,7 @@ const adminControllerFunctions = {
         }
     },
 
-    postAdminTimeBlockUpdate: async function(req,res, next){ //userDependent, seasonal!
+    postAdminTimeBlockUpdate: async function(req,res, next){ //sanitized
         const {season} = req.params
         try{
             const errorArray = [];
@@ -97,9 +101,23 @@ const adminControllerFunctions = {
         }
     },
 
-    postAdminTimeBlockDelete: async function(req, res, next){
+    postAdminTimeBlockDelete: async function(req, res, next){//sanitized
         try{
             const blockId = req.body;
+
+            if(!Object.hasOwnProperty.call(blockId, '_id')){
+                throw('Invalid request data')
+            }
+            for(let prop in blockId){
+                if(prop != '_id'){ 
+                    throw('Invalid request data')
+                }
+            }
+
+            if(blockId._id.length > 40 || typeof blockId._id != 'string' || testRegex.test(blockId._id)){
+                throw('Invalid request data')
+            }
+
             await availabilities.deleteOne({_id: blockId})
             res.send('Literally anything')
         }catch(err){
@@ -110,7 +128,11 @@ const adminControllerFunctions = {
 
     postTeamEnabledChange:async function(req,res, next){ //should this be two functions? userDependent, seasonal!
         const {_id} = req.body;
+
         try{
+            if(_id.length > 40 || typeof _id != 'string' || testRegex.test(_id)){
+                throw('Invalid request data')
+            }
             const thisTeam = await team.findById(_id);
             thisTeam.enabled = !thisTeam.enabled;
             await thisTeam.save();
@@ -126,6 +148,8 @@ const adminControllerFunctions = {
         try{
             const thisUser = req.body
             const errorArray = []
+
+            testUserData(thisUser)
     
             const users = await user.find({$or: [{name: thisUser.name}, {color: thisUser.color}]}, 'name color');
             const nameMatchError = users.filter(function(user){
@@ -166,6 +190,8 @@ const adminControllerFunctions = {
             const thisUser = req.body;
             const thisId = req.params.modifyUserId
             const errorArray = []
+
+            testUserData(thisUser)
     
             const users = await user.find({$or: [{_id: thisUser._id}, {name: thisUser.name}, {privilegeLevel: true}, {color: thisUser.color}]}, 'name color privilegeLevel');
             const nameMatchError = users.filter(function(user){
@@ -243,8 +269,8 @@ const adminControllerFunctions = {
         try{
             const {season, userId} = req.params
             const facilityData = await facilitySettings.findById('6202a107cfebcecf4ca9aecd');
-            const users = await user.find();
-            const thisUser = await user.findById(userId)
+            const users = await user.find({}, '_id privilegeLevel color lastVerified name');
+            const thisUser = await user.findById(userId, '_id privilegeLevel color lastVerified')
             const adminAvailability = await availabilities.find({admin: true, season: season})
             const adminTimeBlocks = sortAvailabilities(adminAvailability);
             const teams = await team.find({season: season}).populate('coach').sort({'rank.allTeams':1})
@@ -318,7 +344,7 @@ const adminControllerFunctions = {
         try{
             const {season} = req.params;
             const facilityData = await facilitySettings.findOne(); //turn this into a promise.all
-            const allUsers = await user.find();
+            const allUsers = await user.find({}, '_id privilegeLevel color lastVerified name');
             const adminAvailability = await availabilities.find({admin: true, season: season})
             const adminTimeBlocks = sortAvailabilities(adminAvailability)
             const teams = await team.find({season: season}).populate('coach').sort({'rank.allTeams':1})
@@ -357,6 +383,7 @@ const adminControllerFunctions = {
     postAdminFacilitySettings: async function(req,res, next){ //userDependent
         try{
             const facilityData = req.body;
+            testFacilityData(facilityData)
             await facilitySettings.findOneAndReplace({_id: facilityData._id}, facilityData)
             res.send("Literally anything")
         }catch(err){
@@ -367,6 +394,16 @@ const adminControllerFunctions = {
     postAllTeamsOrder: async function(req,res, next){ 
         try{
             const allTeams = req.body;
+
+            if(!Array.isArray(allTeams) || allTeams.length == 0){
+                throw('Invalid request data')
+            }
+
+            allTeams.forEach(function(team){
+                if(typeof team != 'object' || !Object.hasOwnProperty.call(team, 'rank') || typeof team.rank != 'object' || !Object.hasOwnProperty.call(team.rank, 'allTeams') || typeof team.rank.allTeams != 'number'){
+                    throw('Invalid request data')
+                }
+            })
             await Promise.all(allTeams.map(async function(teams){
                 await team.findByIdAndUpdate(teams._id, {'rank.allTeams': teams.rank.allTeams})
             }))
@@ -387,48 +424,116 @@ const adminControllerFunctions = {
     },
 }
 
+function testUserData(userData){
+    if(!Object.hasOwnProperty.call(userData, 'name') || !Object.hasOwnProperty.call(userData, 'color') ||
+    !Object.hasOwnProperty.call(userData, 'privilegeLevel') || !Object.hasOwnProperty.call(userData, 'teams')|| !Object.hasOwnProperty.call(userData, 'availability')|| 
+    !Object.hasOwnProperty.call(userData, 'lastVerified')){
+        throw('Invalid request data')
+    }
+    console.log(userData)
+    for(let prop in userData){
+        switch(prop){
+            case 'name':
+                if(testRegex.test(userData[prop]) || userData[prop].length > 30 || typeof userData[prop] != 'string'){
+                    console.log('name error')
+                    throw('Invalid data request')
+                }
+                break;
+            case 'color':
+                if(typeof userData[prop] != 'string' || userData[prop].length != 7){
+                    console.log('color error')
+                    throw('Invalid data request')
+                }
+                break;
+            case 'privilegeLevel':
+                if(typeof userData[prop] != 'boolean' ){
+                    throw('Invalid data request')
+                }
+                break;
+            case 'teams':
+                if(!Array.isArray(userData[prop])){
+                    throw('Invalid data request')
+                }
+                break;
+            case 'availability':
+                if(typeof userData[prop] != 'object'){
+                    throw('Invalid data request')
+                }
+                break;
+            case 'lastVerified':
+            case '__v':
+                break;
+            case 'password':
+                break; //?
+            default:
+                throw('Invalid request data')
+        }
+    }
+}
+
+function testFacilityData(facilityData){
+    if(!Object.hasOwnProperty.call(facilityData, 'facilityClose') || !Object.hasOwnProperty.call(facilityData, 'facilityOpen') ||
+    !Object.hasOwnProperty.call(facilityData, 'facilityMaxCapacity') || !Object.hasOwnProperty.call(facilityData, '_id')){
+        throw('Invalid request data')
+    }
+    for(let prop in facilityData){
+        switch(prop){
+            case 'facilityOpen':
+            case 'facilityClose':
+                if(numberRegex.test(facilityData[prop]) || facilityData.facilityOpen >= facilityData.facilityClose){
+                    throw('Invalid data request')
+                }
+                break;
+            case '_id':
+                if(typeof facilityData[prop] != 'string' || facilityData[prop].length > 40 || testRegex.test(facilityData[prop])){
+                    throw('Invalid data request')
+                }
+                break;
+            case 'facilityMaxCapacity':
+                if(typeof facilityData[prop] != 'number'){
+                    throw('Invalid data request')
+                }
+                break;
+            default:
+                throw('Invalid request data')
+        }
+    }
+}
+
 function testAvailabilityData(facilityData, availabilityData){
-    const testRegex = /[^A-Za-z0-9]/
-    const stringRegex = /[^A-Za-z]/
-    const numberRegex = /[^0-9]/
+    
 
     if(!Object.hasOwnProperty.call(availabilityData, 'availability') || !Object.hasOwnProperty.call(availabilityData, 'admin') ||
     !Object.hasOwnProperty.call(availabilityData, 'season') || !Object.hasOwnProperty.call(availabilityData, 'day')){
-        console.log('what the hey?')
         throw('Invalid request data')
     }
     for(let prop in availabilityData){
         switch(prop){
             case 'availability':
                 if(typeof availabilityData[prop] != 'object' || !Object.hasOwnProperty.call(availabilityData[prop], 'startTime') || !Object.hasOwnProperty.call(availabilityData[prop], 'endTime') || 
-                typeof availabilityData[prop].startTime != 'string' || typeof availabilityData[prop].endTime != 'string' || availabilityData[prop].startTime < facilityData.facilityOpen || 
-                availabilityData[prop].startTime > facilityData.facilityClose || availabilityData[prop].endTime <= facilityData.facilityOpen || availabilityData[prop].endTime > facilityData.facilityClose ||
+                availabilityData[prop].startTime < facilityData.facilityOpen || availabilityData[prop].startTime > facilityData.facilityClose || 
+                availabilityData[prop].endTime <= facilityData.facilityOpen || availabilityData[prop].endTime > facilityData.facilityClose ||
                 numberRegex.test(availabilityData[prop].startTime) || numberRegex.test(availabilityData[prop].endTime)){
-                    console.log(availabilityData[prop])
                     throw('Invalid data request')
                 }
                 break;
             case '_id':
                 if(typeof availabilityData[prop] != 'string' || availabilityData[prop].length > 40 || testRegex.test(availabilityData[prop])){
-                    console.log(availabilityData[prop])
                     throw('Invalid data request')
                 }
                 break;
             case 'admin':
                 if(typeof availabilityData[prop] != 'boolean'){
-                    console.log(availabilityData[prop])
                     throw('Invalid data request')
                 }
                 break;
             case 'season':
                 if(availabilityData[prop] != 'fall' && availabilityData[prop]!= 'spring'){
-                    console.log(availabilityData[prop])
                     throw('Invalid data request')
                 }
                 break;
             case 'day':
                 if(typeof availabilityData[prop]!= 'string' || availabilityData[prop].length != 3 || stringRegex.test(availabilityData[prop])){
-                    console.log(availabilityData[prop])
                     throw('Invalid data request')
                 }
                 break;

@@ -12,6 +12,7 @@ const userDataValidator = (function(){
 
         validateUserName(userData, errorArray); 
         validateColor(userData, errorArray)
+        validatePassword(userData, errorArray)
 
         if(errorArray.length > 0){
             events.publish("userDataValidationFailed", {errors: errorArray, origin});
@@ -33,6 +34,21 @@ const userDataValidator = (function(){
             array.push(err)
         }
     }
+
+    function validatePassword(userModel, array){
+        const password = userModel.password;
+        const passwordRegex = /[^A-Za-z0-9]/;
+        try{
+            if(passwordRegex.test(password)){
+                throw("Passwords can only include letters and numbers (no spaces or symbols).");
+            }else if(password == ""){
+                throw("Password must have a value.");
+            }
+        }catch(err){
+            array.push(err)
+        }
+    }
+
 
     function validateColor(userModel, array){
         const color = userModel.color;

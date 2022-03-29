@@ -39,11 +39,13 @@ const userDataFormComponent = (function(){
         const name = content.querySelector("#userGeneratorName");                  
         const privilege = content.querySelector("#userGeneratorPrivilege");
         const color = content.querySelector("#userGeneratorColor");
+        const password = content.querySelector('#userGeneratorPassword');
+        const passwordDiv = content.querySelector('#userGeneratorPasswordDiv')
 
         const saveButton = content.querySelector("#userGeneratorSaveButton");
         const cancelButton = content.querySelector("#userGeneratorCancelButton"); 
 
-        return {content, name, privilege, color, saveButton, cancelButton}
+        return {content, name, privilege, color, saveButton, cancelButton, password, passwordDiv}
     }
 
     function populateFields(userElements, userData){
@@ -57,6 +59,10 @@ const userDataFormComponent = (function(){
     function setEventListeners(userElements, userValues){
         const userData = userValues.userData;
         const origin = userValues.origin
+
+        if(origin == 'edit'){
+            userElements.passwordDiv.remove();
+        }
        
         userElements.saveButton.addEventListener("click", saveUserData);
         userElements.cancelButton.addEventListener("click", cancelUserChanges);
@@ -69,6 +75,7 @@ const userDataFormComponent = (function(){
             }else{
                 verifyColorChange();
                 updateUserPrivilege();
+                verifyPasswordValue();
                 events.publish("updateUserDataClicked", origin)   
             }       
         }
@@ -93,6 +100,12 @@ const userDataFormComponent = (function(){
             }catch(err){
                 return err
             }
+        }
+
+        function verifyPasswordValue(){
+            if(userElements.password){
+                events.publish('modifyUserPasswordValue', userElements.password.value)
+            } 
         }
 
         function updateUserPrivilege(){
