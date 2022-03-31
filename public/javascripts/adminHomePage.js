@@ -28,7 +28,7 @@ const adminHomeMain = (function(){
         setAdminTimeBlocksEventListeners();
         setTeamListeners();
         setAllTeamOrderEventListener()
-        //setScheduleEventListener()
+        setSchedulerEventListener()
     }
 
     function setFacilityDataListeners(){
@@ -134,9 +134,15 @@ const adminHomeMain = (function(){
         }
     }
 
-     // function runScheduler(){
-    //     events.publish("runSchedulerRequested") 
-    // }
+    function setSchedulerEventListener(){
+        const scheduleBuilder = document.querySelector('#runScheduleBuilderButton');
+
+        scheduleBuilder.addEventListener('click', requestScheduleBuild)
+
+        function requestScheduleBuild(){
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish('scheduleBuildRequested')
+        }
+    }
 
 
 })()
@@ -1658,6 +1664,7 @@ const databasePost = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('myTeamsOrderDataUpdateRequested', updateMyTeamsOrder)
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('allTeamsOrderDataUpdateRequested', updateAllTeamsOrder);
 
+    _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('scheduleBuildRequested', buildSchedule)
     //events.subscribe('loginAttemptRequested', postLoginAttempt)
    
 
@@ -2121,6 +2128,29 @@ const databasePost = (function(){
                 throw('400 error!')
             }else if(teamDataResponse.status == 200){  
                 _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamEnableStatusChangeSaved")
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    async function buildSchedule(){
+        try{
+            const scheduleResponse = await fetch(`adminHome/schedule`, {
+                method:'GET',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+            });
+
+            if(scheduleResponse.status == 404){
+                throw('404 error!')
+            }else if(scheduleResponse.status == 400){
+                throw('400 error!')
+            }else if(scheduleResponse.status == 200){  
+                const data = scheduleResponse.json()
+                console.log(data)
             }
         }catch(err){
             console.log(err)

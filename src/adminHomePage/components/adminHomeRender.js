@@ -13,7 +13,7 @@ const adminHomeMain = (function(){
         setAdminTimeBlocksEventListeners();
         setTeamListeners();
         setAllTeamOrderEventListener()
-        //setScheduleEventListener()
+        setSchedulerEventListener()
     }
 
     function setFacilityDataListeners(){
@@ -119,9 +119,15 @@ const adminHomeMain = (function(){
         }
     }
 
-     // function runScheduler(){
-    //     events.publish("runSchedulerRequested") 
-    // }
+    function setSchedulerEventListener(){
+        const scheduleBuilder = document.querySelector('#runScheduleBuilderButton');
+
+        scheduleBuilder.addEventListener('click', requestScheduleBuild)
+
+        function requestScheduleBuild(){
+            events.publish('scheduleBuildRequested')
+        }
+    }
 
 
 })()

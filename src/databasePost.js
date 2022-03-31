@@ -22,6 +22,7 @@ const databasePost = (function(){
     events.subscribe('myTeamsOrderDataUpdateRequested', updateMyTeamsOrder)
     events.subscribe('allTeamsOrderDataUpdateRequested', updateAllTeamsOrder);
 
+    events.subscribe('scheduleBuildRequested', buildSchedule)
     //events.subscribe('loginAttemptRequested', postLoginAttempt)
    
 
@@ -485,6 +486,29 @@ const databasePost = (function(){
                 throw('400 error!')
             }else if(teamDataResponse.status == 200){  
                 events.publish("teamEnableStatusChangeSaved")
+            }
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+    async function buildSchedule(){
+        try{
+            const scheduleResponse = await fetch(`adminHome/schedule`, {
+                method:'GET',
+                headers:{
+                    'Content-Type': 'application/json'
+          
+                },
+            });
+
+            if(scheduleResponse.status == 404){
+                throw('404 error!')
+            }else if(scheduleResponse.status == 400){
+                throw('400 error!')
+            }else if(scheduleResponse.status == 200){  
+                const data = scheduleResponse.json()
+                console.log(data)
             }
         }catch(err){
             console.log(err)

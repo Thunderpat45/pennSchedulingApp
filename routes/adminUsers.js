@@ -32,7 +32,7 @@ adminUserRouter.delete('/user/:modifyUserId', adminUsersController.postUserDelet
 //other
 
 adminUserRouter.put('/facilitySettings', adminUsersController.postAdminFacilitySettings);
-adminUserRouter.get(':userId/:season/adminHome/schedule', adminUsersController.getSchedule);
+adminUserRouter.get('/schedule', adminUsersController.getSchedule);
 
 function authorizeAdminUser(req, res, next){
     const {userId, season} = req.params

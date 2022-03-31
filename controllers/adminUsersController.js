@@ -4,6 +4,7 @@ const team = require('../models/teamModel');
 const facilitySettings = require('../models/facilitySettingsModel');
 const user = require('../models/userModel');
 const availabilities = require('../models/availabilityModel');
+const buildTeamsSchedule = require('../masterScheduleAlgorithm').buildTeamsSchedule
 
 const testRegex = /[^A-Za-z0-9]/
 const stringRegex = /[^A-Za-z]/
@@ -419,8 +420,25 @@ const adminControllerFunctions = {
         }
     },
 
-    getSchedule:function(req,res, next){ 
-        res.send('NOT IMPLEMENTED: Get Schedule');
+    getSchedule: async function(req,res, next){ 
+        try{
+            const {season} = req.params;
+            console.log(season)
+            const allTeams = await team.find({season: season}, {enabled: true}).sort('rank.allTeams').populate('coach', 'name color');
+            console.log(allTeams)
+            console.log('doinkus')
+
+            const scheduleData = buildTeamsSchedule(allTeams)
+
+            res.json(scheduleData)
+
+
+            
+        }catch(err){
+            console.log(err);
+            res.status(400);
+            res.json(err);
+        }
     },
 }
 
