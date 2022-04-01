@@ -1,48 +1,58 @@
-const facilitySettings = require('./models/facilitySettingsModel');
-const availabilities = require('./models/availabilityModel')
+
+const userControllerFunctions = require('./controllers/usersController');
 
 const blankScheduleTemplateBuilder = (function(){
 
-    async function setDefaultData(){
-        const facilityData = await facilitySettings.findOne();
-        facilityData.days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    function setDefaultData(scheduleTemplateData){ //this is running 2x,
 
-        console.log(facilityData)
+        const {facilityData, allAvailabilities, allUsers} = scheduleTemplateData
 
-        const allAvailabilities = await availabilities.find();
-        const coachAvailability = sortAvailabilities(allAvailabilities, 'coach', 'day')
+        console.log(allUsers)
+        
+        const coachAvailability = sortAvailabilities(allAvailabilities, allUsers)
 
+        console.log('I am nothing.')
         console.log(coachAvailability)
+        console.log('Ive been reduced!')
 
         return {facilityData, coachAvailability}
     }
 
-    function sortAvailabilities(array, coachProp, dayProp){
-        const sortedReducedArray = array.sort(sorter).reduce(reducer, {});
+    function sortAvailabilities(availArray, userArray){
+        const availabilityObjTemplate = {
+            'Sun': [],
+            'Mon': [],
+            'Tue': [],
+            'Wed': [],
+            'Thu': [],
+            'Fri': [],
+            'Sat': [],
+        }
+        
+        const reducerObject = {};
+        userArray.forEach(function(user){
+            if(user.name){
+                reducerObject[user.name] = structuredClone(availabilityObjTemplate)
+            }
+        })
+
+        const sortedReducedArray = availArray.sort(sorter).reduce(reducer, reducerObject)
+
         return sortedReducedArray;
 
         function reducer(holderObject, availabilityArrayItem){
-            if(availabilityArrayItem[coachProp]){
-                if(!holderObject[availabilityArrayItem[coachProp]]){
-                    holderObject[availabilityArrayItem[coachProp]] = {}
-                }
-                if(!holderObject[availabilityArrayItem[coachProp]][availabilityArrayItem[dayProp]]){
-                    holderObject[availabilityArrayItem[coachProp]][availabilityArrayItem[dayProp]] = []
-                }
-                holderObject[availabilityArrayItem[coachProp]][availabilityArrayItem[dayProp]].push(availabilityArrayItem)
+            if(availabilityArrayItem.coach){
+                holderObject[availabilityArrayItem.coach.name][availabilityArrayItem.day].push(availabilityArrayItem)      
             }else{
                 for(let coach in holderObject){
-                    if(!coach[availabilityArrayItem[dayProp]]){
-                        holderObject[coach][availabilityArrayItem[dayProp]] = []
-                    }
-                    holderObject[coach][availabilityArrayItem[dayProp]].push(availabilityArrayItem)
+                    holderObject[coach][availabilityArrayItem.day].push(availabilityArrayItem)
                 }
             }
             return holderObject
         }
 
         function sorter(a,b){
-            if(a.coach < b.coach || b.coach == undefined){
+            if(a.coach < b.coach || b.coach == undefined){           
                 return -1
             }else if(a.coach > b.coach){
                 return 1
@@ -52,13 +62,16 @@ const blankScheduleTemplateBuilder = (function(){
         }
     }
     
-    function buildEmptyScheduleTemplate(){
-        const {coachAvailability, facilityData} = setDefaultData()
+    function buildEmptyScheduleTemplate(season){
+        const {coachAvailability, facilityData} = setDefaultData(season)
+        console.log('here I am')
         const scheduleTemplate = {}
         facilityData.days.forEach(function(day){
             scheduleTemplate[day] = Object.assign({});
             buildTimeSlots(scheduleTemplate, facilityData, day, coachAvailability)
         })
+
+        return scheduleTemplate
     }
 
     function buildTimeSlots(scheduleTemplate, facilityData, day, coachAvailability){
@@ -77,7 +90,7 @@ const blankScheduleTemplateBuilder = (function(){
             availabilityObject[coach] = "yes"
             const thisDayPreferences = coachAvailability[coach][day]
                 thisDayPreferences.forEach(function(preference){
-                    if(time >= preference.startTime && time < preference.endTime){
+                    if(time >= preference.availability.startTime && time < preference.availability.endTime){
                         availabilityObject[coach] = "no"
                     }
                 })
@@ -85,7 +98,7 @@ const blankScheduleTemplateBuilder = (function(){
         return availabilityObject
     }
 
-    return {buildEmptyScheduleTemplate: buildEmptyScheduleTemplate}
+    return {buildEmptyScheduleTemplate}
 
 })()
 

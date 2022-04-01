@@ -2,26 +2,26 @@
 
 const buildEmptyScheduleTemplate = require('./blankScheduleTemplateBuilder').buildEmptyScheduleTemplate
 
+let scheduleTemplateData
 
 const masterScheduleBuilder = (function(){
-
     const masterScheduleObject = {}
     
-    function buildTeamsSchedule(allTeams){
-    
+    function buildTeamsSchedule(allTeams, templateData){
+        scheduleTemplateData = templateData
         masterScheduleObject.completeSchedules = [];
         masterScheduleObject.conflictObj = {};
         masterScheduleObject.longestStack = [];
         checkAllTeams([], allTeams, 0);
 
         if(masterScheduleObject.completeSchedules.length == 0){
-            return [masterScheduleObject.longestStack, masterScheduleObject.conflictObj]
+            return {longestStack: masterScheduleObject.longestStack, conflicts: masterScheduleObject.conflictObj}
         }
         else if(masterScheduleObject.completeSchedules.length < 5){
-            return [masterScheduleObject.completeSchedules, masterScheduleObject.conflictObj]
+            return {completedSchedules: masterScheduleObject.completeSchedules, conflicts: masterScheduleObject.conflictObj}
         }
         else{
-            return [masterScheduleObject.completeSchedules.slice(0,5), masterScheduleObject.conflictObj]
+            return {completedSchedules: masterScheduleObject.completeSchedules.slice(0,5), conflicts:masterScheduleObject.conflictObj}
         }  
     }
 
@@ -34,10 +34,11 @@ const masterScheduleBuilder = (function(){
     }
 
     function checkCurrentTeam(currentTeam, currentTeamIndex,  cachedTeamStack, allTeams, requestIndex){ 
-        const {coach, name, size} = currentTeam
+        const {name, size} = currentTeam;
+        const coach = currentTeam.coach.name
         const validOption = {validDays:[], coach, name, size};
 
-        const scheduleTemplate = buildEmptyScheduleTemplate();
+        const scheduleTemplate = buildEmptyScheduleTemplate(scheduleTemplateData);
         const currentRequest = currentTeam.allOpts[requestIndex];
         const cachedTeamStackSlice = cachedTeamStack.slice();
        
@@ -62,7 +63,7 @@ const masterScheduleBuilder = (function(){
 
     function checkStackCompletion(currentTeamIndex, allTeams, cachedTeamStackSlice){
         if(currentTeamIndex < allTeams.length-1){
-            checkAllTeams(cachedTeamStackSlice, ++currentTeamIndex, allTeams)
+            checkAllTeams(cachedTeamStackSlice, allTeams, ++currentTeamIndex)
         }else{
             masterScheduleObject.completeSchedules.push(cachedTeamStackSlice)
         }
@@ -70,7 +71,6 @@ const masterScheduleBuilder = (function(){
 
     function checkCurrentTeamOptions(currentRequest, currentTeam, cachedTeamStack, scheduleTemplate, validOption){
         currentTeam.validOption = structuredClone(validOption);
-        currentTeam.validOption.validDays = structuredClone(validOption.validDays)
         const completeConflict = [] //fix this name
         insertAllCachedTeams(cachedTeamStack, scheduleTemplate);
         try{
@@ -93,7 +93,8 @@ const masterScheduleBuilder = (function(){
 
     function insertCachedDay(cachedDay, cachedTeam, scheduleTemplate){ 
         const {dayOfWeek, startTime, endTime, inWeiss} = cachedDay;
-        const {coach, size, name} = cachedTeam;
+        const {size, name} = cachedTeam;
+        const coach = cachedTeam.coach.name
         for(let time = startTime; time < endTime; time +=15){
             scheduleTemplate[dayOfWeek][time].strengthCoachAvailability[coach] = "no"
             if(inWeiss == "yes"){
@@ -165,7 +166,8 @@ const masterScheduleBuilder = (function(){
     }
 
     function checkConflicts(modifier, currentDay, currentTeam, scheduleTemplate){ 
-        const {coach, size} = currentTeam;
+        const {size} = currentTeam;
+        const coach = currentTeam.coach.name
         const {dayOfWeek, startTime, endTime} = currentDay;
         for(let time = startTime + modifier; time < endTime + modifier; time += 15){
             try{

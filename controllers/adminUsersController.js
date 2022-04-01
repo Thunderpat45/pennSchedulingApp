@@ -423,12 +423,21 @@ const adminControllerFunctions = {
     getSchedule: async function(req,res, next){ 
         try{
             const {season} = req.params;
-            console.log(season)
-            const allTeams = await team.find({season: season}, {enabled: true}).sort('rank.allTeams').populate('coach', 'name color');
-            console.log(allTeams)
-            console.log('doinkus')
+            const allUsers = await user.find({}, 'name').lean()
+            const allTeams = await team.find({season: season, enabled:true}, 'name coach enabled size rank allOpts').sort('rank.allTeams').populate({path:'coach', select:'name color -_id'}).lean();
+            allTeams.forEach(function(team){
+                team.color = team.coach.color
+            })
 
-            const scheduleData = buildTeamsSchedule(allTeams)
+            const facilityData = await facilitySettings.findOne().lean();
+            facilityData.days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+            const allAvailabilities = await availabilities.find({season: season}, 'admin day availability coach').populate({path: 'coach', select: 'name -_id'}).lean();
+
+            const templateData = {facilityData, allAvailabilities, allUsers}
+            
+            const scheduleData = buildTeamsSchedule(allTeams, templateData)
+
+            console.log(scheduleData)
 
             res.json(scheduleData)
 
