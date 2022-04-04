@@ -26,10 +26,7 @@ const masterScheduleBuilder = (function(){
     }
 
     function checkAllTeams(cachedTeamStack, allTeams, currentTeamIndex){
-        console.log(allTeams);
-        console.log(currentTeamIndex)
         const currentTeam = allTeams[currentTeamIndex];
-        console.log(currentTeam)
         checkCurrentTeam(currentTeam, currentTeamIndex, cachedTeamStack, allTeams, 0);
     }
 

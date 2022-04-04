@@ -507,39 +507,13 @@ const databasePost = (function(){
             }else if(scheduleResponse.status == 400){
                 throw('400 error!')
             }else if(scheduleResponse.status == 200){  
-                const data = await scheduleResponse.json()
+                const data = await scheduleResponse.blob() //find a way to open this in client browser/save to client computer
                 console.log(data)
             }
         }catch(err){
             console.log(err)
         }
     }
-
-    // async function postLoginAttempt(databaseBoundObject){
-    //     try{
-    //         const logInAttemptResponse = await fetch(`/logIn`, {
-    //             method:'POST',
-    //             headers:{
-    //                 'Content-Type': 'application/json'
-          
-    //             },
-    //             body: JSON.stringify(databaseBoundObject)
-    
-    //         });
-
-    //         if(logInAttemptResponse.status == 404){ //check these
-    //             throw('404 error!')
-    //         }else if(logInAttemptResponse.status == 400){
-    //             throw('400 error!')
-    //         }else if(logInAttemptResponse.status == 401){
-    //             const errorMessage = await logInAttemptResponse.json();
-    //             const errorArray = [errorMessage]
-    //             events.publish('renderLoginPageRequested', errorArray)
-    //         }
-    //     }catch(err){
-    //         console.log(err)
-    //     }
-    // }
 
 })();
 

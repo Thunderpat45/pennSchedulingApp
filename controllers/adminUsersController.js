@@ -4,7 +4,8 @@ const team = require('../models/teamModel');
 const facilitySettings = require('../models/facilitySettingsModel');
 const user = require('../models/userModel');
 const availabilities = require('../models/availabilityModel');
-const buildTeamsSchedule = require('../masterScheduleAlgorithm').buildTeamsSchedule
+const buildTeamsSchedule = require('../masterScheduleAlgorithm').buildTeamsSchedule;
+const buildExcelSchedules = require('../excelBuilder').buildExcelSchedules
 
 const testRegex = /[^A-Za-z0-9]/
 const stringRegex = /[^A-Za-z]/
@@ -435,12 +436,31 @@ const adminControllerFunctions = {
 
             const templateData = {facilityData, allAvailabilities, allUsers}
             
-            const scheduleData = buildTeamsSchedule(allTeams, templateData)
+            const scheduleData = buildTeamsSchedule(allTeams, templateData);
+
+            const sheets = buildExcelSchedules(scheduleData, facilityData)
 
             console.log(scheduleData)
 
-            res.json(scheduleData)
+            console.log('---------------------------BREAKPOINT-------------------------')
+            console.log('---------------------------BREAKPOINT-------------------------')
+            console.log('---------------------------BREAKPOINT-------------------------')
+            console.log('---------------------------BREAKPOINT-------------------------')
 
+            console.log(sheets)
+
+            res.setHeader(
+                "Content-Type",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              );
+              res.setHeader(
+                "Content-Disposition",
+                "attachment; filename=" + "schedules.xlsx"
+              );
+            
+              await sheets.xlsx.write(res);
+
+              res.end();
 
             
         }catch(err){

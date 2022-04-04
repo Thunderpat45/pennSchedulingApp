@@ -522,7 +522,7 @@ const databasePost = (function(){
             }else if(scheduleResponse.status == 400){
                 throw('400 error!')
             }else if(scheduleResponse.status == 200){  
-                const data = await scheduleResponse.json()
+                const data = await scheduleResponse.blob()
                 console.log(data)
             }
         }catch(err){

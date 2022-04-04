@@ -5,15 +5,8 @@ const blankScheduleTemplateBuilder = (function(){
 
     function setDefaultData(scheduleTemplateData){ //this is running 2x,
 
-        const {facilityData, allAvailabilities, allUsers} = scheduleTemplateData
-
-        console.log(allUsers)
-        
+        const {facilityData, allAvailabilities, allUsers} = scheduleTemplateData       
         const coachAvailability = sortAvailabilities(allAvailabilities, allUsers)
-
-        console.log('I am nothing.')
-        console.log(coachAvailability)
-        console.log('Ive been reduced!')
 
         return {facilityData, coachAvailability}
     }
@@ -64,7 +57,6 @@ const blankScheduleTemplateBuilder = (function(){
     
     function buildEmptyScheduleTemplate(season){
         const {coachAvailability, facilityData} = setDefaultData(season)
-        console.log('here I am')
         const scheduleTemplate = {}
         facilityData.days.forEach(function(day){
             scheduleTemplate[day] = Object.assign({});
