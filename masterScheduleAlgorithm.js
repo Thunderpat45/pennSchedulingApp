@@ -31,9 +31,9 @@ const masterScheduleBuilder = (function(){
     }
 
     function checkCurrentTeam(currentTeam, currentTeamIndex,  cachedTeamStack, allTeams, requestIndex){ 
-        const {name, size} = currentTeam;
+        const {name, size, color} = currentTeam;
         const coach = currentTeam.coach.name
-        const validOption = {validDays:[], coach, name, size};
+        const validOption = {validDays:[], coach, name, size, color};
 
         const scheduleTemplate = buildEmptyScheduleTemplate(scheduleTemplateData);
         const currentRequest = currentTeam.allOpts[requestIndex];

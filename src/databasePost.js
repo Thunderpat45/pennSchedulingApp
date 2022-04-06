@@ -507,8 +507,11 @@ const databasePost = (function(){
             }else if(scheduleResponse.status == 400){
                 throw('400 error!')
             }else if(scheduleResponse.status == 200){  
-                const data = await scheduleResponse.blob() //find a way to open this in client browser/save to client computer
-                console.log(data)
+                const data = await scheduleResponse.blob();
+                const anchor = document.createElement('a');
+                anchor.href = window.URL.createObjectURL(data);
+                anchor.download = 'schedule.xlsx';
+                anchor.click();
             }
         }catch(err){
             console.log(err)

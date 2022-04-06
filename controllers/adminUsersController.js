@@ -428,6 +428,7 @@ const adminControllerFunctions = {
             const allTeams = await team.find({season: season, enabled:true}, 'name coach enabled size rank allOpts').sort('rank.allTeams').populate({path:'coach', select:'name color -_id'}).lean();
             allTeams.forEach(function(team){
                 team.color = team.coach.color
+                console.log(team.color)
             })
 
             const facilityData = await facilitySettings.findOne().lean();
@@ -435,19 +436,10 @@ const adminControllerFunctions = {
             const allAvailabilities = await availabilities.find({season: season}, 'admin day availability coach').populate({path: 'coach', select: 'name -_id'}).lean();
 
             const templateData = {facilityData, allAvailabilities, allUsers}
-            
-            const scheduleData = buildTeamsSchedule(allTeams, templateData);
-
+            const scheduleData = buildTeamsSchedule(allTeams, templateData)
             const sheets = buildExcelSchedules(scheduleData, facilityData)
 
-            console.log(scheduleData)
-
-            console.log('---------------------------BREAKPOINT-------------------------')
-            console.log('---------------------------BREAKPOINT-------------------------')
-            console.log('---------------------------BREAKPOINT-------------------------')
-            console.log('---------------------------BREAKPOINT-------------------------')
-
-            console.log(sheets)
+          
 
             res.setHeader(
                 "Content-Type",

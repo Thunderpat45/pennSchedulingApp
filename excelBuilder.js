@@ -3,7 +3,7 @@ const timeConverterExpress = require('./timeConverterExpress')
 
 const excelBuilder = (function(){
 
-    const workbook = new ExcelJS.Workbook();
+   
     const rowObj = {};
     const columnObj = {};
 
@@ -50,8 +50,27 @@ const excelBuilder = (function(){
         for(let day in columnObj){
             const startCell = worksheet.getCell(`${columnObj[day].startColVal}1`);
             const endCell = worksheet.getCell(`${columnObj[day].endColVal}1`);
-            startCell.value = `${day}`;
+            
             worksheet.mergeCells(`${startCell._address}:${endCell._address}`)
+
+            const startColumn = columnObj[day].startColVal
+            const endColumn = columnObj[day].endColVal
+
+            for(let i = 1; i<58; i++){
+                const leftCell = worksheet.getCell(`${startColumn}${i}`)
+                const rightCell = worksheet.getCell(`${endColumn}${i}`)
+
+                leftCell.border = {left: {style:'thick'}}
+                rightCell.border = {right: {style:'thick'}}
+
+                if(i == 57){
+                    rightCell.border = {right: {style:'thick'}, bottom: {style: 'thick'}}
+                }
+            }
+
+            startCell.value = `${day}`;
+            startCell.alignment = {vertical: "middle", horizontal: "center", wrapText: true}
+            startCell.font = { name: 'Calibri', size: 11, bold: true }
         }
     }
 
@@ -60,6 +79,16 @@ const excelBuilder = (function(){
             const cell = worksheet.getCell(`A${rowObj[time].rowVal}`);
             cell.value = rowObj[time].label
         }
+        const columnBorderArray = [1, 7, 13, 19, 25, 31, 37, 43]
+        for(let i = 1; i<44; i++){
+            const columnVal = pairColumnNameToColumnNumber(i)
+            const cell = worksheet.getCell(`${columnVal}57`);
+            cell.border = {bottom: {style:'thick'}}
+            if(columnBorderArray.indexOf(i)!= -1){
+                cell.border = {bottom: {style:'thick'}, right: {style:'thick'}}
+            }
+        }
+        
         
     }
 
@@ -72,21 +101,24 @@ const excelBuilder = (function(){
     }
 
     function setTeams(teamArray, worksheet){
-        teamArray.forEach(function(team){
+        teamArray.forEach(function(team){ //this needs to be done BEFORE IT GETS HERE, OTHERWISE IT REDUCES TEAM SIZE PROGRESSIVELY FOR EACH NEW SCHEDULE, do in controller
             if(team.size == 150){
-                team.size = 6
+                team.size = 6;
+                console.log(team)
             }else{
                 team.size = Math.ceil(team.size/25)
+                console.log(team)
             }
             team.validDays.forEach(function(trainingDay){
+                console.log(trainingDay)
                 let i = 0;
                 if(trainingDay.inWeiss == "yes"){
-                    while(i < team.size -1){ //? right end point?
+                    while(i < 6-team.size){ //? right end point?
                         const verification = verifyColumnUnoccupied(worksheet, team, trainingDay, i);
                         if(verification == undefined){
                             setCurrentDay(worksheet,team, trainingDay, i);
                             break;
-                        }else if(i == team.size -2 ){ //right end point?
+                        }else if(6-i == team.size -1 ){
                             throw('Formatting error! Teams do not fit in appropriate spaces')
                         }else{
                             i++
@@ -94,6 +126,8 @@ const excelBuilder = (function(){
                     }
                 }
             })
+            console.log("------------------ TEAM BREAKPOINT --------------------------------")
+
         })
     }
 
@@ -134,26 +168,41 @@ const excelBuilder = (function(){
         const startCell = worksheet.getCell(`${startColumn}${startRow}`);
         const endCell = worksheet.getCell(`${endColumn}${endRow}`)
 
-        startCell.value = `${team.name} ${timeConverterExpress.runConvertTotalMinutesToTime(trainingDay.startTime)} : ${timeConverterExpress.runConvertTotalMinutesToTime(trainingDay.endTime)}` 
-        startCell.alignment = {vertical: "middle", horizontal: "center", wrapText: true};
-        startCell.fill = {type: "pattern", pattern: "solid", fgColor: {argb: team.coach.color}} //change color source
-
         worksheet.mergeCells(`${startCell._address}:${endCell._address}`)
 
+        startCell.value = team.name +"\n" + timeConverterExpress.runConvertTotalMinutesToTime(trainingDay.startTime) +" :\n" + timeConverterExpress.runConvertTotalMinutesToTime(trainingDay.endTime);
+        startCell.alignment = {vertical: "middle", horizontal: "center", wrapText: true};
+        startCell.fill = {type: "pattern", pattern: "solid", fgColor: {argb: team.color}};
+        startCell.border = {top: {style:'medium'}, left: {style:'medium'}, bottom: {style:'medium'}, right: {style:'medium'}}
+        startCell.font = { name: 'Calibri', size: 11 }
     }
 
-    function buildExcelSchedules(scheduleData, facilityData){
+    function buildExcelSchedules(scheduleData, facilityData){ // create if condition in controller that tests if completedSchedules.length exists, then passes appropriate parameter (cS or lS, if lS then return errorList somehow too?)
+        const workbook = new ExcelJS.Workbook();
         setRowValues(facilityData);
         setColumnValues(facilityData)
-        scheduleData.completedSchedules.forEach(function(schedule){
-            const schedIndex = scheduleData.completedSchedules.indexOf(schedule);
-            const worksheet = workbook.addWorksheet(`Sheet ${schedIndex +1}`);
-            const sizeSortedTeams = sortTeamsBySize(schedule) 
-
-            setDayLabels(worksheet);
-            setTimeLabels(worksheet);
-            setTeams(sizeSortedTeams, worksheet)
-        })
+        if(scheduleData.completedSchedules.length != 0){
+            scheduleData.completedSchedules.forEach(function(schedule){
+                const schedIndex = scheduleData.completedSchedules.indexOf(schedule);
+                const worksheet = workbook.addWorksheet(`Sheet ${schedIndex +1}`);
+                worksheet.views = [{state: 'frozen', xSplit: 1, ySplit: 1}]
+                const sizeSortedTeams = sortTeamsBySize(schedule) 
+            
+                setDayLabels(worksheet);
+                setTimeLabels(worksheet);
+                setTeams(sizeSortedTeams, worksheet)
+            })
+        }else{
+            scheduleData.longestStack.forEach(function(schedule){
+                const schedIndex = scheduleData.longestStack.indexOf(schedule);
+                const worksheet = workbook.addWorksheet(`Sheet ${schedIndex +1}`);
+                const sizeSortedTeams = sortTeamsBySize(schedule) 
+    
+                setDayLabels(worksheet);
+                setTimeLabels(worksheet);
+                setTeams(sizeSortedTeams, worksheet)
+            })
+        }
 
         return workbook
     }
