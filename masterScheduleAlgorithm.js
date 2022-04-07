@@ -91,7 +91,7 @@ const masterScheduleBuilder = (function(){
     function insertCachedDay(cachedDay, cachedTeam, scheduleTemplate){ 
         const {dayOfWeek, startTime, endTime, inWeiss} = cachedDay;
         const {size, name} = cachedTeam;
-        const coach = cachedTeam.coach.name
+        const coach = cachedTeam.coach
         for(let time = startTime; time < endTime; time +=15){
             scheduleTemplate[dayOfWeek][time].strengthCoachAvailability[coach] = "no"
             if(inWeiss == "yes"){

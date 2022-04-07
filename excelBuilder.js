@@ -102,13 +102,6 @@ const excelBuilder = (function(){
 
     function setTeams(teamArray, worksheet){
         teamArray.forEach(function(team){ //this needs to be done BEFORE IT GETS HERE, OTHERWISE IT REDUCES TEAM SIZE PROGRESSIVELY FOR EACH NEW SCHEDULE, do in controller
-            if(team.size == 150){
-                team.size = 6;
-                console.log(team)
-            }else{
-                team.size = Math.ceil(team.size/25)
-                console.log(team)
-            }
             team.validDays.forEach(function(trainingDay){
                 console.log(trainingDay)
                 let i = 0;
@@ -177,11 +170,45 @@ const excelBuilder = (function(){
         startCell.font = { name: 'Calibri', size: 11 }
     }
 
+    function setConflicts(worksheet, conflicts){
+        let i = 0
+        for(let team in conflicts){
+            const adjustedTeamRowNumber = i+1; //1
+            const labelCell = worksheet.getCell(`A${adjustedTeamRowNumber}`);
+            labelCell.value = team;
+            let j = 1
+            for(let day in conflicts[team]){ //2, 6
+                const dayLabelCell = worksheet.getCell(`B${adjustedTeamRowNumber+j}`);
+                dayLabelCell.value = day
+                let k = 1
+                for(let time in conflicts[team][day]){ //3,4,5 ; 7,8
+                    const timeLabelCell = worksheet.getCell(`C${adjustedTeamRowNumber+j+k}`);
+                    timeLabelCell.value = timeConverterExpress.runConvertTotalMinutesToTime(time);
+                    let l=0;
+                    conflicts[team][day][time].forEach(function(conflict){
+                        conflict.forEach(function(subConflict){
+                            const alphaArray = ["D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
+                            const cell = worksheet.getCell(`${alphaArray[l]}${adjustedTeamRowNumber+j+k}`);
+                            subConflict.time = timeConverterExpress.runConvertTotalMinutesToTime(time);
+                            cell.value = subConflict
+                            l++
+                        })
+                        
+                    })
+                    k++
+                }            
+                j += k
+            }
+            i = j
+        }
+    }
+
     function buildExcelSchedules(scheduleData, facilityData){ // create if condition in controller that tests if completedSchedules.length exists, then passes appropriate parameter (cS or lS, if lS then return errorList somehow too?)
         const workbook = new ExcelJS.Workbook();
         setRowValues(facilityData);
         setColumnValues(facilityData)
-        if(scheduleData.completedSchedules.length != 0){
+        
+        if(scheduleData.completedSchedules){
             scheduleData.completedSchedules.forEach(function(schedule){
                 const schedIndex = scheduleData.completedSchedules.indexOf(schedule);
                 const worksheet = workbook.addWorksheet(`Sheet ${schedIndex +1}`);
@@ -193,17 +220,20 @@ const excelBuilder = (function(){
                 setTeams(sizeSortedTeams, worksheet)
             })
         }else{
-            scheduleData.longestStack.forEach(function(schedule){
-                const schedIndex = scheduleData.longestStack.indexOf(schedule);
-                const worksheet = workbook.addWorksheet(`Sheet ${schedIndex +1}`);
-                const sizeSortedTeams = sortTeamsBySize(schedule) 
-    
-                setDayLabels(worksheet);
-                setTimeLabels(worksheet);
-                setTeams(sizeSortedTeams, worksheet)
-            })
-        }
+            const schedule = scheduleData.longestStack;
+            const worksheet1 = workbook.addWorksheet(`Sheet 1`);
+            worksheet1.views = [{state: 'frozen', xSplit: 1, ySplit: 1}]
+            const sizeSortedTeams = sortTeamsBySize(schedule) 
+        
+            setDayLabels(worksheet1);
+            setTimeLabels(worksheet1);
+            setTeams(sizeSortedTeams, worksheet1)
 
+            const worksheet2 = workbook.addWorksheet("Sheet 2");
+            setConflicts(worksheet2, scheduleData.conflicts)
+
+        }
+       
         return workbook
     }
 

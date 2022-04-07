@@ -428,7 +428,6 @@ const adminControllerFunctions = {
             const allTeams = await team.find({season: season, enabled:true}, 'name coach enabled size rank allOpts').sort('rank.allTeams').populate({path:'coach', select:'name color -_id'}).lean();
             allTeams.forEach(function(team){
                 team.color = team.coach.color
-                console.log(team.color)
             })
 
             const facilityData = await facilitySettings.findOne().lean();
@@ -437,22 +436,45 @@ const adminControllerFunctions = {
 
             const templateData = {facilityData, allAvailabilities, allUsers}
             const scheduleData = buildTeamsSchedule(allTeams, templateData)
-            const sheets = buildExcelSchedules(scheduleData, facilityData)
 
-          
+            if(scheduleData.completedSchedules){
+                scheduleData.completedSchedules.forEach(function(schedule){
+                    schedule.forEach(function(team){
+                        if(team.size == 150){
+                            team.size = 6;
+                        }else{
+                            team.size = Math.ceil(team.size/25)
+                        }
+                    })
+                })
+            }else{
+                console.log('ZIPPITY DOO DAH')
+                console.log(scheduleData.conflicts);
+                console.log('ZIPPITY YAY')
+                scheduleData.longestStack.forEach(function(team){
+                    if(team.size == 150){
+                        team.size = 6;
+                    }else{
+                        team.size = Math.ceil(team.size/25)
+                    }
+                }) 
+            }
+
+            const sheets = buildExcelSchedules(scheduleData, facilityData)
 
             res.setHeader(
                 "Content-Type",
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              );
-              res.setHeader(
+            );
+            res.setHeader(
                 "Content-Disposition",
                 "attachment; filename=" + "schedules.xlsx"
-              );
+            );
             
-              await sheets.xlsx.write(res);
-
-              res.end();
+            await sheets.xlsx.write(res);
+            
+            
+            res.end();
 
             
         }catch(err){

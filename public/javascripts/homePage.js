@@ -522,7 +522,9 @@ const databasePost = (function(){
             }else if(scheduleResponse.status == 400){
                 throw('400 error!')
             }else if(scheduleResponse.status == 200){  
+                console.log(scheduleResponse)
                 const data = await scheduleResponse.blob();
+                console.log(data);
                 const anchor = document.createElement('a');
                 anchor.href = window.URL.createObjectURL(data);
                 anchor.download = 'schedule.xlsx';
