@@ -103,7 +103,8 @@ const userDataFormComponent = (function(){
         }
 
         function verifyPasswordValue(){
-            if(userElements.password){
+            const passwordDiv = document.querySelector('#userGeneratorPassword')
+            if(passwordDiv){
                 events.publish('modifyUserPasswordValue', userElements.password.value)
             } 
         }

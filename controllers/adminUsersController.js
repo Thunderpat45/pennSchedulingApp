@@ -6,6 +6,7 @@ const user = require('../models/userModel');
 const availabilities = require('../models/availabilityModel');
 const buildTeamsSchedule = require('../masterScheduleAlgorithm').buildTeamsSchedule;
 const buildExcelSchedules = require('../excelBuilder').buildExcelSchedules
+const bcrypt = require('bcryptjs')
 
 const testRegex = /[^A-Za-z0-9]/
 const stringRegex = /[^A-Za-z]/
@@ -151,6 +152,8 @@ const adminControllerFunctions = {
             const thisUser = req.body
             const errorArray = []
 
+            thisUser.password = await bcrypt.hash(thisUser.password, 10);
+              
             testUserData(thisUser)
     
             const users = await user.find({$or: [{name: thisUser.name}, {color: thisUser.color}]}, 'name color');
@@ -192,6 +195,10 @@ const adminControllerFunctions = {
             const thisUser = req.body;
             const thisId = req.params.modifyUserId
             const errorArray = []
+
+            if(thisUser.password){
+                thisUser.password = await bcrypt.hash(thisUser.password, 10);
+            }
 
             testUserData(thisUser)
     
@@ -239,16 +246,17 @@ const adminControllerFunctions = {
 
     postUserDelete:async function(req,res, next){ //userDependent
         try{
-            const thisUser = req.body;
-            const thisId = req.params.modifyUserId;
+            const targetUser = req.body;
+            const targetId = req.params.modifyUserId;
+            const {userId, season} = req.params
             const errorArray = []
     
-            const users = await user.find({$or: [{_id: thisUser._id}, {privilegeLevel: true}]}, 'privilegeLevel');
+            const users = await user.find({$or: [{_id: targetUser._id}, {privilegeLevel: true}]}, 'privilegeLevel');
             const privilegeLevelError = users.filter(function(user){
-                return user.privilegeLevel == true && user._id != thisUser._id;
+                return user.privilegeLevel == true && user._id != targetUser._id;
             })
 
-            if(thisUser.privilegeLevel != true && privilegeLevelError.length == 0){
+            if(targetUser.privilegeLevel != true && privilegeLevelError.length == 0){
                 const string = "Cannot delete last admin. Create new admin users before demoting this admin.";
                 errorArray.push(string);
             }
@@ -256,8 +264,24 @@ const adminControllerFunctions = {
             if(errorArray.length > 0){
                 throw (errorArray)
             }else{
-                await user.deleteOne({_id: thisId});
-                res.send("Literally anything");
+                await user.deleteOne({_id: targetId});
+                await team.deleteMany({coach: targetUser._id})
+                await availabilities.deleteMany({coach: targetUser._id})
+
+                const fallTeams = await team.find({season:'fall'}).sort({'rank.allTeams':1});
+                fallTeams.forEach(async function(thisTeam, index){ //this might be wrong to do this this way
+                    thisTeam.rank.allTeams = index;
+                    await thisTeam.save();
+                })
+
+                const springTeams = await team.find({season:'spring'}).sort({'rank.allTeams':1});
+                springTeams.forEach(async function(thisTeam, index){
+                    thisTeam.rank.allTeams = index;
+                    await thisTeam.save();
+                })
+
+                res.status(303)
+                res.json({userId: userId, season: season})
             }
         }catch(err){
             console.log(err);
@@ -267,7 +291,7 @@ const adminControllerFunctions = {
     },
 
     
-    getAdminHome: async function(req,res, next){ //userDependent, seasonal!, should act on cancel buttons too
+    getAdminHome: async function(req,res, next){ 
         try{
             const {season, userId} = req.params
             const facilityData = await facilitySettings.findById('6202a107cfebcecf4ca9aecd');
@@ -497,32 +521,33 @@ function testUserData(userData){
             case 'name':
                 if(testRegex.test(userData[prop]) || userData[prop].length > 30 || typeof userData[prop] != 'string'){
                     console.log('name error')
-                    throw('Invalid data request')
+                    throw('Invalid name request')
                 }
                 break;
             case 'color':
                 if(typeof userData[prop] != 'string' || userData[prop].length != 7){
                     console.log('color error')
-                    throw('Invalid data request')
+                    throw('Invalid color request')
                 }
                 break;
             case 'privilegeLevel':
                 if(typeof userData[prop] != 'boolean' ){
-                    throw('Invalid data request')
+                    throw('Invalid privilege request')
                 }
                 break;
             case 'teams':
                 if(!Array.isArray(userData[prop])){
-                    throw('Invalid data request')
+                    throw('Invalid teams request')
                 }
                 break;
             case 'availability':
                 if(typeof userData[prop] != 'object'){
-                    throw('Invalid data request')
+                    throw('Invalid avail request')
                 }
                 break;
             case 'lastVerified':
             case '__v':
+            case '_id':
                 break;
             case 'password':
                 break; //?

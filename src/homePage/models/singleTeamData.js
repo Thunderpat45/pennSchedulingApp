@@ -144,8 +144,10 @@ const singleTeamData = (function(){
         events.publish("updateAllTeamsModel", teamModelMutable)
     }
 
-    function addTeamDataToAllTeams(_id){
+    function addTeamDataToAllTeams(data){
+        const {_id, rank} = data
         teamModelMutable._id = _id;
+        teamModelMutable.rank = rank;
         events.publish("updateAllTeamsModel", teamModelMutable);
     }
 

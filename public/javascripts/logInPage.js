@@ -132,8 +132,11 @@ const databasePost = (function(){
             }else if(userDataResponse.status == 400){
                 const errors = await userDataResponse.json();
                 alert(errors);
-            }else if(userDataResponse.status == 200){
-                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("userDataDeleted", userId)
+            }else if(userDataResponse.status == 303){
+                const {userId, season} = await userDataResponse.json();
+                const pseudoAnchor = document.createElement('a');
+                pseudoAnchor.href = `/user/${userId}/${season}/adminHome`;
+                pseudoAnchor.click();
             }
         }catch(err){
             console.log(err)
@@ -376,8 +379,11 @@ const databasePost = (function(){
             }else if(teamDataResponse.status == 400){
                 const errors = await teamDataResponse.json();
                 alert(errors);
-            }else if(teamDataResponse.status == 200){
-                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamDataDeleted", teamId)
+            }else if(teamDataResponse.status == 303){
+                const {userId, season} = await teamDataResponse.json();
+                const pseudoAnchor = document.createElement('a');
+                pseudoAnchor.href = `/user/${userId}/${season}/home`;
+                pseudoAnchor.click();
             }
         }catch(err){
             console.log(err)

@@ -6,14 +6,19 @@ const userDataValidator = (function(){
     
     //
     function validateAllInputs(adminUserData){
+       
+        const passwordDiv = document.querySelector('#userGeneratorPassword')
+           
         const {userData, origin} = adminUserData
 
         const errorArray = [];
 
         validateUserName(userData, errorArray); 
         validateColor(userData, errorArray)
-        validatePassword(userData, errorArray)
-
+        if(passwordDiv){
+            validatePassword(userData, errorArray)
+        }
+        
         if(errorArray.length > 0){
             events.publish("userDataValidationFailed", {errors: errorArray, origin});
         }else{

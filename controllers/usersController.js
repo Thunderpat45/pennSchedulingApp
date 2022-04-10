@@ -165,7 +165,7 @@ const userControllerFunctions = {
 
                 await user.findByIdAndUpdate(savedTeam.coach, {$push:{'teams': savedTeam._id }})
 
-                res.json(newTeam._id);
+                res.json({_id: newTeam._id, rank: thisTeam.rank});
             }
             
 
@@ -211,13 +211,19 @@ const userControllerFunctions = {
     },
 
     postTeamDelete: async function(req,res, next){ //userDependent, seasonal!
-        const userId = req.params.userId
+        const {userId,season} = req.params
         const teamId = req.body._id;
 
         try{
             await team.deleteOne({_id: teamId})
             await user.findByIdAndUpdate(userId, {$pull:{[`teams`]: teamId}})
-            res.send('Literally anything')
+            const teams = await team.find({season:season});
+            teams.forEach(async function(thisTeam, index){//async forEach is not right, find better solution
+                thisTeam.rank.myTeams = index;
+                await thisTeam.save();
+            }) 
+            res.status(303)
+            res.json({userId: userId, season: season})
         }catch(err){
             console.log(err)
             res.status(400);

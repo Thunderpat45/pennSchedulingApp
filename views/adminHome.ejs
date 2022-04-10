@@ -15,8 +15,10 @@
 				</div>
 				<div id = "adminMainPageTeamGrid">
                     <%const allTeamsLength = allTeams.length%>
+					<%console.log(allTeamsLength)%>
 					<%if(allTeamsLength>0){%>
 						<%allTeams.forEach(function(team, index){%>
+							<%console.log(team)%>
 							<%- include('./partials/adminHomePage/teamTemplate', {allTeamsLength: allTeamsLength, index: index, team: team})%>	
 						<%})%>
 					<%}else{%>

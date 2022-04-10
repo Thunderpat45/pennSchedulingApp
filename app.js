@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const ejsLayouts = require('express-ejs-layouts')
 const user = require('../pennSchedule/models/userModel')
+const bcrypt = require('bcryptjs')
 
 
 const logInRouter = require('./routes/logIn');
@@ -30,11 +31,17 @@ app.set('view engine', 'ejs');
 passport.use(new LocalStrategy(async function(username, password, done){
   try{
     const activeUser = await user.findOne({name: username});
-    if(!activeUser || activeUser.password != password){
+    if(activeUser == null){
       return done(null, false, {message: 'Invalid username/password combination'})
     }else{
-      return done(null, activeUser)
+      const passwordCheck = await bcrypt.compare(password, activeUser.password)
+      if(passwordCheck == false){
+        return done(null, false, {message: 'Invalid username/password combination'})
+      }else{
+        return done(null, activeUser)
+      }  
     }
+    
   }catch(err){
     console.log(err)
     return done(err)
