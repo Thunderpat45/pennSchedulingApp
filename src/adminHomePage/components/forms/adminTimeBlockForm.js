@@ -93,7 +93,12 @@ const adminTimeBlockDataFormComponent = (function(){
             
             function publishSelectionValueChange(){
                 const modifiedSelector = primaryClass
-                const value = selectorNew.value;
+                let value
+                if(primaryClass == 'startTime' || primaryClass == 'endTime'){
+                    value = Number(selectorNew.value)
+                }else{
+                    value = selectorNew.value
+                }
                 events.publish("modifyAdminTimeBlockSelectorValue", {modifiedSelector, value})
 
                 const selectors = formDiv.querySelectorAll('.selector');

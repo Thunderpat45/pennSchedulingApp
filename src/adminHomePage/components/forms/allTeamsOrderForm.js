@@ -38,6 +38,7 @@ const allTeamsOrderFormComponent = (function(){
 
         formDivWrapper.classList.add("formHidden");
         body.style.overflowY = 'scroll'
+        
     }
    
     function setElements(){

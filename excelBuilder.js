@@ -9,7 +9,7 @@ const excelBuilder = (function(){
 
     function setRowValues(facilityData){
         let i = 2;
-        for(let time = facilityData.facilityOpen; time < facilityData.facilityClose; time +=15){
+        for(let time = facilityData.facilityOpen; time < facilityData.facilityClose +1; time +=15){
             rowObj[time] = {
                 label: timeConverterExpress.runConvertTotalMinutesToTime(time), 
                 rowVal: i
@@ -156,18 +156,19 @@ const excelBuilder = (function(){
         const startColumn = pairColumnNameToColumnNumber(startColumnNum)
         const endColumn = pairColumnNameToColumnNumber(startColumnNum + team.size - 1);
         const startRow = rowObj[trainingDay.startTime].rowVal;
-        const endRow = rowObj[trainingDay.endTime].rowVal;
+        const endRow = rowObj[trainingDay.endTime-15].rowVal;
 
         const startCell = worksheet.getCell(`${startColumn}${startRow}`);
         const endCell = worksheet.getCell(`${endColumn}${endRow}`)
 
         worksheet.mergeCells(`${startCell._address}:${endCell._address}`)
 
-        startCell.value = team.name +"\n" + timeConverterExpress.runConvertTotalMinutesToTime(trainingDay.startTime) +" :\n" + timeConverterExpress.runConvertTotalMinutesToTime(trainingDay.endTime);
+        startCell.value = team.name +"\n" + timeConverterExpress.runConvertTotalMinutesToTime(trainingDay.startTime) +" :\n " + timeConverterExpress.runConvertTotalMinutesToTime(trainingDay.endTime);
         startCell.alignment = {vertical: "middle", horizontal: "center", wrapText: true};
-        startCell.fill = {type: "pattern", pattern: "solid", fgColor: {argb: team.color}};
         startCell.border = {top: {style:'medium'}, left: {style:'medium'}, bottom: {style:'medium'}, right: {style:'medium'}}
         startCell.font = { name: 'Calibri', size: 11 }
+        startCell.fill = {type: "pattern", pattern: "solid", fgColor: {argb: team.color}};
+        console.log(startCell)
     }
 
     function setConflicts(worksheet, conflicts){

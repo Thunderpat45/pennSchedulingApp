@@ -699,7 +699,7 @@ main, .page{
 	"userGeneratorButtons userGeneratorButtons userGeneratorButtons";
 	background-color:grey;
 	border: #011F5b solid;
-	border-width: 1rem 1rem .5rem 1rem;
+	border-width: .5rem;
 	text-align:center;
 	opacity: .95;
 	padding: .5rem;
@@ -755,6 +755,10 @@ main, .page{
 
 }
 
+#entryForm  h3, #entryForm ul{
+	margin: 0;
+}
+
 .formHidden{
 	display:none;
 }
@@ -765,4 +769,14 @@ main, .page{
 
 .toggleScrollBarOn{
 	overflow-y: scroll;
+}
+
+#adminTeamOrderForm{
+	max-height: 30rem;
+}
+
+#adminFacilityDataForm, #adminDayTimeBlockForm, #adminTeamOrderForm, #availabilityDayTimeBlockForm, #teamOrderForm{
+	border: #011F5b solid;
+	border-width: .5rem;
+	padding: .5rem;
 }

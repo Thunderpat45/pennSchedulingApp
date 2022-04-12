@@ -262,7 +262,12 @@ const adminTimeBlockDataFormComponent = (function(){
             
             function publishSelectionValueChange(){
                 const modifiedSelector = primaryClass
-                const value = selectorNew.value;
+                let value
+                if(primaryClass == 'startTime' || primaryClass == 'endTime'){
+                    value = Number(selectorNew.value)
+                }else{
+                    value = selectorNew.value
+                }
                 _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyAdminTimeBlockSelectorValue", {modifiedSelector, value})
 
                 const selectors = formDiv.querySelectorAll('.selector');
@@ -524,7 +529,7 @@ const facilityDataFormComponent = (function(){
             
             function publishSelectionValueChange(){
                 const modifiedSelector = primaryClass
-                const value = selectorNew.value;
+                const value = Number(selectorNew.value)
                 _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyFacilitySelectorValue", {modifiedSelector, value})
             }
 

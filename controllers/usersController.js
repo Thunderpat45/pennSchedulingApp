@@ -55,6 +55,7 @@ const userControllerFunctions = {
 
             res.json(newBlock._id);
         }catch(err){
+            console.log(err)
             res.status(400)
             res.json(err)
         }
@@ -235,7 +236,7 @@ const userControllerFunctions = {
         const {_id, lastVerified} = req.body;
 
         try{
-            if(typeof lastVerified != 'string' || lastVerified.length > 100 || testRegex.test(lastVerified)){
+            if(typeof lastVerified != 'string' || lastVerified.length > 100 || (testRegex.test(lastVerified) && lastVerified.indexOf('-') == -1)){
                 throw('Invalid request data')
             }
             await team.findByIdAndUpdate(_id, {lastVerified: lastVerified})
@@ -311,7 +312,7 @@ const userControllerFunctions = {
 
         
         try{
-            if(typeof lastVerified != 'string' || lastVerified.length > 100 || testRegex.test(lastVerified)){
+            if(typeof lastVerified != 'string' || lastVerified.length > 100 || (testRegex.test(lastVerified) && lastVerified.indexOf('-') == -1)){
                 throw('Invalid request data')
             }
             await user.findByIdAndUpdate(userId, {lastVerified: lastVerified})
@@ -411,36 +412,37 @@ function testTeamData(teamData){
         switch(prop){
             case 'allOpts':
                 if(!Array.isArray(teamData[prop]) || teamData[prop].length ==0){
-                    throw('Invalid data request')
+                    throw('Invalid allOpts request')
                 }
                 teamData[prop].forEach(function(option){
                     if(!Array.isArray(option) || option.length == 0){
-                        throw('Invalid data request')
+                        throw('Invalid opt request')
                     }
                     option.forEach(function(day){
                         if(typeof day != 'object'){
-                            throw('Invalid data request')
+                            throw('Invalid day request')
                         }
                         for(let subprop in day){
                             switch(subprop){
                                 case 'startTime':
                                 case 'endTime':
-                                    if(day.startTime >= day.endTime || day[subprop].length <3 || day[subprop].length > 4 || numberRegex.test(day[subprop])){
-                                        throw('Invalid data request')
+                                    if(typeof day[subprop] != 'number' || day.startTime >= day.endTime || day[subprop].length <3 || day[subprop].length > 4 || numberRegex.test(day[subprop])){
+                                        console.log(subprop)
+                                        throw('Invalid start/endTime request')
                                     }
                                     break;
                                 case 'dayOfWeek':
                                     if(day[subprop].length != 3 || typeof day[subprop] != 'string' || stringRegex.test(day[subprop])){
-                                        throw('Invalid data request')
+                                        throw('Invalid dayofWeek request')
                                     }
                                     break;
                                 case 'inWeiss':
                                     if(day[subprop]!= 'yes' && day[subprop]!= 'no'){
-                                        throw('Invalid data request')
+                                        throw('Invalid inWeiss request')
                                     }
                                     break;
                                 default:
-                                    throw('Invalid data request')
+                                    throw('Invalid dayData request')
                             }
                         }
                     })
@@ -498,7 +500,7 @@ function testAvailabilityData(facilityData, availabilityData){
         switch(prop){
             case 'availability':
                 if(typeof availabilityData[prop] != 'object' || !Object.hasOwnProperty.call(availabilityData[prop], 'startTime') || !Object.hasOwnProperty.call(availabilityData[prop], 'endTime') || 
-                typeof availabilityData[prop].startTime != 'string' || typeof availabilityData[prop].endTime != 'string' || availabilityData[prop].startTime < facilityData.facilityOpen || 
+                typeof availabilityData[prop].startTime != 'number' || typeof availabilityData[prop].endTime != 'number' || availabilityData[prop].startTime < facilityData.facilityOpen || 
                 availabilityData[prop].startTime > facilityData.facilityClose || availabilityData[prop].endTime <= facilityData.facilityOpen || availabilityData[prop].endTime > facilityData.facilityClose ||
                 numberRegex.test(availabilityData[prop].startTime) || numberRegex.test(availabilityData[prop].endTime)){
                     throw('Invalid data request')

@@ -59,7 +59,7 @@ const facilityDataFormComponent = (function(){
             
             function publishSelectionValueChange(){
                 const modifiedSelector = primaryClass
-                const value = selectorNew.value;
+                const value = Number(selectorNew.value)
                 events.publish("modifyFacilitySelectorValue", {modifiedSelector, value})
             }
 

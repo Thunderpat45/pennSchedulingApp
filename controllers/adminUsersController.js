@@ -462,14 +462,12 @@ const adminControllerFunctions = {
             const scheduleData = buildTeamsSchedule(allTeams, templateData)
 
             if(scheduleData.completedSchedules){
-                scheduleData.completedSchedules.forEach(function(schedule){
-                    schedule.forEach(function(team){
-                        if(team.size == 150){
-                            team.size = 6;
-                        }else{
-                            team.size = Math.ceil(team.size/25)
-                        }
-                    })
+                scheduleData.completedSchedules[0].forEach(function(team){
+                    if(team.size == 150){
+                        team.size = 6;
+                    }else{
+                        team.size = Math.ceil(team.size/25)
+                    }
                 })
             }else{
                 console.log('ZIPPITY DOO DAH')
@@ -566,7 +564,7 @@ function testFacilityData(facilityData){
         switch(prop){
             case 'facilityOpen':
             case 'facilityClose':
-                if(numberRegex.test(facilityData[prop]) || facilityData.facilityOpen >= facilityData.facilityClose){
+                if(typeof facilityData[prop]!= 'number' || numberRegex.test(facilityData[prop]) || facilityData.facilityOpen >= facilityData.facilityClose){
                     throw('Invalid data request')
                 }
                 break;
