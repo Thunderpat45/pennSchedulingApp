@@ -80,13 +80,6 @@
 				<div class = "adminMainPageTeamGridTeamSize"></div>
 				<div class = "adminMainPageTeamGridTeamRank"></div>
 				<div class = "adminMainPageTeamGridTeamButtons">
-					<div class = "adminMainPageTeamGridTeamRankButtons">
-						<button class = "adminMainPageTeamGridTeamUprankButton">
-							<i class = "arrow up"></i>
-						</button>
-						<button class = "adminMainPageTeamGridTeamDownrankButton">
-							<i class = "arrow down"></i>
-					</div>
 					<button class = "adminMainPageTeamGridTeamDisableButton">Disable</button>
 				</div>
 			</div>
@@ -126,94 +119,102 @@
 
 	<template id = "adminFacilityDataFormTemplate">
 		<div id = "adminFacilityDataForm">
-			<h3>Facility Options</h3>
-				<div id = "facilityDataFormHoursSelectorsOpen">
-					<p>Open</p>
-					<select class = "facilityOpen selector">
-						<option value = "default">--</option>
-					</select>
-				</div>
-				<div id = "facilityDataFormHoursSelectorsClose">
-					<p>Close</p>
-					<select class = "facilityClose selector">
+			<div id = 'adminFacilityDataFormWrapper'>
+				<h3>Facility Options</h3>
+					<div id = "facilityDataFormHoursSelectorsOpen">
+						<p>Open</p>
+						<select class = "facilityOpen selector">
 							<option value = "default">--</option>
-					</select>
+						</select>
+					</div>
+					<div id = "facilityDataFormHoursSelectorsClose">
+						<p>Close</p>
+						<select class = "facilityClose selector">
+								<option value = "default">--</option>
+						</select>
+					</div>
+					<div id = "facilityDataFormCapacitySelectorsMax">
+						<p>Max Capacity</p>
+						<select class = "facilityMaxCapacity selector">
+								<option value = "default">--</option>
+						</select>
+					</div>
+				<button id = "adminMainPageFacilitySelectorsSaveButton">Save</button>
+				<button id = "adminMainPageFacilitySelectorsCancelButton">Cancel</button>
+				<div id = "adminMainPageFacilityGeneralErrorDiv">
+					<ul id = "adminMainPageFacilityGeneralErrorList"></ul>
 				</div>
-				<div id = "facilityDataFormCapacitySelectorsMax">
-					<p>Max Capacity</p>
-					<select class = "facilityMaxCapacity selector">
-							<option value = "default">--</option>
-					</select>
-				</div>
-			<button id = "adminMainPageFacilitySelectorsSaveButton">Save</button>
-			<button id = "adminMainPageFacilitySelectorsCancelButton">Cancel</button>
-			<div id = "adminMainPageFacilityGeneralErrorDiv">
-				<ul id = "adminMainPageFacilityGeneralErrorList"></ul>
 			</div>
 		</div>
 	</template>
 
 	<template id = "adminDayTimeBlockFormTemplate">
 		<div id = "adminDayTimeBlockForm">
-			<h3>Day: </h3>
-				<div id = "adminDayTimeBlockSelectorsStart">
-					<p>Start</p>
-					<select class = "startTime selector">
-						<option value = "default">--</option>
-					</select>
+			<div id = 'adminTimeBlockFormWrapper'>
+				<h3>Day: </h3>
+					<div id = "adminDayTimeBlockSelectorsStart">
+						<p>Start</p>
+						<select class = "startTime selector">
+							<option value = "default">--</option>
+						</select>
+					</div>
+					<div id = "adminDayTimeBlockSelectorsEnd">
+						<p>End</p>
+						<select class = "endTime selector">
+							<option value = "default">--</option>
+						</select>
+					</div>
+				<button id = "adminDayTimeBlockFormSaveButton">Save</button>
+				<button id = "adminDayTimeBlockFormCancelButton">Cancel</button>
+				<div id = "adminDayTimeBlockGeneralErrorDiv">
+					<ul id = "adminDayTimeBlockGeneralErrorList"></ul>
 				</div>
-				<div id = "adminDayTimeBlockSelectorsEnd">
-					<p>End</p>
-					<select class = "endTime selector">
-						<option value = "default">--</option>
-					</select>
-				</div>
-			<button id = "adminDayTimeBlockFormSaveButton">Save</button>
-			<button id = "adminDayTimeBlockFormCancelButton">Cancel</button>
-			<div id = "adminDayTimeBlockGeneralErrorDiv">
-				<ul id = "adminDayTimeBlockGeneralErrorList"></ul>
 			</div>
 		</div>
 	</template>
 
 	<template id = "adminUserGeneratorTemplate">
 			<div id = "userGeneratorForm">
-				<title>Create/Edit User</title>
-				<div id = "userGeneratorNameDiv">
-					<label for = "userGeneratorName">Name</label><br>
-					<input type = "text" id = "userGeneratorName" name ="userGeneratorName" maxlength="25"><br>
-				</div>
-				<div id = "userGeneratorPasswordDiv">
-					<label for = "userGeneratorPassword">Password</label><br>
-					<input type = "text" id = "userGeneratorPassword" name ="userGeneratorPassword" maxlength="25"><br>
-				</div>
-				<div id = "userGeneratorPrivilegeDiv">
-					<label for = "userGeneratorPrivilege">Set to Admin Role</label><br>
-					<input id = "userGeneratorPrivilege" name = "userGeneratorPrivilege" type = "checkbox" value = "true"><br> 
-				</div>
-				<div id = "userGeneratorColorDiv">
-					<label for = "userGeneratorColor">User Schedule Color</label><br>
-					<input type = "color" id = "userGeneratorColor" name = "userGeneratorColor">
-				</div>
-				<div id = "userGeneratorButtonsDiv">
-					<button id = "userGeneratorSaveButton">Save Changes</button>
-					<button id = "userGeneratorCancelButton">Cancel Changes</button>
-				</div>
-				<div id = "userGeneratorGeneralErrorDiv">
-					<ul id = "userGeneratorGeneralErrorList"></ul>
+				<div id = 'userGeneratorFormWrapper'>
+					<title>Create/Edit User</title>
+					<div id = "userGeneratorNameDiv">
+						<label for = "userGeneratorName">Name</label><br>
+						<input type = "text" id = "userGeneratorName" name ="userGeneratorName" maxlength="25"><br>
+					</div>
+					<div id = "userGeneratorPasswordDiv">
+						<label for = "userGeneratorPassword">Password</label><br>
+						<input type = "text" id = "userGeneratorPassword" name ="userGeneratorPassword" maxlength="25"><br>
+					</div>
+					<div id = "userGeneratorPrivilegeDiv">
+						<label for = "userGeneratorPrivilege">Set to Admin Role</label><br>
+						<input id = "userGeneratorPrivilege" name = "userGeneratorPrivilege" type = "checkbox" value = "true"><br> 
+					</div>
+					<div id = "userGeneratorColorDiv">
+						<label for = "userGeneratorColor">User Schedule Color</label><br>
+						<input type = "color" id = "userGeneratorColor" name = "userGeneratorColor">
+					</div>
+					<div id = "userGeneratorButtonsDiv">
+						<button id = "userGeneratorSaveButton">Save Changes</button>
+						<button id = "userGeneratorCancelButton">Cancel Changes</button>
+					</div>
+					<div id = "userGeneratorGeneralErrorDiv">
+						<ul id = "userGeneratorGeneralErrorList"></ul>
+					</div>
 				</div>
 			</div>
 	</template>
 
 	<template id = "adminTeamOrderFormTemplate">
 		<div id = "adminTeamOrderForm">
-		  <div id = "adminTeamOrderFormTitle">
-			<h2>Edit Teams Order</h2>
-		  </div>
-			<div id = "adminTeamOrderFormTeams">
+				<div id = 'adminTeamOrderFormWrapper'>
+			<div id = "adminTeamOrderFormTitle">
+				<h2>Edit Teams Order</h2>
 			</div>
-			<button id = 'saveAdminTeamOrderButton'>Save</button>
-			<button id = 'cancelAdminTeamOrderChangesButton'>Cancel</button>
+				<div id = "adminTeamOrderFormTeams">
+				</div>
+				<button id = 'saveAdminTeamOrderButton'>Save</button>
+				<button id = 'cancelAdminTeamOrderChangesButton'>Cancel</button>
+			</div>
 		</div>
 	  </template>
 	

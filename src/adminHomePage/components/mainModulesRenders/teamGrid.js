@@ -50,7 +50,7 @@ const adminTeamsGridComponent = (function(){
         teamElement.div.setAttribute("data-teamId", teamData._id)
         teamElement.name.innerText = teamData.name;
         teamElement.coach.innerText = teamData.coach.name;
-        teamElement.size.innerText = `${teamData.size} athletes`;
+        teamElement.size.innerText = `${teamData.size}`;
         teamElement.rank.innerText = teamData.rank.allTeams +1;
     }
 

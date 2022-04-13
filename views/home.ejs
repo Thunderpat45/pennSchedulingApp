@@ -113,32 +113,31 @@
   <!--form templates-->
   <template id = "availabilityDayTimeBlockFormTemplate">
 		<div id = "availabilityDayTimeBlockForm">
-			<h3>Day: </h3>
-				<div id = "availabilityDayTimeBlockSelectorsStart">
-					<p>Start</p>
-					<select class = "startTime selector">
-						<option value = "default">--</option>
-					</select>
-				</div>
-				<div id = "availabilityDayTimeBlockSelectorsEnd">
-					<p>End</p>
-					<select class = "endTime selector">
-						<option value = "default">--</option>
-					</select>
-				</div>
-			<button id = "availabilityDayTimeBlockFormSaveButton">Save</button>
-			<button id = "availabilityDayTimeBlockFormCancelButton">Cancel</button>
-			<div id = "availabilityDayTimeBlockGeneralErrorDiv">
-				<ul id = "availabilityDayTimeBlockGeneralErrorList"></ul>
-			</div>
+      <div id = 'availabilityFormWrapper'>
+        <h3>Day: </h3>
+          <div id = "availabilityDayTimeBlockSelectorsStart">
+            <p>Start</p>
+            <select class = "startTime selector">
+              <option value = "default">--</option>
+            </select>
+          </div>
+          <div id = "availabilityDayTimeBlockSelectorsEnd">
+            <p>End</p>
+            <select class = "endTime selector">
+              <option value = "default">--</option>
+            </select>
+          </div>
+        <button id = "availabilityDayTimeBlockFormSaveButton">Save</button>
+        <button id = "availabilityDayTimeBlockFormCancelButton">Cancel</button>
+        <div id = "availabilityDayTimeBlockGeneralErrorDiv">
+          <ul id = "availabilityDayTimeBlockGeneralErrorList"></ul>
+        </div>
+      </div>
 		</div>
 	</template>
 
   <template id = "teamFormTemplate">
       <div id = "teamFormContainer">
-        <div id = "teamFormTitle">
-          <h2>Add Team Requests</h2>
-        </div>
           <div id = "teamForm">
             <div id = "formTeamNameDiv">
               <label for = "formTeamName">Team Name</label><br>
@@ -210,13 +209,15 @@
 
   <template id = "teamOrderFormTemplate">
     <div id = "teamOrderForm">
-      <div id = "teamOrderFormTitle">
-        <h3>Edit Teams Order</h3>
-      </div>
-        <div id = "teamOrderFormTeams">
+      <div id = 'teamOrderFormWrapper'>
+        <div id = "teamOrderFormTitle">
+          <h3>Edit Teams Order</h3>
         </div>
-        <button id = 'saveTeamOrderButton'>Save</button>
-        <button id = 'cancelTeamOrderChangesButton'>Cancel</button>
+          <div id = "teamOrderFormTeams">
+          </div>
+          <button id = 'saveTeamOrderButton'>Save</button>
+          <button id = 'cancelTeamOrderChangesButton'>Cancel</button>
+      </div>
     </div>
   </template>
 

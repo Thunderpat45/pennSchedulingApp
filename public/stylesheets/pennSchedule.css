@@ -182,8 +182,9 @@ main, .page{
 
 .teamGridTeamButtons{
 	display:grid;
-	grid-template-columns:1fr 1fr;
+	grid-template-columns:1fr;
 	padding: 0 1rem;
+	margin: auto 3rem;
 	align-items: center;
 }
 
@@ -280,6 +281,7 @@ main, .page{
 	border: #011F5b solid;
 	border-width: 1rem;
 	display:grid;
+	max-height: 30rem;
 }
 
 
@@ -298,8 +300,9 @@ main, .page{
 }
 
 #teamForm{
-	max-height: 12rem;
-	background-color: grey;
+	max-height: 30rem;
+	background-color: #990000;
+	margin: 1rem;
 	opacity: .9;
 	padding: 5rem;
 	border-width: 1rem 1rem .5rem 1rem;
@@ -442,13 +445,11 @@ main, .page{
 	display:flex;
 }
 
-#updateTeamRequest{
-	grid-area: updateRequest;
+#saveTeamRequest{
 	flex-grow: 1
 }
 
 #cancelTeamRequest{
-	grid-area: cancelRequest; 
 	flex-grow: 1;
 }
 
@@ -693,11 +694,6 @@ main, .page{
 }
 
 #userGeneratorForm{
-	display:grid;
-	grid-template-areas: 
-	"userGeneratorName userGeneratorPrivilege userGeneratorColor"
-	"userGeneratorButtons userGeneratorButtons userGeneratorButtons";
-	background-color:grey;
 	border: #011F5b solid;
 	border-width: .5rem;
 	text-align:center;
@@ -707,6 +703,10 @@ main, .page{
 
 #userGeneratorForm > *{
 	margin:.5rem;
+}
+
+#userGeneratorFormWrapper div{
+	margin: .5rem auto;
 }
 
 #userGeneratorNameDiv{
@@ -750,7 +750,7 @@ main, .page{
 	top: 25%;
 	margin: auto;
 	width: 60%;
-	background: grey;
+	background: white;
 
 
 }
@@ -779,4 +779,41 @@ main, .page{
 	border: #011F5b solid;
 	border-width: .5rem;
 	padding: .5rem;
+	color: white
+}
+
+.adminTeamOrderFormTeam, .teamOrderFormTeam{
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+}
+
+#availabilityFormWrapper, #teamOrderFormWrapper, #adminTimeBlockFormWrapper, #adminTeamOrderFormWrapper, #adminFacilityDataFormWrapper, #userGeneratorFormWrapper{
+	background-color: #990000;
+	margin: .5rem;
+	padding: 1rem;
+	text-align: center;
+}
+
+#availabilityFormWrapper div, #adminTimeBlockFormWrapper div, #adminFacilityDataFormWrapper div{
+	display: inline-block;
+	margin: auto .5rem;
+}
+
+
+#availabilityFormWrapper button, #adminTimeBlockFormWrapper button, #adminFacilityDataFormWrapper button{
+	display: block;
+	margin: .5rem auto;
+}
+
+#teamOrderFormTeams, #adminTeamOrderFormTeams{
+	margin: .5rem auto;
+}
+
+#teamOrderFormTeams div, #adminTeamOrderFormTeams div{
+	color: black;
+	background-color:white;
+	margin: .25rem auto;
+	padding: .25rem;
+
+
 }
