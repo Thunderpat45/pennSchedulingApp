@@ -109,6 +109,7 @@ const userDataFormComponent = (function(){
             } 
         }
 
+
         function updateUserPrivilege(){
             
             if(userElements.privilege.checked != userData.privilegeLevel){
@@ -118,7 +119,7 @@ const userDataFormComponent = (function(){
 
         function verifyColorChange(){
             if(userData.color != userElements.color.value){
-                events.publish("modifyUserColorValue", userElements.color.value)
+                events.publish("modifyUserColorValue", userElements.color.value.toUpperCase())
             }
         }
     }

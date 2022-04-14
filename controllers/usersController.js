@@ -15,11 +15,17 @@ const userControllerFunctions = {
         const {userId, season} = req.params
         try{
             const errorArray = [];
+            if((season != 'fall' && season != 'spring') || testRegex.test(userId)){
+                errorArray.push('Invalid data request')
+            }
             const blockData = req.body;
 
             const facilityData = await facilitySettings.find({});
             
-            testAvailabilityData(facilityData, blockData)
+            const reqValidation = testAvailabilityData(facilityData, blockData)
+            if(reqValidation != undefined){
+                errorArray.push(reqValidation)
+            }
 
             const timeBlocks = await availabilities.find({$and: [{coach: userId}, {day: blockData.day}, {season:season},
                 {$or:[
@@ -65,11 +71,17 @@ const userControllerFunctions = {
         const {userId, season, timeBlockId} = req.params
         try{
             const errorArray = [];
+            if((season != 'spring' && season != 'fall') || testRegex.test(userId) || testRegex.test(timeBlockId)){
+                errorArray.push('Invalid data request')
+            }
             const blockData = req.body;
             const facilityData = await facilitySettings.find({});
 
-            testAvailabilityData(facilityData, blockData)
-            
+            const reqValidation = testAvailabilityData(facilityData, blockData)
+            if(reqValidation != undefined){
+                errorArray.push(reqValidation)
+            }
+
             const timeBlocks = await availabilities.find({$and: [{_id: {$ne: timeBlockId}},{coach: userId}, {day: blockData.day}, {season:season},
                 {$or:[
                     {$and:[
@@ -108,23 +120,28 @@ const userControllerFunctions = {
 
     postTimeBlockDelete: async function(req, res, next){ //sanitized
         try{
+            const errorArray = [];
             const userId = req.params.userId
             const blockData = req.body;
-
+            if(testRegex.test(userId)){
+                errorArray.push('Invalid data request')
+            }
             if(!Object.hasOwnProperty.call(blockData, 'day') || !Object.hasOwnProperty.call(blockData, '_id')){
-                throw('Invalid request data')
+                errorArray.push('Invalid request data')
             }
             for(let prop in blockData){
                 if(prop != 'day' && prop != '_id'){ 
-                    throw('Invalid request data')
+                    errorArray.push('Invalid request data')
                 }
             }
 
             if(blockData.day.length != 3 || typeof blockData.day != 'string' || stringRegex.test(blockData.day) || blockData._id.length > 40 || typeof blockData._id != 'string' || testRegex.test(blockData._id)){
-                throw('Invalid request data')
+                errorArray.push('Invalid request data')
             }
 
-
+            if(errorArray.length > 0){
+                throw errorArray
+            }
             await availabilities.deleteOne({_id: blockData._id})
             await user.findByIdAndUpdate(userId, {$pull:{[`availability.${blockData.day}`]: blockData._id }})
             res.send('Literally anything')
@@ -136,12 +153,18 @@ const userControllerFunctions = {
 
     postTeamCreation: async function(req,res, next){  //userDependent, seasonal!
         try{
+            const errorArray = [];
             const thisUser = req.params.userId
             const thisTeam = req.body;
 
-            testTeamData(thisTeam)
+            const reqValidation = testTeamData(thisTeam)
+            if(reqValidation!= undefined){
+                errorArray.push(reqValidation)
+            }
 
-            const errorArray = [];
+            if(testRegex.test(thisUser)){
+                errorArray.push('Invalid data request')
+            }
 
             const thisUserAllTeams = await team.find({coach: thisUser})
             const allTeams = await team.find();
@@ -180,14 +203,22 @@ const userControllerFunctions = {
     postTeamUpdate: async function(req,res, next){ //userDependent, seasonal!
         try{
             const thisTeam = req.body;
+            const {season} = req.params
             const errorArray = [];
             
-            testTeamData(thisTeam)
+            if(season != 'fall' && season!= 'spring'){
+                errorArray.push('Invalid data request')
+            }
 
-            const teams = await team.find({name: thisTeam.name}, 'name coach');
+            const reqValidation = testTeamData(thisTeam)
+            if(reqValidation!= undefined){
+                errorArray.push(reqValidation)
+            }
+
+            const teams = await team.find({name: thisTeam.name, season: season}, 'name coach');
 
             const nameMatchError = teams.filter(function(team){
-                return (team.name == thisTeam.name|| team._id != thisTeam._id) && team.coach != thisTeam.coach;
+                return (team.name == thisTeam.name && team.coach != thisTeam.coach) || team._id != thisTeam._id;
             })
 
             if(nameMatchError.length > 0){
@@ -216,6 +247,10 @@ const userControllerFunctions = {
         const teamId = req.body._id;
 
         try{
+            if((season != 'fall' && season!= 'spring') || testRegex.test(userId) || testRegex.test(teamId)){
+                throw('Invalid data request')
+            }
+
             await team.deleteOne({_id: teamId})
             await user.findByIdAndUpdate(userId, {$pull:{[`teams`]: teamId}})
             const teams = await team.find({season:season});
@@ -236,7 +271,7 @@ const userControllerFunctions = {
         const {_id, lastVerified} = req.body;
 
         try{
-            if(typeof lastVerified != 'string' || lastVerified.length > 100 || (testRegex.test(lastVerified) && lastVerified.indexOf('-') == -1)){
+            if(typeof lastVerified != 'string' || lastVerified.length > 100 || (testRegex.test(lastVerified) && lastVerified.indexOf('-') == -1) || testRegex.test(_id)){
                 throw('Invalid request data')
             }
             await team.findByIdAndUpdate(_id, {lastVerified: lastVerified})
@@ -251,6 +286,9 @@ const userControllerFunctions = {
     getHome: async function(req,res, next){ //userDependent, seasonal! should act on cancel buttons too
         const {userId, season} = req.params
         try{
+            if((season != 'fall' && season !='spring') || testRegex.test(userId)){
+                throw('Invalid data request')
+            }
             const facilityData = await facilitySettings.findById('6202a107cfebcecf4ca9aecd');
             const availabilityData = await availabilities.find({$and:[{$or:[{coach: userId}, {admin:true}]},{season:season}]})
             const availabilityTimeBlocks = sortAvailabilities(availabilityData);
@@ -262,6 +300,7 @@ const userControllerFunctions = {
             renderHomePage(data);
         }catch(err){
             console.log(err)
+            res.redirect(`./error`);
         }
         
         function renderHomePage(data){
@@ -312,7 +351,7 @@ const userControllerFunctions = {
 
         
         try{
-            if(typeof lastVerified != 'string' || lastVerified.length > 100 || (testRegex.test(lastVerified) && lastVerified.indexOf('-') == -1)){
+            if(typeof lastVerified != 'string' || lastVerified.length > 100 || (testRegex.test(lastVerified) && lastVerified.indexOf('-') == -1) || testRegex.test(userId)){
                 throw('Invalid request data')
             }
             await user.findByIdAndUpdate(userId, {lastVerified: lastVerified})
@@ -360,6 +399,9 @@ const userControllerFunctions = {
         const {userId, season} = req.params
 
         try{
+            if((season != 'fall' && season !='spring') || testRegex.test(userId)){
+                throw('Invalid data request')
+            }
             const thisUser = await user.findOne({_id: userId}, 'availability _id name privilegeLevel color teams')
             const availabilityData = await availabilities.find({$and:[{$or:[{coach: userId}, {admin:true}]},{season:season}]})
             const facilityData = await facilitySettings.findById('6202a107cfebcecf4ca9aecd');
@@ -412,15 +454,18 @@ function testTeamData(teamData){
         switch(prop){
             case 'allOpts':
                 if(!Array.isArray(teamData[prop]) || teamData[prop].length ==0){
-                    throw('Invalid allOpts request')
+                    console.log('allOpt none array')
+                    throw('Invalid data request')
                 }
                 teamData[prop].forEach(function(option){
                     if(!Array.isArray(option) || option.length == 0){
-                        throw('Invalid opt request')
+                        console.log('bad option')
+                        throw('Invalid data request')
                     }
                     option.forEach(function(day){
                         if(typeof day != 'object'){
-                            throw('Invalid day request')
+                            console.log('bad day')
+                            throw('Invalid data request')
                         }
                         for(let subprop in day){
                             switch(subprop){
@@ -428,21 +473,24 @@ function testTeamData(teamData){
                                 case 'endTime':
                                     if(typeof day[subprop] != 'number' || day.startTime >= day.endTime || day[subprop].length <3 || day[subprop].length > 4 || numberRegex.test(day[subprop])){
                                         console.log(subprop)
-                                        throw('Invalid start/endTime request')
+                                        throw('Invalid data request')
                                     }
                                     break;
                                 case 'dayOfWeek':
                                     if(day[subprop].length != 3 || typeof day[subprop] != 'string' || stringRegex.test(day[subprop])){
-                                        throw('Invalid dayofWeek request')
+                                        console.log('bad day of Week')
+                                        throw('Invalid data request')
                                     }
                                     break;
                                 case 'inWeiss':
                                     if(day[subprop]!= 'yes' && day[subprop]!= 'no'){
-                                        throw('Invalid inWeiss request')
+                                        console.log('bad inWeiss')
+                                        throw('Invalid data request')
                                     }
                                     break;
                                 default:
-                                    throw('Invalid dayData request')
+                                    console.log('extra prop')
+                                    throw('Invalid data request')
                             }
                         }
                     })
@@ -475,10 +523,38 @@ function testTeamData(teamData){
                 }
                 break;
             case 'lastVerified':
+                if((typeof teamData[prop]!= 'string' && teamData[prop] != null )||(typeof teamData[prop] == 'string' && (numberRegex.test(teamData[prop])&& teamData[prop].search('-') == -1))){
+                    console.log('verification error')
+                    throw('Invalid data request')
+                }
+                break;
             case 'rank':
+                if(typeof teamData[prop] != 'object'){
+                    console.log(typeof teamData[prop])
+                    console.log(teamData[prop])
+
+                    console.log('rank object error')
+                    throw('Invalid data request')
+                }for(let subprop in teamData[prop]){
+                    switch(subprop){
+                        case 'myTeams':
+                        case 'allTeams':
+                            if((typeof teamData[prop][subprop]!= 'number' && teamData[prop][subprop] != null ) || (typeof teamData[prop][subprop]== 'number' && teamData[prop][subprop]<0)){
+                                console.log(typeof teamData[prop][subprop]);
+                                console.log(teamData[prop][subprop])
+                                console.log('myTeams/allTeams error')
+                                throw('Invalid data request')
+                            }
+                            break;
+                        default:
+                            console.log('extra prop')
+                            throw('Invalid data request');
+                    }
+                }
                     break;
             case '__v':
                 if(typeof teamData[prop]!= 'number'){
+                    console.log('bad version')
                     throw('Invalid request data')
                 }
                 break;

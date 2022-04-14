@@ -710,6 +710,7 @@ const userDataFormComponent = (function(){
             } 
         }
 
+
         function updateUserPrivilege(){
             
             if(userElements.privilege.checked != userData.privilegeLevel){
@@ -719,7 +720,7 @@ const userDataFormComponent = (function(){
 
         function verifyColorChange(){
             if(userData.color != userElements.color.value){
-                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserColorValue", userElements.color.value)
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("modifyUserColorValue", userElements.color.value.toUpperCase())
             }
         }
     }
@@ -2803,14 +2804,33 @@ window.onload = setScriptData;
 
 async function setScriptData(){
     try{
+        const mediaQuery = window.matchMedia('(max-width: 485px)');
+        checkWidth(mediaQuery);
+        mediaQuery.addEventListener('change', checkWidth)
         const adminPageJSON = await fetch('adminHome/adminData'); //change this to accept userId and season
         const adminPageData = await adminPageJSON.json();
-        console.log(adminPageData)
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminDataFetched", adminPageData);
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminDataSet");
         
     }catch(err){
         console.log(err)
+    }
+}
+
+function checkWidth(e){
+    if(e.matches){
+        const body = document.querySelector('body');
+        const newText = document.createElement('p');
+        newText.innerText = 'This program is designed for PCs, laptops and tablets, due to general support for XLSX documents on those platforms. Please use one of the recommended devices for best experience.'
+        const children = Array.from(document.querySelectorAll('body *'));
+        if(children.length >0){
+            children.forEach(function(child){
+                child.remove();
+            })
+        }
+
+        body.appendChild(newText)
+        throw('Window size not appropriate')
     }
 }
 

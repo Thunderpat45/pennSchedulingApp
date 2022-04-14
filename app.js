@@ -13,6 +13,7 @@ const bcrypt = require('bcryptjs')
 
 const logInRouter = require('./routes/logIn');
 const baseUserRouter = require('./routes/baseUser');
+const errorRouter = require('./routes/error')
 
 const app = express();
 
@@ -80,6 +81,7 @@ app.use(ejsLayouts)
 
 
 app.use('/', logInRouter);
+app.use('/error', errorRouter);
 app.use('/user', baseUserRouter);
 
 

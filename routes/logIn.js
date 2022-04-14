@@ -4,8 +4,6 @@ const passport = require('passport')
 
 const user = require('../models/userModel');
 
-
-//change to authentication functionality
 router.get('/', function(req, res, next) {
     res.render('logIn', {
         layout: "./layouts/logInLayout",
@@ -34,12 +32,9 @@ router.post('/logIn', async function(req,res,next){
             failureRedirect: '/',
         }, function(err,user){
             if(err){
-                console.log(err)
                 return next(err)
             }else if(!user){
-                console.log('Oops!')
                 const error = 'Invalid username/password combination.'
-                console.log(error)
                 return res.render('logIn', {
                     layout: "./layouts/logInLayout",
                     error:error

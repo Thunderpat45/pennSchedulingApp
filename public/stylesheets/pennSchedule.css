@@ -8,21 +8,13 @@ html{
 html,body{
 	font-size: 20px;
 	margin:0px;
-	height:100%;
-	min-width: 1000px;
+	height:100vh;
+	width: 100vw
 }
 
 body{
 	overflow-y: scroll;
 }
-
-@media screen and (max-width: 600px){
-	body {
-	  background:grey;
-	  content: "This page is optimized for PC/tablet use for screen widths of XXX and wider. Please use a different device to access this application."
-	}
-}/*doesn't seem to be doing anything...*/
-
 
 /*header, nav elements*/
 
@@ -281,7 +273,7 @@ main, .page{
 	border: #011F5b solid;
 	border-width: 1rem;
 	display:grid;
-	max-height: 30rem;
+	max-height: 42rem;
 }
 
 
@@ -300,7 +292,7 @@ main, .page{
 }
 
 #teamForm{
-	max-height: 30rem;
+	max-height: 100%;
 	background-color: #990000;
 	margin: 1rem;
 	opacity: .9;
@@ -747,7 +739,7 @@ main, .page{
 #entryForm{
 	position: fixed;
 	left: 20%;
-	top: 25%;
+	top: 5%;
 	margin: auto;
 	width: 60%;
 	background: white;
@@ -772,7 +764,7 @@ main, .page{
 }
 
 #adminTeamOrderForm{
-	max-height: 30rem;
+	max-height: 42rem;
 }
 
 #adminFacilityDataForm, #adminDayTimeBlockForm, #adminTeamOrderForm, #availabilityDayTimeBlockForm, #teamOrderForm{
@@ -813,7 +805,17 @@ main, .page{
 	color: black;
 	background-color:white;
 	margin: .25rem auto;
-	padding: .25rem;
+}
 
-
+.blur{
+    overflow: hidden;
+}
+.blur:before {
+    content: "";
+    position: absolute;
+    width : 100%;
+    height: 100%;
+    background: inherit;
+    z-index: -1;  
+    filter: blur(10px);
 }
