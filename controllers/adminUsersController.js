@@ -284,21 +284,23 @@ const adminControllerFunctions = {
 
     postUserDelete:async function(req,res, next){ //userDependent
         try{
-            const targetUser = req.body;
+            const targetUserId = req.body;
             const targetId = req.params.modifyUserId;
             const {userId, season} = req.params
             const errorArray = []
 
-            if((season != 'fall' && season!= 'spring') || testRegex.test(userId) || testRegex.test(targetId) || typeof targetUser != 'object' || typeof targetUser.privilegeLevel != Boolean){
+            if((season != 'fall' && season!= 'spring') || testRegex.test(userId) || testRegex.test(targetId) || typeof targetUserId != 'object'){
                 errorArray.push('Invalid data request')
             }
     
-            const users = await user.find({$or: [{_id: targetUser._id}, {privilegeLevel: true}]}, 'privilegeLevel');
+            const users = await user.find({$or: [{_id: targetUserId._id}, {privilegeLevel: true}]}, 'privilegeLevel');
+            const thisUser = await user.findOne({_id: targetUserId._id}, 'privilegeLevel')
+
             const privilegeLevelError = users.filter(function(user){
-                return user.privilegeLevel == true && user._id != targetUser._id;
+                return user.privilegeLevel == true && user._id != targetUserId._id;
             })
 
-            if(targetUser.privilegeLevel != true && privilegeLevelError.length == 0){
+            if(thisUser.privilegeLevel != true && privilegeLevelError.length == 0){
                 const string = "Cannot delete last admin. Create new admin users before demoting this admin.";
                 errorArray.push(string);
             }
@@ -307,8 +309,8 @@ const adminControllerFunctions = {
                 throw (errorArray)
             }else{
                 await user.deleteOne({_id: targetId});
-                await team.deleteMany({coach: targetUser._id})
-                await availabilities.deleteMany({coach: targetUser._id})
+                await team.deleteMany({coach: targetUserId._id})
+                await availabilities.deleteMany({coach: targetUserId._id})
 
                 const fallTeams = await team.find({season:'fall'}).sort({'rank.allTeams':1});
                 fallTeams.forEach(async function(thisTeam, index){ //this might be wrong to do this this way
