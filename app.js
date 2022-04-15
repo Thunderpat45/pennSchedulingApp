@@ -8,12 +8,14 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const ejsLayouts = require('express-ejs-layouts')
 const user = require('../pennSchedule/models/userModel')
-const bcrypt = require('bcryptjs')
+const bcrypt = require('bcryptjs');
+
+
+
 
 
 const logInRouter = require('./routes/logIn');
 const baseUserRouter = require('./routes/baseUser');
-const errorRouter = require('./routes/error')
 
 const app = express();
 
@@ -81,7 +83,6 @@ app.use(ejsLayouts)
 
 
 app.use('/', logInRouter);
-app.use('/error', errorRouter);
 app.use('/user', baseUserRouter);
 
 
@@ -99,7 +100,10 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.render('error', {
+    layout: "./layouts/errorLayout",
+    error: null
+  })
 });
 
 module.exports = app;
