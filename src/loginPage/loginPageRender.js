@@ -28,7 +28,7 @@ const loginPageRender = (function(){
                 try{
                     form.submit();
                 }catch(err){
-                    if(err.status == 404){ //check these
+                    if(err.status == 404){
                         throw('404 error!')
                     }else if(err.status == 400){
                         throw('400 error!')
@@ -77,7 +77,6 @@ const loginPageRender = (function(){
                 errorList.appendChild(errorNode)
             })
         }
-
     }
 
     function unrenderErrorList(){
@@ -87,7 +86,6 @@ const loginPageRender = (function(){
             }
         }
     }
-
 })()
 
 export {loginPageRender}

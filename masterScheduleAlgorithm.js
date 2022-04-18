@@ -39,6 +39,9 @@ const masterScheduleBuilder = (function(){
         const currentRequest = currentTeam.allOpts[requestIndex];
         const cachedTeamStackSlice = cachedTeamStack.slice();
        
+        /*if the currently selected request (with its subset of days, times etc) does not conflict with existing teams, then push to the stack of viable teams' options,
+        copy it (if it is the longest attempt so far) in case of eventual failure to schedule all teams, and then see if it is the last team necessary for a complete schedule iteration. If not check the next option.
+        Will iterate through all options, and step back to previous level once all options are exhausted*/
         if(checkCurrentTeamOptions(currentRequest, currentTeam, cachedTeamStackSlice, scheduleTemplate, validOption) != "conflict"){
             cachedTeamStackSlice.push(currentTeam.validOption);
             trackLongestStack(cachedTeamStackSlice);
@@ -68,7 +71,8 @@ const masterScheduleBuilder = (function(){
 
     function checkCurrentTeamOptions(currentRequest, currentTeam, cachedTeamStack, scheduleTemplate, validOption){
         currentTeam.validOption = structuredClone(validOption);
-        const completeConflict = [] //fix this name
+        const completeConflict = []
+        //populate a new schedule object with the current stack of teams
         insertAllCachedTeams(cachedTeamStack, scheduleTemplate);
         try{
             checkCurrentTeamDays(currentRequest, currentTeam, scheduleTemplate, 0, completeConflict)
@@ -96,7 +100,7 @@ const masterScheduleBuilder = (function(){
             scheduleTemplate[dayOfWeek][time].strengthCoachAvailability[coach] = "no"
             if(inWeiss == "yes"){
                 scheduleTemplate[dayOfWeek][time].slots -= size;
-                scheduleTemplate[dayOfWeek][time].existingTeams.push({name, coach, size}); //more content here?
+                scheduleTemplate[dayOfWeek][time].existingTeams.push({name, coach, size});
             }else{
                 scheduleTemplate[dayOfWeek][time].existingTeams.push({name, coach, location: "off-site"})
             }
@@ -108,6 +112,9 @@ const masterScheduleBuilder = (function(){
         const currentDay = currentRequest[currentDayIndex];
 
         try{
+            /*althought it will check all days and log conflicts, this fails the whole option if a single day is incompatible. I thought about making it check other options for this team, to see if they requested a similar day
+            (i.e. this request failed on Monday at 4, but another request by the same team includes an ask for Monday at 1, so keep the other days in this option but try to match against Monday at 1 as well),
+            but algorithmically I haven't been able to sort that out, plus that doesn't account for classes/practices, and might be assuming too much about how the coach changes the rest of their schedule around*/
             evaluateTimeBlock(currentDay, currentTeam, scheduleTemplate, 0)
         }catch(conflict){
             completeConflict.push(conflict)
@@ -127,6 +134,7 @@ const masterScheduleBuilder = (function(){
 
         const timeRequest = checkConflicts(modifierArr[i], currentDay, currentTeam, scheduleTemplate);
 
+        //if a day fails initially, it will try again with time shifts == to indexValue in modifier arr (i.e., startTime + 15mins, -15mins, etc.), while recording conflicts at 0, -30, +30
         if(i < modifierArr.length-1 && timeRequest != undefined){
             if(i == 0 || i == 3){
                 subConflicts.push(timeRequest)
@@ -135,7 +143,7 @@ const masterScheduleBuilder = (function(){
 
         }else if(i == modifierArr.length-1 && timeRequest!= undefined){
             subConflicts.push(timeRequest)
-
+            //conflicts get written to object that is posted in 2nd sheet of excel if no complete schedules can be found
             if(!masterScheduleObject.conflictObj.hasOwnProperty(currentTeam.name)){
                 masterScheduleObject.conflictObj[currentTeam.name] = {
                     [currentDay.dayOfWeek] : {
@@ -155,6 +163,7 @@ const masterScheduleBuilder = (function(){
             throw "conflict" 
 
         }else{
+            //if successful, the viable day is pushed to a viable option, and if the viable option succeeds, it is pushed to the team stack
             const validDay = structuredClone(currentDay);
             validDay.startTime += modifierArr[i];
             validDay.endTime += modifierArr[i];
@@ -172,6 +181,8 @@ const masterScheduleBuilder = (function(){
                     throw({time: startTime + modifier, reason:"Potential uncaught operating hours change. Part of session time outside operating hours."})
                 }else{
                     const thisTimeExistingTeams = scheduleTemplate[dayOfWeek][time].existingTeams;
+
+                    //checks to see if this team's coach has another team at same time and logs conflict if so
                     if(scheduleTemplate[dayOfWeek][time].strengthCoachAvailability[coach] == "no"){
                         const coachsubConflicts = thisTimeExistingTeams
                             .slice()
@@ -182,6 +193,8 @@ const masterScheduleBuilder = (function(){
                                 return team.name
                             })
                         throw({time: startTime + modifier, reason: "Coach not available", teams: coachsubConflicts});
+
+                    //checks to see if there is space in the facility for this team based on size input and logs conflict if not
                     }else if(scheduleTemplate[dayOfWeek][time].slots - size < 0){
                         const spacesubConflicts = thisTimeExistingTeams
                             .slice()
@@ -194,12 +207,10 @@ const masterScheduleBuilder = (function(){
             }catch(conflict){ 
                 return conflict;
             }
-        }
-            
+        }     
     }
 
-    return {buildTeamsSchedule:buildTeamsSchedule}
-        
+    return {buildTeamsSchedule:buildTeamsSchedule}       
 })()
 
 module.exports = {buildTeamsSchedule: masterScheduleBuilder.buildTeamsSchedule}

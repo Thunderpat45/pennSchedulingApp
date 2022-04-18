@@ -1,5 +1,7 @@
 import {events} from "../../../src/events"
 
+//design issue(?): origin is tracked across 'team' lifecycle solely to determine whether an attempt to save a team is a post or a patch/put, is there a better way?
+
 const singleTeamData = (function(){
     
     let teamModelStable = {};
@@ -19,7 +21,6 @@ const singleTeamData = (function(){
         enabled: true
     }
     
-
     events.subscribe('userDataFetched', setDefaults)
     events.subscribe("addTeamClicked", addTeam);
     events.subscribe("teamDataEditRequested", setTeamDataEditRequest); 
@@ -41,7 +42,6 @@ const singleTeamData = (function(){
     events.subscribe("modifyTeamNameValue", modifyTeamNameValue);
 
     
- 
     function setDefaults(userData){
         teamDetailsDefault.coach = userData.thisUser._id
         teamDetailsDefault.season = userData.season
@@ -58,7 +58,7 @@ const singleTeamData = (function(){
         teamModelStable = structuredClone(team)
         teamModelMutable = structuredClone(teamModelStable)
     
-        events.publish("teamDataLoaded", {team:teamModelMutable, origin: 'edit'}) //follow this
+        events.publish("teamDataLoaded", {team:teamModelMutable, origin: 'edit'})
     }
 
     function setTeamDataCancelRequest(){
@@ -78,7 +78,7 @@ const singleTeamData = (function(){
 
     function addOption(teamData){
         teamModelMutable.allOpts.push([createDefaultDayDetails()]);
-        events.publish("optionsModified", {team:teamModelMutable, origin: teamData.origin});  //what is origin again?
+        events.publish("optionsModified", {team:teamModelMutable, origin: teamData.origin});
     }
 
     function deleteOption(teamData){
@@ -115,11 +115,11 @@ const singleTeamData = (function(){
         teamModelMutable.allOpts[optIndex][dayIndex][teamData.modifiedSelector] = teamData.value
     }
 
-    function modifyTeamSizeValue(size){ //fix thsese
+    function modifyTeamSizeValue(size){
         teamModelMutable.size = size;
     }
 
-    function modifyTeamNameValue(name){ //fix theses
+    function modifyTeamNameValue(name){
         teamModelMutable.name = name
     }   
 

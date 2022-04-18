@@ -3,7 +3,6 @@ import {timeValueConverter} from "./timeConverter"
 
 const selectorBuilder = (function(){ 
 
-    //default values must be input (into database?) for facilityOpen/Close/MaxCapacity BEFORE first time running, or startTime/endTime/teamSize will have errors!
     const selectionRanges = { 
         startTime: {
             start: null,
@@ -20,17 +19,17 @@ const selectorBuilder = (function(){
             end: null,
             increment: 5
         },
-        facilityOpen:{ //4am to 8pm, default value 6am (360)?
+        facilityOpen:{ //4am to 8pm, default value 6am (360)
             start: 240,
             end: 1200,
             increment: 15
         },
-        facilityClose:{ //5am to 9pm, default value 8pm (1200)?
+        facilityClose:{ //5am to 9pm, default value 8pm (1200)
             start: 300,
             end: 1260,
             increment: 15
         },
-        facilityMaxCapacity:{//range 10-150, default value 120?
+        facilityMaxCapacity:{//range 10-150, default value 120
             start: 10,
             end: 150,
             increment: 5
@@ -60,8 +59,6 @@ const selectorBuilder = (function(){
     function runBuildSelector(primaryClass){
         return buildSelector(primaryClass)
     }
-
-    
 
     function buildSelector(primaryClass){
         const selection = document.createElement("select");
@@ -117,12 +114,10 @@ const selectorBuilder = (function(){
             if(primaryClass == "teamSize" || primaryClass == "facilityMaxCapacity"){
                 option.innerText = i;
             }else{
-                option.innerText = timeValueConverter.runConvertTotalMinutesToTime(i); //toString() should not be necessary
+                option.innerText = timeValueConverter.runConvertTotalMinutesToTime(i);
             }selector.appendChild(option);
         }
     }
-
-        //these are all not working, may need to use event delegation within the modules themselves
 
     function modifyEndTimeDefaultValue(){
         const startTimeSelectedValue = Number(this.value);
@@ -137,7 +132,7 @@ const selectorBuilder = (function(){
         })
     }
 
-    function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+    function disableDefaultOption(){
         const values = Array.from(this.children);
         values[0].disabled = true;
     }

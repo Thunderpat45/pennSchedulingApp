@@ -12,9 +12,7 @@ const teamSchema = new Schema({
         allTeams: Number
     },
     lastVerified:String,
-    // color: {type: Schema.Types.ObjectId, ref:'User'},
     enabled: Boolean,
-    //overlapTolerance?
     allOpts: 
         [
             [
@@ -24,7 +22,6 @@ const teamSchema = new Schema({
                     endTime:Number,
                     inWeiss: String,
                     _id: false
-                    //overlapTolerance?
                 }
             ]
         ]

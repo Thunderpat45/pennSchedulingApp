@@ -3,14 +3,11 @@ import { events } from "../../src/events";
 const userDataValidator = (function(){
     
     events.subscribe("userDataValidationRequested", validateAllInputs);
-    
-    //
+
     function validateAllInputs(adminUserData){
        
         const passwordDiv = document.querySelector('#userGeneratorPassword')
-           
         const {userData, origin} = adminUserData
-
         const errorArray = [];
 
         validateUserName(userData, errorArray); 
@@ -64,7 +61,6 @@ const userDataValidator = (function(){
         }catch(err){
             array.push(err)
         }
-
     }
 })()
 

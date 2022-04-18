@@ -10,7 +10,6 @@ const availabilityValidator = (function(){
         const errorArray = []
         validateAllInputs(timeBlock, errorArray)
         
-        
         if(errorArray.length == 0){
             events.publish("adminAvailabilityDataValidated", timeBlockData)
         }else{

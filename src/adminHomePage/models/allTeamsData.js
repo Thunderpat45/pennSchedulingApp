@@ -1,21 +1,21 @@
 import { events } from "../../events";
 
 const adminMainPageAllTeamsData = (function(){
-	//no obvious work to be done here except connect teamOrder change to database, have changes written to EVERY TEAM and ensure recursion is necessary
+
 	let allTeamsDataStable;
 	let allTeamsDataMutable;
 
 	events.subscribe("adminDataFetched", setDataNewPageRender);
-	events.subscribe("allTeamsOrderChangeSaved", setDataNewTeamOrder); //add prompt for successful database post
-	events.subscribe("cancelAllTeamsOrderChangesClicked", cancelTeamOrderChanges) //add prompt for change cancellation
-	events.subscribe("updateAllTeamsOrderClicked", saveTeamOrderChanges) //add promprt for save changes
+	events.subscribe("allTeamsOrderChangeSaved", setDataNewTeamOrder); 
+	events.subscribe("cancelAllTeamsOrderChangesClicked", cancelTeamOrderChanges) 
+	events.subscribe("updateAllTeamsOrderClicked", saveTeamOrderChanges) 
 	events.subscribe("modifyAllTeamsOrderClicked", modifyTeamOrder);
 	events.subscribe("enabledStatusChangeClicked", toggleTeamEnabled);
 	events.subscribe('teamEnableStatusChangeSaved', setDataTeamEnableStatusChange)
 	events.subscribe('adminTeamOrderChangeClicked', sendTeamData)
 
 	function setDataNewPageRender(adminAllTeams){
-        allTeamsDataStable = structuredClone(adminAllTeams.teams); //make sure this is correct property for database initial database fetch
+        allTeamsDataStable = structuredClone(adminAllTeams.teams); 
         allTeamsDataMutable = structuredClone(allTeamsDataStable)
     }
 
@@ -66,7 +66,6 @@ const adminMainPageAllTeamsData = (function(){
         allTeamsDataStable = structuredClone(allTeamsDataMutable)
         events.publish('modifyTeamGrid', allTeamsDataMutable)
     }
-	
 })()
 
 export {adminMainPageAllTeamsData}

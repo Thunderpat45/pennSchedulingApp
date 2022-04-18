@@ -27,7 +27,6 @@ const adminTimeBlockDataGridComponent = (function(){
             dayAllBlocksDivNew.appendChild(defaultText);
         }
         
-    
         dayAllBlocksDiv.replaceWith(dayAllBlocksDivNew);
     }
      
@@ -65,8 +64,7 @@ const adminTimeBlockDataGridComponent = (function(){
             blockElement.endTimeText.innerText += timeValueConverter.runConvertTotalMinutesToTime(blockData.availability.endTime);
         }else{
             blockElement.endTimeText.innerText =blockData.availability.endTime;
-        }
-        
+        }  
     }
     
     function setEventListeners(timeBlockElement, timeBlockData){
@@ -84,7 +82,6 @@ const adminTimeBlockDataGridComponent = (function(){
             
         }
     }
-
 })()
 
 export {adminTimeBlockDataGridComponent}

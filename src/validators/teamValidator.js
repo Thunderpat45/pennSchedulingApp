@@ -5,8 +5,6 @@ const teamValidator = (function(){
 
     let facilityData
 
-    //ensure startTime is NOT => endTime
-
     events.subscribe('userDataFetched', setFacilityData)
     events.subscribe("teamValidationRequested", validateAllInputs);
 
@@ -14,7 +12,7 @@ const teamValidator = (function(){
         facilityData = userData.facilityData
     }
 
-    function validateAllInputs(teamDataObj){ //make use of origin as necessary
+    function validateAllInputs(teamDataObj){
         const errorArray = [];
 
         validateName(teamDataObj.teamData, errorArray);

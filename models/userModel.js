@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
     name: String,
-    password: String, //BE READY TO CHANGE THIS AS SOON AS POSSIBLE FOR SECURITY REASONS
+    password: String,
     privilegeLevel: {type: Boolean, default: false},
     lastVerified: String,
     color: String,  

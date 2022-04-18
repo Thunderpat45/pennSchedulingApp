@@ -18,7 +18,7 @@ userRouter.delete('/team/:teamId', usersController.postTeamDelete);
 userRouter.patch('/team/:teamId/verification', usersController.postTeamVerify);
 
 //multi team data changes
-userRouter.patch('/allTeamsVerification', usersController.postAllTeamsVerified) //not actually seasonally dependent
+userRouter.patch('/allTeamsVerification', usersController.postAllTeamsVerified)
 userRouter.patch('/allTeamsOrder', usersController.postMyTeamsOrder);
 
 //availablity data changes
@@ -26,6 +26,7 @@ userRouter.patch('/allTeamsOrder', usersController.postMyTeamsOrder);
 userRouter.post('/timeBlock' ,usersController.postTimeBlockCreation);
 userRouter.put('/timeBlock/:timeBlockId', usersController.postTimeBlockUpdate);
 userRouter.delete('/timeBlock/:timeBlockId', usersController.postTimeBlockDelete);
+
 
 function authorizeUser(req, res, next){
     const {userId, season} = req.params

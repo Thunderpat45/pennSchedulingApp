@@ -3,7 +3,6 @@ const timeConverterExpress = require('./timeConverterExpress')
 
 const excelBuilder = (function(){
 
-   
     const rowObj = {};
     const columnObj = {};
 
@@ -56,7 +55,7 @@ const excelBuilder = (function(){
             const startColumn = columnObj[day].startColVal
             const endColumn = columnObj[day].endColVal
 
-            for(let i = 1; i<58; i++){
+            for(let i = 1; i<58; i++){ //not ideal, but hard coded based on known width of sheet
                 const leftCell = worksheet.getCell(`${startColumn}${i}`)
                 const rightCell = worksheet.getCell(`${endColumn}${i}`)
 
@@ -79,7 +78,7 @@ const excelBuilder = (function(){
             const cell = worksheet.getCell(`A${rowObj[time].rowVal}`);
             cell.value = rowObj[time].label
         }
-        const columnBorderArray = [1, 7, 13, 19, 25, 31, 37, 43]
+        const columnBorderArray = [1, 7, 13, 19, 25, 31, 37, 43] //not ideal, but hard coded based on known heihgt/width of sheet
         for(let i = 1; i<44; i++){
             const columnVal = pairColumnNameToColumnNumber(i)
             const cell = worksheet.getCell(`${columnVal}57`);
@@ -87,9 +86,7 @@ const excelBuilder = (function(){
             if(columnBorderArray.indexOf(i)!= -1){
                 cell.border = {bottom: {style:'thick'}, right: {style:'thick'}}
             }
-        }
-        
-        
+        }            
     }
 
     function sortTeamsBySize(schedule){
@@ -101,17 +98,18 @@ const excelBuilder = (function(){
     }
 
     function setTeams(teamArray, worksheet){
-        teamArray.forEach(function(team){ //this needs to be done BEFORE IT GETS HERE, OTHERWISE IT REDUCES TEAM SIZE PROGRESSIVELY FOR EACH NEW SCHEDULE, do in controller
+        teamArray.forEach(function(team){
             team.validDays.forEach(function(trainingDay){
-                console.log(trainingDay)
                 let i = 0;
                 if(trainingDay.inWeiss == "yes"){
-                    while(i < 6-team.size){ //? right end point?
+                    while(i < 6-team.size){
+                        //checks to make sure that a team is not added to cells already occupied by another team
                         const verification = verifyColumnUnoccupied(worksheet, team, trainingDay, i);
                         if(verification == undefined){
                             setCurrentDay(worksheet,team, trainingDay, i);
                             break;
                         }else if(6-i == team.size -1 ){
+                            //catches an error (that shouldn't happen at all), where the team won't fit on the sheet at its allotted time
                             throw('Formatting error! Teams do not fit in appropriate spaces')
                         }else{
                             i++
@@ -119,8 +117,6 @@ const excelBuilder = (function(){
                     }
                 }
             })
-            console.log("------------------ TEAM BREAKPOINT --------------------------------")
-
         })
     }
 
@@ -168,21 +164,23 @@ const excelBuilder = (function(){
         startCell.border = {top: {style:'medium'}, left: {style:'medium'}, bottom: {style:'medium'}, right: {style:'medium'}}
         startCell.font = { name: 'Calibri', size: 11 }
         startCell.fill = {type: "pattern", pattern: "solid", fgColor: {argb: team.color}};
-        console.log(startCell)
+        /*for unknown reasons, except maybe program differences, fill color (fgColor) DOES NOT work with either MicrosoftExcel or LibreOfficeCalc,
+         but works with no issues on GoogleSheets. A bug report has been submitted to ExcelJS library and I am awaiting feedback to update*/
     }
 
     function setConflicts(worksheet, conflicts){
+        //creates a sheet with conflicts if a full schedule was not able to be made in schedulingAlgorithm
         let i = 0
         for(let team in conflicts){
-            const adjustedTeamRowNumber = i+1; //1
+            const adjustedTeamRowNumber = i+1;
             const labelCell = worksheet.getCell(`A${adjustedTeamRowNumber}`);
             labelCell.value = team;
             let j = 1
-            for(let day in conflicts[team]){ //2, 6
+            for(let day in conflicts[team]){
                 const dayLabelCell = worksheet.getCell(`B${adjustedTeamRowNumber+j}`);
                 dayLabelCell.value = day
                 let k = 1
-                for(let time in conflicts[team][day]){ //3,4,5 ; 7,8
+                for(let time in conflicts[team][day]){
                     const timeLabelCell = worksheet.getCell(`C${adjustedTeamRowNumber+j+k}`);
                     timeLabelCell.value = timeConverterExpress.runConvertTotalMinutesToTime(time);
                     let l=0;
@@ -204,7 +202,7 @@ const excelBuilder = (function(){
         }
     }
 
-    function buildExcelSchedules(scheduleData, facilityData){ // create if condition in controller that tests if completedSchedules.length exists, then passes appropriate parameter (cS or lS, if lS then return errorList somehow too?)
+    function buildExcelSchedules(scheduleData, facilityData){
         const workbook = new ExcelJS.Workbook();
         setRowValues(facilityData);
         setColumnValues(facilityData)
@@ -239,7 +237,6 @@ const excelBuilder = (function(){
     }
 
     return {buildExcelSchedules}
-
 })()
 
 module.exports = {buildExcelSchedules: excelBuilder.buildExcelSchedules}

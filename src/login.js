@@ -4,7 +4,7 @@ import { databasePost } from "../src/databasePost";
 import { loginPageRender } from "../src/loginPage/loginPageRender";
 
 window.onload = setScriptData
-async function setScriptData(){
+async function setScriptData(){ 
     try{
         const mediaQuery = window.matchMedia('(max-width: 485px)');
         checkWidth(mediaQuery);
@@ -14,7 +14,7 @@ async function setScriptData(){
     }
 }
 
-function checkWidth(e){
+function checkWidth(e){//mobile devices don't always have xlsx reader, so attempting to restrict viewport, but not having success
     if(e.matches){
         const body = document.querySelector('body');
         const newText = document.createElement('p');

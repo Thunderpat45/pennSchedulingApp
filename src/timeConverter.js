@@ -1,36 +1,20 @@
-//purpose: convert totalMinutes into clockTime, and clockTime into totalMinutes
 
 const timeValueConverter = (function(){
-    //no obvious issues here
+
     function convertTotalMinutesToTime(totalMins){
         let standardTime;
         let hour = Math.floor(totalMins/60)
         let meridian
-            switch(hour){
-                case 0:
-                    hour += 12
-                    meridian = "a"
-                    break;
-                case 1:
-                case 2:
-                case 3:
-                case 4:
-                case 5:
-                case 6:
-                case 7:
-                case 8:
-                case 9:
-                case 10:
-                case 11:
-                    meridian = "a"
-                    break;
-                case 12:
-                    meridian = "p"
-                    break;
-                default:
-                    hour -=12
-                    meridian = "p"
-                    break;
+            if(hour > 0 && hour <12){
+                meridian = "a"
+            }else if(hour == 0){
+                hour += 12
+                meridian = "a"
+            }else if(hour == 12){
+                meridian = "p"
+            }else{
+                hour -=12
+                meridian = "p"
             }
             
         let mins = totalMins%60
@@ -67,7 +51,6 @@ const timeValueConverter = (function(){
     }
 
     return {runConvertTimeToTotalMinutes, runConvertTotalMinutesToTime}
-
 })();
 
 export{timeValueConverter}

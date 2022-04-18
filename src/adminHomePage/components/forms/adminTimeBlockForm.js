@@ -2,7 +2,6 @@ import { events } from "../../../../src/events";
 import { selectorBuilder } from "../../../../src/selectorDOMBuilder"
 import { timeValueConverter } from "../../../../src/timeConverter";
 
-
 const adminTimeBlockDataFormComponent = (function(){
 
     events.subscribe('adminAvailabilityBlockAddRequested', renderTimeBlockDataForm);
@@ -12,15 +11,12 @@ const adminTimeBlockDataFormComponent = (function(){
     events.subscribe("editAdminBlockDataSaved", unrenderTimeBlockDataForm);
     events.subscribe('newAdminBlockDataSaved', unrenderTimeBlockDataForm)
 
-
-
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm");
     
 
     function renderTimeBlockDataForm(adminTimeBlockDayData){
         
-    
         const elements = setElements();
         populateContent(elements, adminTimeBlockDayData);
         setEventListeners(elements, adminTimeBlockDayData);
@@ -152,10 +148,7 @@ const adminTimeBlockDataFormComponent = (function(){
             errorList.appendChild(bullet);
         })
     }
-
 })()
-
-
 
 export {adminTimeBlockDataFormComponent}
 

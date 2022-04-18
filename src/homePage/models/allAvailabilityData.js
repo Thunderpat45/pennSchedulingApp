@@ -23,11 +23,11 @@ const allAvailabilityDataModel = (function(){
             return timeBlock._id == _id;
         })[0]
 
-        events.publish("availabilityBlockEditRequested", block); //add publish that sends to form, need _id/day?
+        events.publish("availabilityBlockEditRequested", block); 
     }
 
     function deleteAvailabilityBlock(timeBlockObj){
-        events.publish("availabilityBlockDeleteRequested", timeBlockObj); //send this to database, change to deleteRequested?
+        events.publish("availabilityBlockDeleteRequested", timeBlockObj);
     }
 
     function setDataNewDatabasePost(blockData){

@@ -1,5 +1,5 @@
 import {events} from "../../../src/events"
-
+//design issue(?): origin is tracked across 'availability' lifecycle solely to determine whether an attempt to save a availability is a post or a patch/put, is there a better way?
 const availabilityData = (function(){
     
     let availabilityModelStable;
@@ -49,7 +49,7 @@ const availabilityData = (function(){
         events.publish("availabilityBlockAddRequested", {timeBlock: availabilityModelMutable, origin: "add"});
     }
 
-    function modifyAvailabilityValue(timeBlockObj){ //make sure this is sent this way
+    function modifyAvailabilityValue(timeBlockObj){
         const {modifiedSelector, value} = timeBlockObj
         availabilityModelMutable.availability[modifiedSelector] = value
     }

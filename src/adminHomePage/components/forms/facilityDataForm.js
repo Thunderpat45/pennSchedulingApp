@@ -82,7 +82,7 @@ const facilityDataFormComponent = (function(){
            
         }
         function cancelFacilityDataChanges(){
-            events.publish("cancelFacilityDataChangesClicked") //check this path
+            events.publish("cancelFacilityDataChangesClicked")
         }
     }
 

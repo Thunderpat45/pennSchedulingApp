@@ -12,14 +12,11 @@ const availabilityTimeBlockDataFormComponent = (function(){
     events.subscribe("editAvailabilityBlockDataSaved", unrenderTimeBlockDataForm);
     events.subscribe('newAvailabilityBlockDataSaved', unrenderTimeBlockDataForm)
 
-
-
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm");
     
 
-    function renderTimeBlockDataForm(timeBlockDayData){
-        
+    function renderTimeBlockDataForm(timeBlockDayData){ 
     
         const elements = setElements();
         populateContent(elements, timeBlockDayData);
@@ -152,9 +149,6 @@ const availabilityTimeBlockDataFormComponent = (function(){
             errorList.appendChild(bullet);
         })
     }
-
 })()
-
-
 
 export {availabilityTimeBlockDataFormComponent}

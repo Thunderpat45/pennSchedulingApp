@@ -66,5 +66,4 @@ const adminTeamsGridComponent = (function(){
     }
 })()
 
-
 export {adminTeamsGridComponent}

@@ -34,7 +34,7 @@ async function setScriptData(){
     }
 }
 
-function checkWidth(e){
+function checkWidth(e){//mobile devices don't always have xlsx reader, so attempting to restrict viewport, but not having success
     if(e.matches){
         const body = document.querySelector('body');
         const newText = document.createElement('p');

@@ -38,8 +38,7 @@ const databasePost = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('allTeamsOrderDataUpdateRequested', updateAllTeamsOrder);
 
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('scheduleBuildRequested', buildSchedule)
-    //events.subscribe('loginAttemptRequested', postLoginAttempt)
-   
+    
 
     async function updateFacilityData(databaseBoundObject){ 
         try{
@@ -620,14 +619,11 @@ const availabilityTimeBlockDataFormComponent = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editAvailabilityBlockDataSaved", unrenderTimeBlockDataForm);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('newAvailabilityBlockDataSaved', unrenderTimeBlockDataForm)
 
-
-
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm");
     
 
-    function renderTimeBlockDataForm(timeBlockDayData){
-        
+    function renderTimeBlockDataForm(timeBlockDayData){ 
     
         const elements = setElements();
         populateContent(elements, timeBlockDayData);
@@ -760,10 +756,7 @@ const availabilityTimeBlockDataFormComponent = (function(){
             errorList.appendChild(bullet);
         })
     }
-
 })()
-
-
 
 
 
@@ -918,11 +911,9 @@ const teamDataFormComponent = (function(){
   
     _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("optionsModified", rerenderTeamDataForm)
 
-
-
     _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("renderTeamDataValidationErrors", renderTeamDataValidationErrors)
     _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editTeamDataSaved", unrenderTeamDataForm);
-   _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('newTeamDataSaved', unrenderTeamDataForm)
+    _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('newTeamDataSaved', unrenderTeamDataForm)
 
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm");
@@ -1013,7 +1004,7 @@ const teamDataFormComponent = (function(){
             buildTeamOptionElement(elements, teamData, option)
         })
 
-        function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+        function disableDefaultOption(){
             const values = Array.from(this.children);
             values[0].disabled = true;
         }
@@ -1204,7 +1195,6 @@ const teamDataFormComponent = (function(){
 
     function setEventListeners(elements, teamData){
     
-       
         elements.saveButton.addEventListener("click", saveTeamData);
         elements.cancelButton.addEventListener("click", cancelTeamChanges);
         elements.addOptionButton.addEventListener("click", addOption);
@@ -1225,7 +1215,6 @@ const teamDataFormComponent = (function(){
         }
 
        
-
         function modifyTeamNameValue(){ 
             try{
                 if(teamData.team.name != "" && elements.teamName.value != teamData.team.name){
@@ -1270,8 +1259,6 @@ const teamDataFormComponent = (function(){
             errorList.appendChild(bullet);
         })
     }
-
-   
 })();
 
 
@@ -1576,7 +1563,6 @@ const myTeamsDataGridComponent = (function(){
         const editButton = content.querySelector('.teamGridTeamEditButton')
         const deleteButton = content.querySelector('.teamGridTeamDeleteButton')
 
-
         return {content, div, name, size, lastVerified, optionContainer, editButton, deleteButton, verifyButton}
     }
 
@@ -1584,7 +1570,7 @@ const myTeamsDataGridComponent = (function(){
         teamElement.div.setAttribute("data-teamId", teamData._id)
         teamElement.name.innerText = `${teamData.name}`;
         teamElement.size.innerText = `${teamData.size} athletes`;
-        teamElement.lastVerified.innerText = `Last Verified: ${teamData.lastVerified}`; //fix this for undefined case
+        teamElement.lastVerified.innerText = `Last Verified: ${teamData.lastVerified}`;
         
         teamData.allOpts.forEach(function(option){
             const optionTemplate = document.querySelector("#userPageTeamOptionBlockTemplate");
@@ -1677,11 +1663,11 @@ const allAvailabilityDataModel = (function(){
             return timeBlock._id == _id;
         })[0]
 
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("availabilityBlockEditRequested", block); //add publish that sends to form, need _id/day?
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("availabilityBlockEditRequested", block); 
     }
 
     function deleteAvailabilityBlock(timeBlockObj){
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("availabilityBlockDeleteRequested", timeBlockObj); //send this to database, change to deleteRequested?
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("availabilityBlockDeleteRequested", timeBlockObj);
     }
 
     function setDataNewDatabasePost(blockData){
@@ -1727,7 +1713,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../src/events */ "./src/events.js");
 
-
+//design issue(?): origin is tracked across 'availability' lifecycle solely to determine whether an attempt to save a availability is a post or a patch/put, is there a better way?
 const availabilityData = (function(){
     
     let availabilityModelStable;
@@ -1777,7 +1763,7 @@ const availabilityData = (function(){
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("availabilityBlockAddRequested", {timeBlock: availabilityModelMutable, origin: "add"});
     }
 
-    function modifyAvailabilityValue(timeBlockObj){ //make sure this is sent this way
+    function modifyAvailabilityValue(timeBlockObj){
         const {modifiedSelector, value} = timeBlockObj
         availabilityModelMutable.availability[modifiedSelector] = value
     }
@@ -1849,7 +1835,6 @@ const myTeamsModel = (function(){
     _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('cancelTeamOrderChangesClicked', cancelTeamOrderChanges);
     _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('myTeamsOrderChangeSaved', setDataNewTeamOrder)
 
-    //events.subscribe("workingModelValidated", addEditTeamForDatabaseUpdate)
 
     function setDataNewPageRender(userData){
         myTeamsDataStable = structuredClone(userData.myTeams);
@@ -1874,7 +1859,6 @@ const myTeamsModel = (function(){
         
         const now = new Date();
         const nowParsed = `${now.getMonth()+1}-${now.getDate()}-${now.getFullYear()}`
-
         thisTeam.lastVerified = nowParsed;
 
         _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamVerificationUpdateRequested", thisTeam) 
@@ -1986,6 +1970,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../src/events */ "./src/events.js");
 
 
+//design issue(?): origin is tracked across 'team' lifecycle solely to determine whether an attempt to save a team is a post or a patch/put, is there a better way?
+
 const singleTeamData = (function(){
     
     let teamModelStable = {};
@@ -2005,7 +1991,6 @@ const singleTeamData = (function(){
         enabled: true
     }
     
-
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('userDataFetched', setDefaults)
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("addTeamClicked", addTeam);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("teamDataEditRequested", setTeamDataEditRequest); 
@@ -2027,7 +2012,6 @@ const singleTeamData = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyTeamNameValue", modifyTeamNameValue);
 
     
- 
     function setDefaults(userData){
         teamDetailsDefault.coach = userData.thisUser._id
         teamDetailsDefault.season = userData.season
@@ -2044,7 +2028,7 @@ const singleTeamData = (function(){
         teamModelStable = structuredClone(team)
         teamModelMutable = structuredClone(teamModelStable)
     
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamDataLoaded", {team:teamModelMutable, origin: 'edit'}) //follow this
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("teamDataLoaded", {team:teamModelMutable, origin: 'edit'})
     }
 
     function setTeamDataCancelRequest(){
@@ -2064,7 +2048,7 @@ const singleTeamData = (function(){
 
     function addOption(teamData){
         teamModelMutable.allOpts.push([createDefaultDayDetails()]);
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("optionsModified", {team:teamModelMutable, origin: teamData.origin});  //what is origin again?
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("optionsModified", {team:teamModelMutable, origin: teamData.origin});
     }
 
     function deleteOption(teamData){
@@ -2101,11 +2085,11 @@ const singleTeamData = (function(){
         teamModelMutable.allOpts[optIndex][dayIndex][teamData.modifiedSelector] = teamData.value
     }
 
-    function modifyTeamSizeValue(size){ //fix thsese
+    function modifyTeamSizeValue(size){
         teamModelMutable.size = size;
     }
 
-    function modifyTeamNameValue(name){ //fix theses
+    function modifyTeamNameValue(name){
         teamModelMutable.name = name
     }   
 
@@ -2161,7 +2145,6 @@ __webpack_require__.r(__webpack_exports__);
 
 const selectorBuilder = (function(){ 
 
-    //default values must be input (into database?) for facilityOpen/Close/MaxCapacity BEFORE first time running, or startTime/endTime/teamSize will have errors!
     const selectionRanges = { 
         startTime: {
             start: null,
@@ -2178,17 +2161,17 @@ const selectorBuilder = (function(){
             end: null,
             increment: 5
         },
-        facilityOpen:{ //4am to 8pm, default value 6am (360)?
+        facilityOpen:{ //4am to 8pm, default value 6am (360)
             start: 240,
             end: 1200,
             increment: 15
         },
-        facilityClose:{ //5am to 9pm, default value 8pm (1200)?
+        facilityClose:{ //5am to 9pm, default value 8pm (1200)
             start: 300,
             end: 1260,
             increment: 15
         },
-        facilityMaxCapacity:{//range 10-150, default value 120?
+        facilityMaxCapacity:{//range 10-150, default value 120
             start: 10,
             end: 150,
             increment: 5
@@ -2218,8 +2201,6 @@ const selectorBuilder = (function(){
     function runBuildSelector(primaryClass){
         return buildSelector(primaryClass)
     }
-
-    
 
     function buildSelector(primaryClass){
         const selection = document.createElement("select");
@@ -2275,12 +2256,10 @@ const selectorBuilder = (function(){
             if(primaryClass == "teamSize" || primaryClass == "facilityMaxCapacity"){
                 option.innerText = i;
             }else{
-                option.innerText = _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(i); //toString() should not be necessary
+                option.innerText = _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(i);
             }selector.appendChild(option);
         }
     }
-
-        //these are all not working, may need to use event delegation within the modules themselves
 
     function modifyEndTimeDefaultValue(){
         const startTimeSelectedValue = Number(this.value);
@@ -2295,7 +2274,7 @@ const selectorBuilder = (function(){
         })
     }
 
-    function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+    function disableDefaultOption(){
         const values = Array.from(this.children);
         values[0].disabled = true;
     }
@@ -2319,39 +2298,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "timeValueConverter": () => (/* binding */ timeValueConverter)
 /* harmony export */ });
-//purpose: convert totalMinutes into clockTime, and clockTime into totalMinutes
 
 const timeValueConverter = (function(){
-    //no obvious issues here
+
     function convertTotalMinutesToTime(totalMins){
         let standardTime;
         let hour = Math.floor(totalMins/60)
         let meridian
-            switch(hour){
-                case 0:
-                    hour += 12
-                    meridian = "a"
-                    break;
-                case 1:
-                case 2:
-                case 3:
-                case 4:
-                case 5:
-                case 6:
-                case 7:
-                case 8:
-                case 9:
-                case 10:
-                case 11:
-                    meridian = "a"
-                    break;
-                case 12:
-                    meridian = "p"
-                    break;
-                default:
-                    hour -=12
-                    meridian = "p"
-                    break;
+            if(hour > 0 && hour <12){
+                meridian = "a"
+            }else if(hour == 0){
+                hour += 12
+                meridian = "a"
+            }else if(hour == 12){
+                meridian = "p"
+            }else{
+                hour -=12
+                meridian = "p"
             }
             
         let mins = totalMins%60
@@ -2388,7 +2351,6 @@ const timeValueConverter = (function(){
     }
 
     return {runConvertTimeToTotalMinutes, runConvertTotalMinutesToTime}
-
 })();
 
 
@@ -2417,7 +2379,6 @@ const availabilityValidator = (function(){
         const {timeBlock, origin} = timeBlockData
         const errorArray = []
         validateAllInputs(timeBlock, errorArray)
-        
         
         if(errorArray.length == 0){
             _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityDataValidated", timeBlockData)
@@ -2478,8 +2439,6 @@ const teamValidator = (function(){
 
     let facilityData
 
-    //ensure startTime is NOT => endTime
-
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('userDataFetched', setFacilityData)
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("teamValidationRequested", validateAllInputs);
 
@@ -2487,7 +2446,7 @@ const teamValidator = (function(){
         facilityData = userData.facilityData
     }
 
-    function validateAllInputs(teamDataObj){ //make use of origin as necessary
+    function validateAllInputs(teamDataObj){
         const errorArray = [];
 
         validateName(teamDataObj.teamData, errorArray);
@@ -2702,7 +2661,7 @@ async function setScriptData(){
     }
 }
 
-function checkWidth(e){
+function checkWidth(e){//mobile devices don't always have xlsx reader, so attempting to restrict viewport, but not having success
     if(e.matches){
         const body = document.querySelector('body');
         const newText = document.createElement('p');

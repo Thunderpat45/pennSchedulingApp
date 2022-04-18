@@ -3,7 +3,7 @@ const userControllerFunctions = require('./controllers/usersController');
 
 const blankScheduleTemplateBuilder = (function(){
 
-    function setDefaultData(scheduleTemplateData){ //this is running 2x,
+    function setDefaultData(scheduleTemplateData){
 
         const {facilityData, allAvailabilities, allUsers} = scheduleTemplateData       
         const coachAvailability = sortAvailabilities(allAvailabilities, allUsers)
@@ -12,6 +12,8 @@ const blankScheduleTemplateBuilder = (function(){
     }
 
     function sortAvailabilities(availArray, userArray){
+        /*reduces database availability documents into object containing name of each user, each of which is an object containing properties for each day,
+        each of which is an array that contains any availability blocks (startTime, endTime, admin or user created) for that day*/
         const availabilityObjTemplate = {
             'Sun': [],
             'Mon': [],
@@ -28,12 +30,12 @@ const blankScheduleTemplateBuilder = (function(){
                 reducerObject[user.name] = structuredClone(availabilityObjTemplate)
             }
         })
-
         const sortedReducedArray = availArray.sort(sorter).reduce(reducer, reducerObject)
-
         return sortedReducedArray;
 
+
         function reducer(holderObject, availabilityArrayItem){
+            //if the availability document is user-generated, push it to the relevant user prop, else if it is admin-generated, push it to ALL user props
             if(availabilityArrayItem.coach){
                 holderObject[availabilityArrayItem.coach.name][availabilityArrayItem.day].push(availabilityArrayItem)      
             }else{
@@ -69,7 +71,9 @@ const blankScheduleTemplateBuilder = (function(){
     function buildTimeSlots(scheduleTemplate, facilityData, day, coachAvailability){
         for(let time = facilityData.facilityOpen; time < facilityData.facilityClose; time +=15){
             scheduleTemplate[day][time] = { 
-                slots: facilityData.facilityMaxCapacity, //this may change to single value?
+                /*for each 15min increment for each day, sets a number of available "slots" (i.e. the spaces occupied by other teams), pre-existing limitations to each coach's availability 
+                before teams are considered, and an empty array that will capture any teams scheduled in that increment to check for same-coach conflicts*/
+                slots: facilityData.facilityMaxCapacity,
                 strengthCoachAvailability: setStrengthCoachAvailability(time, day, coachAvailability),
                 existingTeams:[]
             }
@@ -91,7 +95,6 @@ const blankScheduleTemplateBuilder = (function(){
     }
 
     return {buildEmptyScheduleTemplate}
-
 })()
 
 module.exports = {buildEmptyScheduleTemplate: blankScheduleTemplateBuilder.buildEmptyScheduleTemplate}

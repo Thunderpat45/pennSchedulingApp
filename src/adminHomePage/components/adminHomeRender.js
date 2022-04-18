@@ -1,8 +1,5 @@
 import { events } from "../../../src/events";
 
-// import {adminTeams} from "./components/teamGrid";
-// import {adminUsers} from "./components/userGrid";
-
 const adminHomeMain = (function(){
 
     events.subscribe("adminDataSet", setAdminEventListeners);
@@ -128,8 +125,6 @@ const adminHomeMain = (function(){
             events.publish('scheduleBuildRequested')
         }
     }
-
-
 })()
 
 export {adminHomeMain}

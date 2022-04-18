@@ -15,9 +15,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _src_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../src/events */ "./src/events.js");
 
 
-// import {adminTeams} from "./components/teamGrid";
-// import {adminUsers} from "./components/userGrid";
-
 const adminHomeMain = (function(){
 
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminDataSet", setAdminEventListeners);
@@ -143,8 +140,6 @@ const adminHomeMain = (function(){
             _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish('scheduleBuildRequested')
         }
     }
-
-
 })()
 
 
@@ -171,7 +166,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
 const adminTimeBlockDataFormComponent = (function(){
 
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminAvailabilityBlockAddRequested', renderTimeBlockDataForm);
@@ -181,15 +175,12 @@ const adminTimeBlockDataFormComponent = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("editAdminBlockDataSaved", unrenderTimeBlockDataForm);
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('newAdminBlockDataSaved', unrenderTimeBlockDataForm)
 
-
-
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm");
     
 
     function renderTimeBlockDataForm(adminTimeBlockDayData){
         
-    
         const elements = setElements();
         populateContent(elements, adminTimeBlockDayData);
         setEventListeners(elements, adminTimeBlockDayData);
@@ -321,10 +312,7 @@ const adminTimeBlockDataFormComponent = (function(){
             errorList.appendChild(bullet);
         })
     }
-
 })()
-
-
 
 
 
@@ -553,7 +541,7 @@ const facilityDataFormComponent = (function(){
            
         }
         function cancelFacilityDataChanges(){
-            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("cancelFacilityDataChangesClicked") //check this path
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("cancelFacilityDataChangesClicked")
         }
     }
 
@@ -668,7 +656,6 @@ const userDataFormComponent = (function(){
         userElements.saveButton.addEventListener("click", saveUserData);
         userElements.cancelButton.addEventListener("click", cancelUserChanges);
 
-        //extract these functions to outer level, as to not recreate them each time
         function saveUserData(){
             
             if(modifyUserNameValue() == false){
@@ -795,7 +782,6 @@ const adminTimeBlockDataGridComponent = (function(){
             dayAllBlocksDivNew.appendChild(defaultText);
         }
         
-    
         dayAllBlocksDiv.replaceWith(dayAllBlocksDivNew);
     }
      
@@ -833,8 +819,7 @@ const adminTimeBlockDataGridComponent = (function(){
             blockElement.endTimeText.innerText += _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(blockData.availability.endTime);
         }else{
             blockElement.endTimeText.innerText =blockData.availability.endTime;
-        }
-        
+        }  
     }
     
     function setEventListeners(timeBlockElement, timeBlockData){
@@ -852,7 +837,6 @@ const adminTimeBlockDataGridComponent = (function(){
             
         }
     }
-
 })()
 
 
@@ -986,7 +970,6 @@ const adminTeamsGridComponent = (function(){
 
 
 
-
 /***/ }),
 
 /***/ "./src/adminHomePage/components/mainModulesRenders/userGrid.js":
@@ -1116,7 +1099,7 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
             return timeBlock._id == _id;
         })[0]
 
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityBlockEditRequested", block); //add publish that sends to form, need _id/day?
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityBlockEditRequested", block);
     }
 
     function deleteAdminAvailabilityBlock(timeBlockObj){
@@ -1125,7 +1108,7 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
             return timeBlock._id == _id;
         })[0];
 
-        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminBlockDeleteRequested", block); //send this to database, change to deleteRequested?
+        _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminBlockDeleteRequested", block);
     }
 
     function setDataNewDatabasePost(blockData){
@@ -1142,6 +1125,7 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
 		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedAdminBlockData", {day: blockData.day, blocks: allAdminAvailabilityDataMutable[blockData.day]})
     }
 
+    //renders immediate necessary changes to all availability requests in case a facility change makes breaking changes
     function renderAllDays(facilityData){
         const tempObj = structuredClone(allAdminAvailabilityDataMutable)
         for(let day in tempObj){
@@ -1175,7 +1159,6 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
 		allAdminAvailabilityDataStable= structuredClone(allAdminAvailabilityDataMutable);
 		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedAdminBlockData", {day, blocks: allAdminAvailabilityDataMutable[day]})
 	}
-
 })()
 
 
@@ -1196,21 +1179,21 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const adminMainPageAllTeamsData = (function(){
-	//no obvious work to be done here except connect teamOrder change to database, have changes written to EVERY TEAM and ensure recursion is necessary
+
 	let allTeamsDataStable;
 	let allTeamsDataMutable;
 
 	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminDataFetched", setDataNewPageRender);
-	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("allTeamsOrderChangeSaved", setDataNewTeamOrder); //add prompt for successful database post
-	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("cancelAllTeamsOrderChangesClicked", cancelTeamOrderChanges) //add prompt for change cancellation
-	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateAllTeamsOrderClicked", saveTeamOrderChanges) //add promprt for save changes
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("allTeamsOrderChangeSaved", setDataNewTeamOrder); 
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("cancelAllTeamsOrderChangesClicked", cancelTeamOrderChanges) 
+	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("updateAllTeamsOrderClicked", saveTeamOrderChanges) 
 	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("modifyAllTeamsOrderClicked", modifyTeamOrder);
 	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("enabledStatusChangeClicked", toggleTeamEnabled);
 	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('teamEnableStatusChangeSaved', setDataTeamEnableStatusChange)
 	_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('adminTeamOrderChangeClicked', sendTeamData)
 
 	function setDataNewPageRender(adminAllTeams){
-        allTeamsDataStable = structuredClone(adminAllTeams.teams); //make sure this is correct property for database initial database fetch
+        allTeamsDataStable = structuredClone(adminAllTeams.teams); 
         allTeamsDataMutable = structuredClone(allTeamsDataStable)
     }
 
@@ -1261,7 +1244,6 @@ const adminMainPageAllTeamsData = (function(){
         allTeamsDataStable = structuredClone(allTeamsDataMutable)
         _events__WEBPACK_IMPORTED_MODULE_0__.events.publish('modifyTeamGrid', allTeamsDataMutable)
     }
-	
 })()
 
 
@@ -1337,8 +1319,6 @@ const allUsersData = (function(){
 		allUsersDataStable= structuredClone(allUsersDataMutable);
 		_src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedUserData", allUsersDataMutable)
 	}
-
-	
 })()
 
 
@@ -1383,12 +1363,6 @@ const adminMainPageFacilityDataModel = (function(){
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("setNewSelectorRanges", adminFacilityDataMutable)
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("renderUpdatedFacilityData", adminFacilityDataMutable);
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("facilityDataAvailabiltyUpdateComparisonRequested", adminFacilityDataMutable)
-    }
-
-    function createFacilityDataDeepCopy(newObj, copyObj){
-        for(let prop in copyObj){
-            newObj[prop] = copyObj[prop]
-        }
     }
 
     function editFacilityData(){
@@ -1438,6 +1412,7 @@ __webpack_require__.r(__webpack_exports__);
 
 const singleAdminTimeBlockModel = (function(){
 
+    //design issue(?): origin is tracked across 'timeBlock' lifecycle solely to determine whether an attempt to save a timeBlock is a post or a patch/put, is there a better way?
     let adminAvailabilityDataStable 
     let adminAvailabilityDataMutable 
 
@@ -1537,19 +1512,15 @@ __webpack_require__.r(__webpack_exports__);
 
 const userData = (function(){
 
+    //design issue(?): origin is tracked across 'user' lifecycle solely to determine whether an attempt to save a user is a post or a patch/put, is there a better way?
+
     const userModel = {
         name: "",
-        //password: coming soon
         color: "#000000",
         privilegeLevel: false,
         teams:[], 
         availability:{Sun:[], Mon:[], Tue: [], Wed: [], Thu: [], Fri: [], Sat: []}, 
         lastVerified: null,
-
-        //both of the below properties were checkign to see which page/data was last used , cookies/sessionStorage?
-
-        // adminPageSet: null,
-        // season: "fall"
     };
 
     let userModelStable;
@@ -1673,8 +1644,7 @@ const databasePost = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('allTeamsOrderDataUpdateRequested', updateAllTeamsOrder);
 
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('scheduleBuildRequested', buildSchedule)
-    //events.subscribe('loginAttemptRequested', postLoginAttempt)
-   
+    
 
     async function updateFacilityData(databaseBoundObject){ 
         try{
@@ -2245,7 +2215,6 @@ __webpack_require__.r(__webpack_exports__);
 
 const selectorBuilder = (function(){ 
 
-    //default values must be input (into database?) for facilityOpen/Close/MaxCapacity BEFORE first time running, or startTime/endTime/teamSize will have errors!
     const selectionRanges = { 
         startTime: {
             start: null,
@@ -2262,17 +2231,17 @@ const selectorBuilder = (function(){
             end: null,
             increment: 5
         },
-        facilityOpen:{ //4am to 8pm, default value 6am (360)?
+        facilityOpen:{ //4am to 8pm, default value 6am (360)
             start: 240,
             end: 1200,
             increment: 15
         },
-        facilityClose:{ //5am to 9pm, default value 8pm (1200)?
+        facilityClose:{ //5am to 9pm, default value 8pm (1200)
             start: 300,
             end: 1260,
             increment: 15
         },
-        facilityMaxCapacity:{//range 10-150, default value 120?
+        facilityMaxCapacity:{//range 10-150, default value 120
             start: 10,
             end: 150,
             increment: 5
@@ -2302,8 +2271,6 @@ const selectorBuilder = (function(){
     function runBuildSelector(primaryClass){
         return buildSelector(primaryClass)
     }
-
-    
 
     function buildSelector(primaryClass){
         const selection = document.createElement("select");
@@ -2359,12 +2326,10 @@ const selectorBuilder = (function(){
             if(primaryClass == "teamSize" || primaryClass == "facilityMaxCapacity"){
                 option.innerText = i;
             }else{
-                option.innerText = _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(i); //toString() should not be necessary
+                option.innerText = _timeConverter__WEBPACK_IMPORTED_MODULE_1__.timeValueConverter.runConvertTotalMinutesToTime(i);
             }selector.appendChild(option);
         }
     }
-
-        //these are all not working, may need to use event delegation within the modules themselves
 
     function modifyEndTimeDefaultValue(){
         const startTimeSelectedValue = Number(this.value);
@@ -2379,7 +2344,7 @@ const selectorBuilder = (function(){
         })
     }
 
-    function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+    function disableDefaultOption(){
         const values = Array.from(this.children);
         values[0].disabled = true;
     }
@@ -2403,39 +2368,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "timeValueConverter": () => (/* binding */ timeValueConverter)
 /* harmony export */ });
-//purpose: convert totalMinutes into clockTime, and clockTime into totalMinutes
 
 const timeValueConverter = (function(){
-    //no obvious issues here
+
     function convertTotalMinutesToTime(totalMins){
         let standardTime;
         let hour = Math.floor(totalMins/60)
         let meridian
-            switch(hour){
-                case 0:
-                    hour += 12
-                    meridian = "a"
-                    break;
-                case 1:
-                case 2:
-                case 3:
-                case 4:
-                case 5:
-                case 6:
-                case 7:
-                case 8:
-                case 9:
-                case 10:
-                case 11:
-                    meridian = "a"
-                    break;
-                case 12:
-                    meridian = "p"
-                    break;
-                default:
-                    hour -=12
-                    meridian = "p"
-                    break;
+            if(hour > 0 && hour <12){
+                meridian = "a"
+            }else if(hour == 0){
+                hour += 12
+                meridian = "a"
+            }else if(hour == 12){
+                meridian = "p"
+            }else{
+                hour -=12
+                meridian = "p"
             }
             
         let mins = totalMins%60
@@ -2472,7 +2421,6 @@ const timeValueConverter = (function(){
     }
 
     return {runConvertTimeToTotalMinutes, runConvertTotalMinutesToTime}
-
 })();
 
 
@@ -2501,7 +2449,6 @@ const availabilityValidator = (function(){
         const {timeBlock, origin} = timeBlockData
         const errorArray = []
         validateAllInputs(timeBlock, errorArray)
-        
         
         if(errorArray.length == 0){
             _events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityDataValidated", timeBlockData)
@@ -2556,25 +2503,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./src/events.js");
 
 
-/*purpose: validator for facilityData updates
-
-facilityData object is modeled as such:
-
-obj = {
-    facilityOpen, 
-    facilityClose, 
-    facilityMaxCapacity
-}
-
-publishes:
-    successful validations FOR adminMainPageFacilityDataModel
-   
-subscribes to: 
-    validation requests FROM adminMainPageFacilityDataModel
-*/
-
 const facilityDataValidator = (function(){
-    //no obvious issues here
+    
     _events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("adminFacilityDataValidationRequested", validateAdminFacilityData);
     
     function validateAdminFacilityData(facilityData){
@@ -2622,14 +2552,11 @@ __webpack_require__.r(__webpack_exports__);
 const userDataValidator = (function(){
     
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe("userDataValidationRequested", validateAllInputs);
-    
-    //
+
     function validateAllInputs(adminUserData){
        
         const passwordDiv = document.querySelector('#userGeneratorPassword')
-           
         const {userData, origin} = adminUserData
-
         const errorArray = [];
 
         validateUserName(userData, errorArray); 
@@ -2683,7 +2610,6 @@ const userDataValidator = (function(){
         }catch(err){
             array.push(err)
         }
-
     }
 })()
 
@@ -2807,7 +2733,7 @@ async function setScriptData(){
         const mediaQuery = window.matchMedia('(max-width: 485px)');
         checkWidth(mediaQuery);
         mediaQuery.addEventListener('change', checkWidth)
-        const adminPageJSON = await fetch('adminHome/adminData'); //change this to accept userId and season
+        const adminPageJSON = await fetch('adminHome/adminData');
         const adminPageData = await adminPageJSON.json();
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminDataFetched", adminPageData);
         _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminDataSet");
@@ -2817,7 +2743,7 @@ async function setScriptData(){
     }
 }
 
-function checkWidth(e){
+function checkWidth(e){//mobile devices don't always have xlsx reader, so attempting to restrict viewport, but not having success
     if(e.matches){
         const body = document.querySelector('body');
         const newText = document.createElement('p');

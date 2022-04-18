@@ -7,7 +7,7 @@ const availabilitySchema = new Schema({
     admin:Boolean,
     season:String,
     day:String,
-    availability:{startTime: String, endTime: String} //does this make sense or should each request be its own object?
+    availability:{startTime: String, endTime: String}
 });
 
 module.exports = mongoose.model('Availability', availabilitySchema);

@@ -10,11 +10,9 @@ const teamDataFormComponent = (function(){
   
     events.subscribe("optionsModified", rerenderTeamDataForm)
 
-
-
     events.subscribe("renderTeamDataValidationErrors", renderTeamDataValidationErrors)
     events.subscribe("editTeamDataSaved", unrenderTeamDataForm);
-   events.subscribe('newTeamDataSaved', unrenderTeamDataForm)
+    events.subscribe('newTeamDataSaved', unrenderTeamDataForm)
 
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm");
@@ -105,7 +103,7 @@ const teamDataFormComponent = (function(){
             buildTeamOptionElement(elements, teamData, option)
         })
 
-        function disableDefaultOption(){ //these are all not working, may need to use event delegation within the modules themselves
+        function disableDefaultOption(){
             const values = Array.from(this.children);
             values[0].disabled = true;
         }
@@ -296,7 +294,6 @@ const teamDataFormComponent = (function(){
 
     function setEventListeners(elements, teamData){
     
-       
         elements.saveButton.addEventListener("click", saveTeamData);
         elements.cancelButton.addEventListener("click", cancelTeamChanges);
         elements.addOptionButton.addEventListener("click", addOption);
@@ -317,7 +314,6 @@ const teamDataFormComponent = (function(){
         }
 
        
-
         function modifyTeamNameValue(){ 
             try{
                 if(teamData.team.name != "" && elements.teamName.value != teamData.team.name){
@@ -362,8 +358,6 @@ const teamDataFormComponent = (function(){
             errorList.appendChild(bullet);
         })
     }
-
-   
 })();
 
 export{teamDataFormComponent}

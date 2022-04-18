@@ -2,6 +2,7 @@ import {events} from "../../../src/events"
 
 const singleAdminTimeBlockModel = (function(){
 
+    //design issue(?): origin is tracked across 'timeBlock' lifecycle solely to determine whether an attempt to save a timeBlock is a post or a patch/put, is there a better way?
     let adminAvailabilityDataStable 
     let adminAvailabilityDataMutable 
 

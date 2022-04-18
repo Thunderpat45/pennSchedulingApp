@@ -24,7 +24,7 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
             return timeBlock._id == _id;
         })[0]
 
-        events.publish("adminAvailabilityBlockEditRequested", block); //add publish that sends to form, need _id/day?
+        events.publish("adminAvailabilityBlockEditRequested", block);
     }
 
     function deleteAdminAvailabilityBlock(timeBlockObj){
@@ -33,7 +33,7 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
             return timeBlock._id == _id;
         })[0];
 
-        events.publish("adminBlockDeleteRequested", block); //send this to database, change to deleteRequested?
+        events.publish("adminBlockDeleteRequested", block);
     }
 
     function setDataNewDatabasePost(blockData){
@@ -50,6 +50,7 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
 		events.publish("renderUpdatedAdminBlockData", {day: blockData.day, blocks: allAdminAvailabilityDataMutable[blockData.day]})
     }
 
+    //renders immediate necessary changes to all availability requests in case a facility change makes breaking changes
     function renderAllDays(facilityData){
         const tempObj = structuredClone(allAdminAvailabilityDataMutable)
         for(let day in tempObj){
@@ -83,7 +84,6 @@ const allAdminMainPageAdminTimeBlockModel = (function(){
 		allAdminAvailabilityDataStable= structuredClone(allAdminAvailabilityDataMutable);
 		events.publish("renderUpdatedAdminBlockData", {day, blocks: allAdminAvailabilityDataMutable[day]})
 	}
-
 })()
 
 export {allAdminMainPageAdminTimeBlockModel}

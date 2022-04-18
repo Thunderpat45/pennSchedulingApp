@@ -27,12 +27,6 @@ const adminMainPageFacilityDataModel = (function(){
         events.publish("facilityDataAvailabiltyUpdateComparisonRequested", adminFacilityDataMutable)
     }
 
-    function createFacilityDataDeepCopy(newObj, copyObj){
-        for(let prop in copyObj){
-            newObj[prop] = copyObj[prop]
-        }
-    }
-
     function editFacilityData(){
         events.publish("adminFacilityDataEditRequested", {facilityData: adminFacilityDataMutable})
     }

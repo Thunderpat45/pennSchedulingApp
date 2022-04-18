@@ -11,9 +11,6 @@ const user = require('../pennSchedule/models/userModel')
 const bcrypt = require('bcryptjs');
 
 
-
-
-
 const logInRouter = require('./routes/logIn');
 const baseUserRouter = require('./routes/baseUser');
 
@@ -27,9 +24,11 @@ mongoose.connect(mongoDB, {useNewURLParser:true, useUnifiedTopology: true});
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('layout', false)
 app.set('view engine', 'ejs');
+
 
 passport.use(new LocalStrategy(async function(username, password, done){
   try{
@@ -46,13 +45,12 @@ passport.use(new LocalStrategy(async function(username, password, done){
     }
     
   }catch(err){
-    console.log(err)
     return done(err)
   }
 }))
 
 passport.serializeUser(function(user,done){
-  done(null, {_id: user._id, privilegeLevel: user.privilegeLevel}); //add admin role?
+  done(null, {_id: user._id, privilegeLevel: user.privilegeLevel});
 })
 
 passport.deserializeUser(async function(_id, done){
@@ -68,10 +66,9 @@ passport.deserializeUser(async function(_id, done){
   
 })
 
-app.use(session({resave: false, saveUninitialized: true, secret: 'worldofalexmack'}));
+app.use(session({resave: false, saveUninitialized: true, secret: process.env.SESSION_SECRET}));
 app.use(passport.initialize());
 app.use(passport.session());
-
 
 
 app.use(logger('dev'));
@@ -84,7 +81,6 @@ app.use(ejsLayouts)
 
 app.use('/', logInRouter);
 app.use('/user', baseUserRouter);
-
 
 
 // catch 404 and forward to error handler

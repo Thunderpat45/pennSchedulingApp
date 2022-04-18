@@ -1,7 +1,7 @@
 const express = require('express');
 const adminUserRouter = express.Router({mergeParams:true});
-
 const adminUsersController = require('../controllers/adminUsersController');
+
 
 adminUserRouter.use(authorizeAdminUser)
 adminUserRouter.use(validateInputs)

@@ -2,19 +2,15 @@ import { events } from "../../../src/events";
 
 const userData = (function(){
 
+    //design issue(?): origin is tracked across 'user' lifecycle solely to determine whether an attempt to save a user is a post or a patch/put, is there a better way?
+
     const userModel = {
         name: "",
-        //password: coming soon
         color: "#000000",
         privilegeLevel: false,
         teams:[], 
         availability:{Sun:[], Mon:[], Tue: [], Wed: [], Thu: [], Fri: [], Sat: []}, 
         lastVerified: null,
-
-        //both of the below properties were checkign to see which page/data was last used , cookies/sessionStorage?
-
-        // adminPageSet: null,
-        // season: "fall"
     };
 
     let userModelStable;

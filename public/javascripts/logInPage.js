@@ -38,8 +38,7 @@ const databasePost = (function(){
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('allTeamsOrderDataUpdateRequested', updateAllTeamsOrder);
 
     _src_events__WEBPACK_IMPORTED_MODULE_0__.events.subscribe('scheduleBuildRequested', buildSchedule)
-    //events.subscribe('loginAttemptRequested', postLoginAttempt)
-   
+    
 
     async function updateFacilityData(databaseBoundObject){ 
         try{
@@ -633,7 +632,7 @@ const loginPageRender = (function(){
                 try{
                     form.submit();
                 }catch(err){
-                    if(err.status == 404){ //check these
+                    if(err.status == 404){
                         throw('404 error!')
                     }else if(err.status == 400){
                         throw('400 error!')
@@ -682,7 +681,6 @@ const loginPageRender = (function(){
                 errorList.appendChild(errorNode)
             })
         }
-
     }
 
     function unrenderErrorList(){
@@ -692,7 +690,6 @@ const loginPageRender = (function(){
             }
         }
     }
-
 })()
 
 
@@ -771,7 +768,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 window.onload = setScriptData
-async function setScriptData(){
+async function setScriptData(){ 
     try{
         const mediaQuery = window.matchMedia('(max-width: 485px)');
         checkWidth(mediaQuery);
@@ -781,7 +778,7 @@ async function setScriptData(){
     }
 }
 
-function checkWidth(e){
+function checkWidth(e){//mobile devices don't always have xlsx reader, so attempting to restrict viewport, but not having success
     if(e.matches){
         const body = document.querySelector('body');
         const newText = document.createElement('p');

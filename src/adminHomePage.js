@@ -31,7 +31,7 @@ async function setScriptData(){
         const mediaQuery = window.matchMedia('(max-width: 485px)');
         checkWidth(mediaQuery);
         mediaQuery.addEventListener('change', checkWidth)
-        const adminPageJSON = await fetch('adminHome/adminData'); //change this to accept userId and season
+        const adminPageJSON = await fetch('adminHome/adminData');
         const adminPageData = await adminPageJSON.json();
         events.publish("adminDataFetched", adminPageData);
         events.publish("adminDataSet");
@@ -41,7 +41,7 @@ async function setScriptData(){
     }
 }
 
-function checkWidth(e){
+function checkWidth(e){//mobile devices don't always have xlsx reader, so attempting to restrict viewport, but not having success
     if(e.matches){
         const body = document.querySelector('body');
         const newText = document.createElement('p');

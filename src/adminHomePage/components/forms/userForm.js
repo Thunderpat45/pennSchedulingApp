@@ -67,7 +67,6 @@ const userDataFormComponent = (function(){
         userElements.saveButton.addEventListener("click", saveUserData);
         userElements.cancelButton.addEventListener("click", cancelUserChanges);
 
-        //extract these functions to outer level, as to not recreate them each time
         function saveUserData(){
             
             if(modifyUserNameValue() == false){

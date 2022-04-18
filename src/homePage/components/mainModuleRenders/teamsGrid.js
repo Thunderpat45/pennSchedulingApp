@@ -47,7 +47,6 @@ const myTeamsDataGridComponent = (function(){
         const editButton = content.querySelector('.teamGridTeamEditButton')
         const deleteButton = content.querySelector('.teamGridTeamDeleteButton')
 
-
         return {content, div, name, size, lastVerified, optionContainer, editButton, deleteButton, verifyButton}
     }
 
@@ -55,7 +54,7 @@ const myTeamsDataGridComponent = (function(){
         teamElement.div.setAttribute("data-teamId", teamData._id)
         teamElement.name.innerText = `${teamData.name}`;
         teamElement.size.innerText = `${teamData.size} athletes`;
-        teamElement.lastVerified.innerText = `Last Verified: ${teamData.lastVerified}`; //fix this for undefined case
+        teamElement.lastVerified.innerText = `Last Verified: ${teamData.lastVerified}`;
         
         teamData.allOpts.forEach(function(option){
             const optionTemplate = document.querySelector("#userPageTeamOptionBlockTemplate");

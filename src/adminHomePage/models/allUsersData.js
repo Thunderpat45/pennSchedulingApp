@@ -56,8 +56,6 @@ const allUsersData = (function(){
 		allUsersDataStable= structuredClone(allUsersDataMutable);
 		events.publish("renderUpdatedUserData", allUsersDataMutable)
 	}
-
-	
 })()
 
 export {allUsersData}

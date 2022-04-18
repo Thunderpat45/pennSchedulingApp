@@ -22,7 +22,6 @@ const myTeamsModel = (function(){
     events.subscribe('cancelTeamOrderChangesClicked', cancelTeamOrderChanges);
     events.subscribe('myTeamsOrderChangeSaved', setDataNewTeamOrder)
 
-    //events.subscribe("workingModelValidated", addEditTeamForDatabaseUpdate)
 
     function setDataNewPageRender(userData){
         myTeamsDataStable = structuredClone(userData.myTeams);
@@ -47,7 +46,6 @@ const myTeamsModel = (function(){
         
         const now = new Date();
         const nowParsed = `${now.getMonth()+1}-${now.getDate()}-${now.getFullYear()}`
-
         thisTeam.lastVerified = nowParsed;
 
         events.publish("teamVerificationUpdateRequested", thisTeam) 

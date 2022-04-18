@@ -23,8 +23,7 @@ const databasePost = (function(){
     events.subscribe('allTeamsOrderDataUpdateRequested', updateAllTeamsOrder);
 
     events.subscribe('scheduleBuildRequested', buildSchedule)
-    //events.subscribe('loginAttemptRequested', postLoginAttempt)
-   
+    
 
     async function updateFacilityData(databaseBoundObject){ 
         try{
@@ -40,7 +39,7 @@ const databasePost = (function(){
             events.publish("facilityDataSaved")
         }catch(err){
             console.log(err)
-        }//fix the id to be dynamic
+        }
        
     }
 
@@ -57,7 +56,7 @@ const databasePost = (function(){
     
             });
 
-            if(userDataResponse.status == 404){ //expand on http statuses?
+            if(userDataResponse.status == 404){
                 throw('404 error!')
             }else if(userDataResponse.status == 400){
                 const errors = await userDataResponse.json();
@@ -69,7 +68,7 @@ const databasePost = (function(){
            
         }catch(err){
             console.log(err)
-        }//fix the id to be dynamic
+        }
     }
 
     async function addUserData(databaseBoundObject){
@@ -84,7 +83,7 @@ const databasePost = (function(){
     
             });
 
-            if(userDataResponse.status == 404){ //expand on http statuses?
+            if(userDataResponse.status == 404){
                 throw('404 error!')
             }else if(userDataResponse.status == 400){
                 const errors = await userDataResponse.json()
@@ -112,7 +111,7 @@ const databasePost = (function(){
     
             });
 
-            if(userDataResponse.status == 404){ //expand on http statuses?
+            if(userDataResponse.status == 404){
                 throw('404 error!')
             }else if(userDataResponse.status == 400){
                 const errors = await userDataResponse.json();
@@ -141,24 +140,24 @@ const databasePost = (function(){
     
             });
 
-            if(blockDataResponse.status == 404){ //expand on http statuses?
+            if(blockDataResponse.status == 404){
                 throw('404 error!')
             }else if(blockDataResponse.status == 400){
                 const errors = await blockDataResponse.json();
                 const origin = "edit"
                 events.publish("adminAvailabilityDataValidationFailed", {errors, origin})
             }else if(blockDataResponse.status == 200){ 
-                events.publish("editAdminBlockDataSaved") //find receiver
+                events.publish("editAdminBlockDataSaved")
             }
            
         }catch(err){
             console.log(err)
-        }//fix the id to be dynamic
+        }
     }
 
     async function addAdminBlockData(databaseBoundObject){
         try{
-            const blockDataResponse = await fetch('adminHome/timeBlock', {  //get rid of hard coded season as soon as possible
+            const blockDataResponse = await fetch('adminHome/timeBlock', {
                 method:'POST',
                 headers:{
                     'Content-Type': 'application/json'
@@ -168,7 +167,7 @@ const databasePost = (function(){
     
             });
 
-            if(blockDataResponse.status == 404){ //expand on http statuses?
+            if(blockDataResponse.status == 404){
                 throw('404 error!')
             }else if(blockDataResponse.status == 400){
                 const errors = await blockDataResponse.json()
@@ -176,7 +175,7 @@ const databasePost = (function(){
                 events.publish("adminAvailabilityDataValidationFailed", {errors, origin})
             }else if(blockDataResponse.status == 200){
                 const newAdminBlock = await blockDataResponse.json(); 
-                events.publish("newAdminBlockDataSaved", newAdminBlock) //find listener
+                events.publish("newAdminBlockDataSaved", newAdminBlock)
             }
         }catch(err){
             console.log(err)
@@ -196,7 +195,7 @@ const databasePost = (function(){
     
             });
 
-            if(blockDataResponse.status == 404){ //expand on http statuses?
+            if(blockDataResponse.status == 404){
                 throw('404 error!')
             }else if(blockDataResponse.status == 400){
                 const errors = await blockDataResponse.json();
@@ -223,7 +222,7 @@ const databasePost = (function(){
     
             });
 
-            if(blockDataResponse.status == 404){ //expand on http statuses?
+            if(blockDataResponse.status == 404){
                 throw('404 error!')
             }else if(blockDataResponse.status == 400){
                
@@ -236,7 +235,7 @@ const databasePost = (function(){
            
         }catch(err){
             console.log(err)
-        }//fix the id to be dynamic
+        }
     }
 
     async function addUserBlockData(databaseBoundObject){
@@ -251,7 +250,7 @@ const databasePost = (function(){
     
             });
 
-            if(blockDataResponse.status == 404){ //expand on http statuses?
+            if(blockDataResponse.status == 404){
                 throw('404 error!')
             }else if(blockDataResponse.status == 400){
                 const errors = await blockDataResponse.json()
@@ -278,7 +277,7 @@ const databasePost = (function(){
     
             });
 
-            if(blockDataResponse.status == 404){ //expand on http statuses?
+            if(blockDataResponse.status == 404){
                 throw('404 error!')
             }else if(blockDataResponse.status == 400){
                 const errors = await blockDataResponse.json();
@@ -304,7 +303,7 @@ const databasePost = (function(){
     
             });
 
-            if(teamDataResponse.status == 404){ //expand on http statuses?
+            if(teamDataResponse.status == 404){
                 throw('404 error!')
             }else if(teamDataResponse.status == 400){
                 const errors = await teamDataResponse.json();
@@ -316,7 +315,7 @@ const databasePost = (function(){
            
         }catch(err){
             console.log(err)
-        }//fix the id to be dynamic
+        }
     }
 
     async function addTeamData(databaseBoundObject){
@@ -331,7 +330,7 @@ const databasePost = (function(){
     
             });
 
-            if(teamDataResponse.status == 404){ //expand on http statuses?
+            if(teamDataResponse.status == 404){
                 throw('404 error!')
             }else if(teamDataResponse.status == 400){
                 const errors = await teamDataResponse.json()
@@ -359,7 +358,7 @@ const databasePost = (function(){
     
             });
 
-            if(teamDataResponse.status == 404){ //expand on http statuses?
+            if(teamDataResponse.status == 404){
                 throw('404 error!')
             }else if(teamDataResponse.status == 400){
                 const errors = await teamDataResponse.json();
@@ -388,7 +387,7 @@ const databasePost = (function(){
     
             });
 
-            if(teamDataResponse.status == 404){ //expand on http statuses?
+            if(teamDataResponse.status == 404){
                 throw('404 error!')
             }else if(teamDataResponse.status == 400){
                 throw('400 error!')
