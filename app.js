@@ -76,7 +76,7 @@ passport.deserializeUser(async function(_id, done){
   
 })
 
-const expiryDate = newDate(Date.now() + 60*60*1000)
+const expiryDate = new Date(Date.now() + 60*60*1000)
 app.use(session({
   resave: false, 
   saveUninitialized: true,

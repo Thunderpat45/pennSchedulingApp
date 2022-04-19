@@ -1,6 +1,7 @@
 {
   "name": "pennschedule",
   "version": "1.0.0",
+  "engines": {"node": "17.3.0"},
   "description": "",
   "main": "pennSchedule.js",
   "scripts": {
