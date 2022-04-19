@@ -9,7 +9,7 @@
     "build": "webpack",
     "watch": "webpack --watch",
     "serveStandard": "nodemon --delay 500ms ./server.mjs",
-    "serveExpress": "nodemon --delay 500ms ./bin/www"
+    "start": "node --delay 500ms ./bin/www"
   },
   "repository": {
     "type": "git",
