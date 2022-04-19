@@ -48,4 +48,4 @@ async function setDatabase(){
     }))
   }
 
-module.exports = {initializeScheduledJobs}
+module.exports = {initializeScheduledJobs, setDatabase}
