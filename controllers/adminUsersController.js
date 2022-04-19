@@ -7,6 +7,19 @@ const availabilities = require('../models/availabilityModel');
 const buildTeamsSchedule = require('../masterScheduleAlgorithm').buildTeamsSchedule;
 const buildExcelSchedules = require('../excelBuilder').buildExcelSchedules
 const bcrypt = require('bcryptjs')
+const adminBlockDebug = require('debug')('adminTimeBlock');
+const userDebug = require('debug')('user');
+const adminTeamDebug = require('debug')('adminTeam');
+const facilitySettingsDebug = require('debug')('facilitySettings');
+const adminHomePageDebug = require('debug')('adminHomePage')
+const schedulerDebug = require('debug')('scheduler')
+
+adminBlockDebug.enabled = true
+userDebug.enabled = true
+adminTeamDebug.enabled = true
+facilitySettingsDebug.enabled = true
+adminHomePageDebug.enabled = true
+schedulerDebug.enabled = true
 
 const testRegex = /[^A-Za-z0-9]/
 const stringRegex = /[^A-Za-z]/
@@ -62,7 +75,7 @@ const adminControllerFunctions = {
             await newBlock.save();
             res.json(newBlock._id);
         }catch(err){
-            console.log(err)
+            adminBlockDebug(err)
             res.status(400)
             res.json(err)
         }
@@ -114,7 +127,7 @@ const adminControllerFunctions = {
             await availabilities.findOneAndReplace({_id: blockData._id}, blockData)
             res.send("Literally anything")
         }catch(err){
-            console.log(err)
+            adminBlockDebug(err)
             res.status(400)
             res.json(err)
         }
@@ -145,6 +158,7 @@ const adminControllerFunctions = {
             await availabilities.deleteOne({_id: blockId})
             res.send('Literally anything')
         }catch(err){
+            adminBlockDebug(err)
             res.status(400);
             res.json(err);
         }
@@ -168,7 +182,7 @@ const adminControllerFunctions = {
 
             res.send('Literally anything')
         }catch(err){
-            console.log(err)
+            adminTeamDebug(err)
             res.status(400);
             res.json(err);
         }
@@ -215,7 +229,7 @@ const adminControllerFunctions = {
 
             
         }catch(err){
-            console.log(err);
+            userDebug(err);
             res.status(400)
             res.json(err)
         }
@@ -277,7 +291,7 @@ const adminControllerFunctions = {
 
             
         }catch(err){
-            console.log(err);
+            userDebug(err);
             res.status(400);
             res.json(err);
         }
@@ -328,7 +342,7 @@ const adminControllerFunctions = {
                 res.json({userId: userId, season: season})
             }
         }catch(err){
-            console.log(err);
+            userDebug(err);
             res.status(400);
             res.json(err);
         }  
@@ -352,7 +366,7 @@ const adminControllerFunctions = {
 
             renderAdminHome(data)
         }catch(err){
-            console.log(err)
+            adminHomePageDebug(err)
             res.redirect(`./error`)
         }
       
@@ -431,7 +445,7 @@ const adminControllerFunctions = {
 
             res.json(data);
         }catch(err){
-            console.log(err);
+            adminHomePageDebug(err);
             res.status(400);
             res.json(err);
         }
@@ -476,7 +490,7 @@ const adminControllerFunctions = {
             await facilitySettings.findOneAndReplace({_id: facilityData._id}, facilityData)
             res.send("Literally anything")
         }catch(err){
-            console.log(err);
+            facilitySettingsDebug(err);
             res.status(400);
             res.json(err);
         }
@@ -504,7 +518,7 @@ const adminControllerFunctions = {
 
             
         }catch(err){
-            console.log(err);
+            adminTeamDebug(err);
             res.status(400);
             res.json(err);
         }
@@ -517,7 +531,7 @@ const adminControllerFunctions = {
             if(season != 'fall' && season != 'spring'){
                 throw('Invalid data request')
             }
-
+            
             const data = await Promise.all([user.find({}, 'name').lean(), team.find({season: season, enabled:true}, 'name coach enabled size rank allOpts').sort('rank.allTeams').populate({path:'coach', select:'name color -_id'}).lean(),
                 facilitySettings.findOne().lean(), availabilities.find({season: season}, 'admin day availability coach').populate({path: 'coach', select: 'name -_id'}).lean()
             ]);
@@ -567,7 +581,7 @@ const adminControllerFunctions = {
 
             
         }catch(err){
-            console.log(err);
+            schedulerDebug(err);
             res.status(400);
             res.json(err);
         }
@@ -581,8 +595,6 @@ function testUserData(userData){
         console.log('missing prop')
         throw('Invalid request data')
     }
-
-    console.log(userData)
 
     for(let prop in userData){
         switch(prop){

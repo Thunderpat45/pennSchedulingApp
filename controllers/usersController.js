@@ -4,6 +4,13 @@ const team = require('../models/teamModel');
 const facilitySettings = require('../models/facilitySettingsModel');
 const user = require('../models/userModel');
 const availabilities = require('../models/availabilityModel');
+const teamDebug = require('debug')('team');
+const availabilityDebug = require('debug')('availability')
+const homePageDebug = require('debug')('homePage')
+
+teamDebug.enabled = true
+availabilityDebug.enabled = true;
+homePageDebug.enabled= true;
 
 const testRegex = /[^A-Za-z0-9]/
 const stringRegex = /[^A-Za-z]/
@@ -60,7 +67,7 @@ const userControllerFunctions = {
 
             res.json(newBlock._id);
         }catch(err){
-            console.log(err)
+            availabilityDebug(err)
             res.status(400)
             res.json(err)
         }
@@ -111,7 +118,7 @@ const userControllerFunctions = {
 
             res.send("Literally anything")
         }catch(err){
-            console.log(err)
+            availabilityDebug(err)
             res.status(400)
             res.json(err)
         }
@@ -144,6 +151,7 @@ const userControllerFunctions = {
             await Promise.all([availabilities.deleteOne({_id: blockData._id}), user.findByIdAndUpdate(userId, {$pull:{[`availability.${blockData.day}`]: blockData._id }})])
             res.send('Literally anything')
         }catch(err){
+            availabilityDebug(err)
             res.status(400);
             res.json(err);
         }
@@ -191,7 +199,7 @@ const userControllerFunctions = {
             
 
         }catch(err){
-            console.log(err);
+            teamDebug(err);
             res.status(400)
             res.json(err)
         }
@@ -233,7 +241,7 @@ const userControllerFunctions = {
             
 
         }catch(err){
-            console.log(err);
+            teamDebug(err);
             res.status(400)
             res.json(err)
         }
@@ -259,7 +267,7 @@ const userControllerFunctions = {
             res.status(303)
             res.json({userId: userId, season: season})
         }catch(err){
-            console.log(err)
+            teamDebug(err)
             res.status(400);
             res.json(err);
         }
@@ -275,7 +283,7 @@ const userControllerFunctions = {
             await team.findByIdAndUpdate(_id, {lastVerified: lastVerified})
             res.send('Literally anything')
         }catch(err){
-            console.log(err)
+            teamDebug(err)
             res.status(400);
             res.json(err);
         }
@@ -293,7 +301,7 @@ const userControllerFunctions = {
             await user.findByIdAndUpdate(userId, {lastVerified: lastVerified})
             res.send('Literally anything')
         }catch(err){
-            console.log(err);
+            teamDebug(err);
             res.status(400);
             res.json(err);
         }
@@ -320,7 +328,7 @@ const userControllerFunctions = {
             res.json('Literally anything')
 
         }catch(err){
-            console.log(err);
+            teamDebug(err);
             res.status(400);
             res.json(err);
         }
@@ -342,7 +350,7 @@ const userControllerFunctions = {
 
             renderHomePage(data);
         }catch(err){
-            console.log(err)
+            homePageDebug(err)
             res.redirect(`./error`);
         }
         
@@ -403,7 +411,7 @@ const userControllerFunctions = {
 
             res.json(data);
         }catch(err){
-            console.log(err)
+            homePageDebug(err)
         }
 
         function sortAvailabilities(availabilityData){
@@ -464,7 +472,6 @@ function testTeamData(teamData){
                                 case 'startTime':
                                 case 'endTime':
                                     if(typeof day[subprop] != 'number' || day.startTime >= day.endTime || day[subprop].length <3 || day[subprop].length > 4 || numberRegex.test(day[subprop])){
-                                        console.log(subprop)
                                         throw('Invalid data request')
                                     }
                                     break;
@@ -522,8 +529,6 @@ function testTeamData(teamData){
                 break;
             case 'rank':
                 if(typeof teamData[prop] != 'object'){
-                    console.log(typeof teamData[prop])
-                    console.log(teamData[prop])
 
                     console.log('rank object error')
                     throw('Invalid data request')
@@ -532,8 +537,6 @@ function testTeamData(teamData){
                         case 'myTeams':
                         case 'allTeams':
                             if((typeof teamData[prop][subprop]!= 'number' && teamData[prop][subprop] != null ) || (typeof teamData[prop][subprop]== 'number' && teamData[prop][subprop]<0)){
-                                console.log(typeof teamData[prop][subprop]);
-                                console.log(teamData[prop][subprop])
                                 console.log('myTeams/allTeams error')
                                 throw('Invalid data request')
                             }

@@ -9,12 +9,20 @@ const logger = require('morgan');
 const ejsLayouts = require('express-ejs-layouts')
 const user = require('../pennSchedule/models/userModel')
 const bcrypt = require('bcryptjs');
+const debug = require('debug')('http')
+const compression = require('compression')
+const helmet = require('helmet')
 
+debug.enabled = true
+
+const app = express();
+
+app.use(helmet());
+app.use(compression());
 
 const logInRouter = require('./routes/logIn');
 const baseUserRouter = require('./routes/baseUser');
 
-const app = express();
 
 const dotenv = require('dotenv').config()
 
@@ -45,6 +53,7 @@ passport.use(new LocalStrategy(async function(username, password, done){
     }
     
   }catch(err){
+    debug(err)
     return done(err)
   }
 }))
@@ -61,12 +70,20 @@ passport.deserializeUser(async function(_id, done){
     }
     return done(null, activeUser)
   }catch(err){
+    debug(err)
     return done(err)
   }
   
 })
 
-app.use(session({resave: false, saveUninitialized: true, secret: process.env.SESSION_SECRET}));
+const expiryDate = newDate(Date.now() + 60*60*1000)
+app.use(session({
+  resave: false, 
+  saveUninitialized: true,
+  name: 'sessionId',
+  secret: process.env.SESSION_SECRET,
+  expires: expiryDate
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -85,6 +102,7 @@ app.use('/user', baseUserRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
+  debug(err)
   next(createError(404));
 });
 
