@@ -15,7 +15,7 @@ const passwordRegex = /[[\](){}]/
 
 const adminControllerFunctions = {
     
-    postAdminTimeBlockCreation: async function(req, res, next){//sanitized
+    postAdminTimeBlockCreation: async function(req, res, next){
         try{
             const {season} = req.params
             const errorArray = [];
@@ -68,7 +68,7 @@ const adminControllerFunctions = {
         }
     },
 
-    postAdminTimeBlockUpdate: async function(req,res, next){ //sanitized
+    postAdminTimeBlockUpdate: async function(req,res, next){
         
         try{
             const {season} = req.params
@@ -120,7 +120,7 @@ const adminControllerFunctions = {
         }
     },
 
-    postAdminTimeBlockDelete: async function(req, res, next){//sanitized
+    postAdminTimeBlockDelete: async function(req, res, next){
         try{
             const blockId = req.body;
             const errorArray = []
@@ -150,7 +150,7 @@ const adminControllerFunctions = {
         }
     },
 
-    postTeamEnabledChange:async function(req,res, next){ //should this be two functions? userDependent, seasonal!
+    postTeamEnabledChange:async function(req,res, next){
         const {_id} = req.body;
         const errorArray = []
 
@@ -165,6 +165,7 @@ const adminControllerFunctions = {
             const thisTeam = await team.findById(_id);
             thisTeam.enabled = !thisTeam.enabled;
             await thisTeam.save();
+
             res.send('Literally anything')
         }catch(err){
             console.log(err)
@@ -173,7 +174,7 @@ const adminControllerFunctions = {
         }
     },
 
-    postUserCreation: async function(req,res, next){ //userDependent
+    postUserCreation: async function(req,res, next){
         try{
             const thisUser = req.body
             const errorArray = []
@@ -220,7 +221,7 @@ const adminControllerFunctions = {
         }
     },
 
-    postUserUpdate: async function(req,res, next){ //userDependent
+    postUserUpdate: async function(req,res, next){
         try{
             const thisUser = req.body;
             const thisId = req.params.modifyUserId
@@ -282,7 +283,7 @@ const adminControllerFunctions = {
         }
     },
 
-    postUserDelete:async function(req,res, next){ //userDependent
+    postUserDelete:async function(req,res, next){
         try{
             const targetUserId = req.body;
             const targetId = req.params.modifyUserId;
@@ -293,8 +294,8 @@ const adminControllerFunctions = {
                 errorArray.push('Invalid data request')
             }
     
-            const users = await user.find({$or: [{_id: targetUserId._id}, {privilegeLevel: true}]}, 'privilegeLevel');
-            const thisUser = await user.findOne({_id: targetUserId._id}, 'privilegeLevel')
+            const data = await Promise.all([user.find({$or: [{_id: targetUserId._id}, {privilegeLevel: true}]}, 'privilegeLevel'), user.findOne({_id: targetUserId._id}, 'privilegeLevel')])
+            const [users, thisUser] = data
 
             const privilegeLevelError = users.filter(function(user){
                 return user.privilegeLevel == true && user._id != targetUserId._id;
@@ -308,21 +309,20 @@ const adminControllerFunctions = {
             if(errorArray.length > 0){
                 throw (errorArray)
             }else{
-                await user.deleteOne({_id: targetId});
-                await team.deleteMany({coach: targetUserId._id})
-                await availabilities.deleteMany({coach: targetUserId._id})
-
-                const fallTeams = await team.find({season:'fall'}).sort({'rank.allTeams':1});
-                fallTeams.forEach(async function(thisTeam, index){ //this might be wrong to do this this way
-                    thisTeam.rank.allTeams = index;
-                    await thisTeam.save();
-                })
-
-                const springTeams = await team.find({season:'spring'}).sort({'rank.allTeams':1});
-                springTeams.forEach(async function(thisTeam, index){
-                    thisTeam.rank.allTeams = index;
-                    await thisTeam.save();
-                })
+                await Promise.all([user.deleteOne({_id: targetId}), team.deleteMany({coach: targetUserId._id}), availabilities.deleteMany({coach: targetUserId._id})])
+                const teams = await Promise.all([team.find({season:'fall'}).sort({'rank.allTeams':1}), team.find({season:'spring'}).sort({'rank.allTeams':1})])
+                
+                const [fallTeams, springTeams] = teams ;
+                
+                await Promise.all(
+                    fallTeams.map(async function(thisTeam, index){
+                        thisTeam.rank.allTeams = index;
+                        await thisTeam.save()
+                }), 
+                    springTeams.map(async function(thisTeam, index){
+                        thisTeam.rank.allTeams = index;
+                        await thisTeam.save()
+                }))
 
                 res.status(303)
                 res.json({userId: userId, season: season})
@@ -342,17 +342,18 @@ const adminControllerFunctions = {
             if((season != 'fall' && season != 'spring') || testRegex.test(userId)){
                 throw('Invalid data request')
             }
-            const facilityData = await facilitySettings.findById('6202a107cfebcecf4ca9aecd');
-            const users = await user.find({}, '_id privilegeLevel color lastVerified name');
-            const thisUser = await user.findById(userId, '_id privilegeLevel color lastVerified')
-            const adminAvailability = await availabilities.find({admin: true, season: season})
+            const adminData = await Promise.all([facilitySettings.findById('6202a107cfebcecf4ca9aecd'), user.find({}, '_id privilegeLevel color lastVerified name'),
+                user.findById(userId, '_id privilegeLevel color lastVerified'), availabilities.find({admin: true, season: season}), team.find({season: season}).populate('coach').sort({'rank.allTeams':1})
+            ]);
+            
+            const [facilityData, users, thisUser, adminAvailability, teams]= adminData
             const adminTimeBlocks = sortAvailabilities(adminAvailability);
-            const teams = await team.find({season: season}).populate('coach').sort({'rank.allTeams':1})
             const data = {facilityData, users, adminTimeBlocks, season, thisUser, teams}
+
             renderAdminHome(data)
         }catch(err){
             console.log(err)
-            res.redirect(`./error`) //create a 404 error page!
+            res.redirect(`./error`)
         }
       
         function renderAdminHome(data){
@@ -412,20 +413,23 @@ const adminControllerFunctions = {
         
     },
     
-    getAdminDataAll: async function(req,res,next){//userDependent
+    getAdminDataAll: async function(req,res,next){
         
         try{
             const {season} = req.params;
             if(season != 'fall' && season != 'spring'){
                 throw('Invalid data request')
             }
-            const facilityData = await facilitySettings.findOne(); //turn this into a promise.all
-            const allUsers = await user.find({}, '_id privilegeLevel color lastVerified name');
-            const adminAvailability = await availabilities.find({admin: true, season: season})
+
+            const adminData = await Promise.all([facilitySettings.findById('6202a107cfebcecf4ca9aecd'), user.find({}, '_id privilegeLevel color lastVerified name'),
+            availabilities.find({admin: true, season: season}), team.find({season: season}).populate('coach').sort({'rank.allTeams':1})
+        ]);
+        
+            const [facilityData, allUsers, adminAvailability, teams]= adminData
             const adminTimeBlocks = sortAvailabilities(adminAvailability)
-            const teams = await team.find({season: season}).populate('coach').sort({'rank.allTeams':1})
-            const adminData = {facilityData, allUsers, adminTimeBlocks, season, teams}
-            res.json(adminData);
+            const data = {facilityData, allUsers, adminTimeBlocks, season, teams}
+
+            res.json(data);
         }catch(err){
             console.log(err);
             res.status(400);
@@ -458,7 +462,7 @@ const adminControllerFunctions = {
     },
 
     
-    postAdminFacilitySettings: async function(req,res, next){ //userDependent
+    postAdminFacilitySettings: async function(req,res, next){
         try{
             const facilityData = req.body;
             const errorArray = []
@@ -491,7 +495,7 @@ const adminControllerFunctions = {
                     throw('Invalid request data')
                 }
             })
-            await Promise.all(allTeams.map(async function(teams){ //async map?
+            await Promise.all(allTeams.map(async function(teams){
                 await team.findByIdAndUpdate(teams._id, {'rank.allTeams': teams.rank.allTeams})
             }))
 
@@ -513,15 +517,17 @@ const adminControllerFunctions = {
             if(season != 'fall' && season != 'spring'){
                 throw('Invalid data request')
             }
-            const allUsers = await user.find({}, 'name').lean()
-            const allTeams = await team.find({season: season, enabled:true}, 'name coach enabled size rank allOpts').sort('rank.allTeams').populate({path:'coach', select:'name color -_id'}).lean();
+
+            const data = await Promise.all([user.find({}, 'name').lean(), team.find({season: season, enabled:true}, 'name coach enabled size rank allOpts').sort('rank.allTeams').populate({path:'coach', select:'name color -_id'}).lean(),
+                facilitySettings.findOne().lean(), availabilities.find({season: season}, 'admin day availability coach').populate({path: 'coach', select: 'name -_id'}).lean()
+            ]);
+
+            const [allUsers, allTeams, facilityData, allAvailabilities]= data
+            
             allTeams.forEach(function(team){
                 team.color = team.coach.color
             })
-
-            const facilityData = await facilitySettings.findOne().lean();
             facilityData.days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-            const allAvailabilities = await availabilities.find({season: season}, 'admin day availability coach').populate({path: 'coach', select: 'name -_id'}).lean();
 
             const templateData = {facilityData, allAvailabilities, allUsers}
             const scheduleData = buildTeamsSchedule(allTeams, templateData)
@@ -556,7 +562,6 @@ const adminControllerFunctions = {
             );
             
             await sheets.xlsx.write(res);
-            
             
             res.end();
 

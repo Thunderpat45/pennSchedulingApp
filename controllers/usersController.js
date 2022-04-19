@@ -11,7 +11,7 @@ const numberRegex = /[^0-9]/
 
 const userControllerFunctions = {
 
-    postTimeBlockCreation: async function(req, res, next){ //sanitized
+    postTimeBlockCreation: async function(req, res, next){
         const {userId, season} = req.params
         try{
             const errorArray = [];
@@ -56,7 +56,6 @@ const userControllerFunctions = {
             blockData.coach = userId;
             const newBlock = new availabilities(blockData);
             const savedBlock = await newBlock.save();
-
             await user.findByIdAndUpdate(userId, {$push:{[`availability.${savedBlock.day}`]: savedBlock._id }})
 
             res.json(newBlock._id);
@@ -67,7 +66,7 @@ const userControllerFunctions = {
         }
     },
 
-    postTimeBlockUpdate: async function(req,res, next){ //sanitized
+    postTimeBlockUpdate: async function(req,res, next){
         const {userId, season, timeBlockId} = req.params
         try{
             const errorArray = [];
@@ -118,7 +117,7 @@ const userControllerFunctions = {
         }
     },
 
-    postTimeBlockDelete: async function(req, res, next){ //sanitized
+    postTimeBlockDelete: async function(req, res, next){
         try{
             const errorArray = [];
             const userId = req.params.userId
@@ -142,8 +141,7 @@ const userControllerFunctions = {
             if(errorArray.length > 0){
                 throw errorArray
             }
-            await availabilities.deleteOne({_id: blockData._id})
-            await user.findByIdAndUpdate(userId, {$pull:{[`availability.${blockData.day}`]: blockData._id }})
+            await Promise.all([availabilities.deleteOne({_id: blockData._id}), user.findByIdAndUpdate(userId, {$pull:{[`availability.${blockData.day}`]: blockData._id }})])
             res.send('Literally anything')
         }catch(err){
             res.status(400);
@@ -151,7 +149,7 @@ const userControllerFunctions = {
         }
     },
 
-    postTeamCreation: async function(req,res, next){  //userDependent, seasonal!
+    postTeamCreation: async function(req,res, next){
         try{
             const errorArray = [];
             const thisUser = req.params.userId
@@ -166,9 +164,8 @@ const userControllerFunctions = {
                 errorArray.push('Invalid data request')
             }
 
-            const thisUserAllTeams = await team.find({coach: thisUser})
-            const allTeams = await team.find();
-            const teams = await team.find({name: thisTeam.name}, 'name coach');
+            const teamsData = await Promise.all([team.find({coach: thisUser}), team.find(), team.find({name: thisTeam.name}, 'name coach')])
+            const [thisUserAllTeams, allTeams, teams] = teamsData
 
             const nameMatchError = teams.filter(function(team){
                 return team.name == thisTeam.name && team._id != thisTeam._id
@@ -200,7 +197,7 @@ const userControllerFunctions = {
         }
     },
 
-    postTeamUpdate: async function(req,res, next){ //userDependent, seasonal!
+    postTeamUpdate: async function(req,res, next){
         try{
             const thisTeam = req.body;
             const {season} = req.params
@@ -242,7 +239,7 @@ const userControllerFunctions = {
         }
     },
 
-    postTeamDelete: async function(req,res, next){ //userDependent, seasonal!
+    postTeamDelete: async function(req,res, next){
         const {userId,season} = req.params
         const teamId = req.body._id;
 
@@ -251,13 +248,14 @@ const userControllerFunctions = {
                 throw('Invalid data request')
             }
 
-            await team.deleteOne({_id: teamId})
-            await user.findByIdAndUpdate(userId, {$pull:{[`teams`]: teamId}})
-            const teams = await team.find({season:season});
-            teams.forEach(async function(thisTeam, index){//async forEach is not right, find better solution
-                thisTeam.rank.myTeams = index;
-                await thisTeam.save();
-            }) 
+            const teamsData = await Promise.all([team.find({season:season, coach: userId}), team.deleteOne({_id: teamId}), user.findByIdAndUpdate(userId, {$pull:{[`teams`]: teamId}})])
+            
+            const teams = teamsData[0]
+
+            await Promise.all(teams.map(async function(thisTeam){
+                await team.findByIdAndUpdate(thisTeam._id, {'rank.myTeams': thisTeam.rank.myTeams})
+            }))
+        
             res.status(303)
             res.json({userId: userId, season: season})
         }catch(err){
@@ -267,7 +265,7 @@ const userControllerFunctions = {
         }
     },
 
-    postTeamVerify: async function(req,res, next){ //userDependent, seasonal!
+    postTeamVerify: async function(req,res, next){
         const {_id, lastVerified} = req.body;
 
         try{
@@ -283,18 +281,63 @@ const userControllerFunctions = {
         }
     },
 
-    getHome: async function(req,res, next){ //userDependent, seasonal! should act on cancel buttons too
+    postAllTeamsVerified: async function(req,res, next){
+        const {userId} = req.params;
+        const {lastVerified} = req.body
+
+        
+        try{
+            if(typeof lastVerified != 'string' || lastVerified.length > 100 || (testRegex.test(lastVerified) && lastVerified.indexOf('-') == -1) || testRegex.test(userId)){
+                throw('Invalid request data')
+            }
+            await user.findByIdAndUpdate(userId, {lastVerified: lastVerified})
+            res.send('Literally anything')
+        }catch(err){
+            console.log(err);
+            res.status(400);
+            res.json(err);
+        }
+    },
+
+    postMyTeamsOrder: async function(req,res, next){
+        try{
+            const myTeams = req.body;
+
+            if(!Array.isArray(myTeams) || myTeams.length == 0){
+                throw('Invalid request data')
+            }
+
+            myTeams.forEach(function(team){
+                if(typeof team != 'object' || !Object.hasOwnProperty.call(team, 'rank') || typeof team.rank != 'object' || !Object.hasOwnProperty.call(team.rank, 'myTeams') || typeof team.rank.myTeams != 'number'){
+                    throw('Invalid request data')
+                }
+            })
+
+            await Promise.all(myTeams.map(async function(teams){
+                await team.findByIdAndUpdate(teams._id, {"rank.myTeams": teams.rank.myTeams})
+            }))
+
+            res.json('Literally anything')
+
+        }catch(err){
+            console.log(err);
+            res.status(400);
+            res.json(err);
+        }
+    },
+
+    getHome: async function(req,res, next){
         const {userId, season} = req.params
         try{
             if((season != 'fall' && season !='spring') || testRegex.test(userId)){
                 throw('Invalid data request')
             }
-            const facilityData = await facilitySettings.findById('6202a107cfebcecf4ca9aecd');
-            const availabilityData = await availabilities.find({$and:[{$or:[{coach: userId}, {admin:true}]},{season:season}]})
+            
+            const homeData = await Promise.all([facilitySettings.findById('6202a107cfebcecf4ca9aecd'), availabilities.find({$and:[{$or:[{coach: userId}, {admin:true}]},{season:season}]}), 
+                user.findOne({_id: userId}, 'availability _id name privilegeLevel color teams'), team.find({$and:[{season:season}, {coach: userId}]}).sort({"rank.myTeams":1})])
+            
+            const [facilityData, availabilityData, thisUser, myTeams] = homeData
             const availabilityTimeBlocks = sortAvailabilities(availabilityData);
-            const thisUser = await user.findOne({_id: userId}, 'availability _id name privilegeLevel color teams');
-            const myTeams = await team.find({$and:[{season:season}, {coach: userId}]}).sort({"rank.myTeams":1})
-
             const data = {thisUser, facilityData, season, availabilityTimeBlocks, myTeams}
 
             renderHomePage(data);
@@ -304,7 +347,7 @@ const userControllerFunctions = {
         }
         
         function renderHomePage(data){
-            const {name, privilegeLevel, lastVerified, /*availabilityTimeBlocks,*/} = data.thisUser;
+            const {name, privilegeLevel, lastVerified} = data.thisUser;
             res.render('home', {
                 name: name,
                 privilegeLevel: privilegeLevel,
@@ -342,58 +385,7 @@ const userControllerFunctions = {
             return availabilityObject
         }
 
-        
     },
-
-    postAllTeamsVerified: async function(req,res, next){ //userDependent
-        const {userId} = req.params;
-        const {lastVerified} = req.body
-
-        
-        try{
-            if(typeof lastVerified != 'string' || lastVerified.length > 100 || (testRegex.test(lastVerified) && lastVerified.indexOf('-') == -1) || testRegex.test(userId)){
-                throw('Invalid request data')
-            }
-            await user.findByIdAndUpdate(userId, {lastVerified: lastVerified})
-            res.send('Literally anything')
-        }catch(err){
-            console.log(err);
-            res.status(400);
-            res.json(err);
-        }
-    },
-
-    postMyTeamsOrder: async function(req,res, next){ // userDependent, seasonal!
-        try{
-            const myTeams = req.body;
-
-            if(!Array.isArray(myTeams) || myTeams.length == 0){
-                throw('Invalid request data')
-            }
-
-            myTeams.forEach(function(team){
-                if(typeof team != 'object' || !Object.hasOwnProperty.call(team, 'rank') || typeof team.rank != 'object' || !Object.hasOwnProperty.call(team.rank, 'myTeams') || typeof team.rank.myTeams != 'number'){
-                    throw('Invalid request data')
-                }
-            })
-
-            await Promise.all(myTeams.map(async function(teams){
-                await team.findByIdAndUpdate(teams._id, {'rank.myTeams': teams.rank.myTeams})
-            }))
-
-            res.json('Literally anything')
-
-
-            
-        }catch(err){
-            console.log(err);
-            res.status(400);
-            res.json(err);
-        }
-    },
-
-
-
 
     getUserDataAll: async function(req,res,next){
         const {userId, season} = req.params
@@ -402,13 +394,13 @@ const userControllerFunctions = {
             if((season != 'fall' && season !='spring') || testRegex.test(userId)){
                 throw('Invalid data request')
             }
-            const thisUser = await user.findOne({_id: userId}, 'availability _id name privilegeLevel color teams')
-            const availabilityData = await availabilities.find({$and:[{$or:[{coach: userId}, {admin:true}]},{season:season}]})
-            const facilityData = await facilitySettings.findById('6202a107cfebcecf4ca9aecd');
+            const homeData = await Promise.all([facilitySettings.findById('6202a107cfebcecf4ca9aecd'), availabilities.find({$and:[{$or:[{coach: userId}, {admin:true}]},{season:season}]}), 
+                user.findOne({_id: userId}, 'availability _id name privilegeLevel color teams'), team.find({$and:[{season:season}, {coach: userId}]}).sort({"rank.myTeams":1})])
+            
+            const [facilityData, availabilityData, thisUser, myTeams] = homeData
             const availabilityTimeBlocks = sortAvailabilities(availabilityData);
-            const myTeams = await team.find({$and:[{season:season}, {coach: userId}]}).sort({"rank.myTeams":1})
+            const data = {thisUser, facilityData, season, availabilityTimeBlocks, myTeams}
 
-            const data = {thisUser, availabilityTimeBlocks, facilityData, season, myTeams}
             res.json(data);
         }catch(err){
             console.log(err)

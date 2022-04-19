@@ -46,7 +46,7 @@ const databasePost = (function(){
     async function updateUserData(databaseBoundObject){
         const {_id} = databaseBoundObject;
         try{
-            const userDataResponse = await fetch(`adminHome/user/${_id}`, { //change the hard-coded id's into userspecific id's SOON
+            const userDataResponse = await fetch(`adminHome/user/${_id}`, {
                 method:'PUT',
                 headers:{
                     'Content-Type': 'application/json'
@@ -101,7 +101,7 @@ const databasePost = (function(){
     async function deleteUserData(userId){
         const idObj = {_id: userId}
         try{
-            const userDataResponse = await fetch(`adminHome/user/${userId}`, { //change the hard-coded id's into userspecific id's SOON
+            const userDataResponse = await fetch(`adminHome/user/${userId}`, {
                 method:'DELETE',
                 headers:{
                     'Content-Type': 'application/json'
@@ -130,7 +130,7 @@ const databasePost = (function(){
     async function updateAdminBlockData(databaseBoundObject){
         const {_id} = databaseBoundObject;
         try{
-            const blockDataResponse = await fetch(`adminHome/timeBlock/${_id}`, { //change the path
+            const blockDataResponse = await fetch(`adminHome/timeBlock/${_id}`, {
                 method:'PUT',
                 headers:{
                     'Content-Type': 'application/json'
@@ -185,7 +185,7 @@ const databasePost = (function(){
     async function deleteAdminBlockData(blockData){
         const idObj = {_id: blockData._id}
         try{
-            const blockDataResponse = await fetch(`adminHome/timeBlock/${blockData._id}`, { //change the hard-coded id's into userspecific id's SOON
+            const blockDataResponse = await fetch(`adminHome/timeBlock/${blockData._id}`, {
                 method:'DELETE',
                 headers:{
                     'Content-Type': 'application/json'
@@ -208,11 +208,10 @@ const databasePost = (function(){
         }
     }
 
-    ///
     async function updateUserBlockData(databaseBoundObject){
         const {_id} = databaseBoundObject;
         try{
-            const blockDataResponse = await fetch(`home/timeBlock/${_id}`, { //change the path
+            const blockDataResponse = await fetch(`home/timeBlock/${_id}`, {
                 method:'PUT',
                 headers:{
                     'Content-Type': 'application/json'
@@ -267,7 +266,7 @@ const databasePost = (function(){
 
     async function deleteUserBlockData(blockData){
         try{
-            const blockDataResponse = await fetch(`home/timeBlock/${blockData._id}`, { //change the hard-coded id's into userspecific id's SOON
+            const blockDataResponse = await fetch(`home/timeBlock/${blockData._id}`, {
                 method:'DELETE',
                 headers:{
                     'Content-Type': 'application/json'
@@ -293,7 +292,7 @@ const databasePost = (function(){
     async function updateTeamData(databaseBoundObject){
         const {_id} = databaseBoundObject;
         try{
-            const teamDataResponse = await fetch(`home/team/${_id}`, { //change the hard-coded id's into userspecific id's SOON
+            const teamDataResponse = await fetch(`home/team/${_id}`, {
                 method:'PUT',
                 headers:{
                     'Content-Type': 'application/json'
@@ -348,7 +347,7 @@ const databasePost = (function(){
     async function deleteTeamData(teamId){
         const idObj = {_id: teamId}
         try{
-            const teamDataResponse = await fetch(`home/team/${teamId}`, { //change the hard-coded id's into userspecific id's SOON
+            const teamDataResponse = await fetch(`home/team/${teamId}`, {
                 method:'DELETE',
                 headers:{
                     'Content-Type': 'application/json'
@@ -524,7 +523,6 @@ const databasePost = (function(){
             console.log(err)
         }
     }
-
 })();
 
 export {databasePost}

@@ -54,14 +54,14 @@ const databasePost = (function(){
             _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("facilityDataSaved")
         }catch(err){
             console.log(err)
-        }//fix the id to be dynamic
+        }
        
     }
 
     async function updateUserData(databaseBoundObject){
         const {_id} = databaseBoundObject;
         try{
-            const userDataResponse = await fetch(`adminHome/user/${_id}`, { //change the hard-coded id's into userspecific id's SOON
+            const userDataResponse = await fetch(`adminHome/user/${_id}`, {
                 method:'PUT',
                 headers:{
                     'Content-Type': 'application/json'
@@ -71,7 +71,7 @@ const databasePost = (function(){
     
             });
 
-            if(userDataResponse.status == 404){ //expand on http statuses?
+            if(userDataResponse.status == 404){
                 throw('404 error!')
             }else if(userDataResponse.status == 400){
                 const errors = await userDataResponse.json();
@@ -83,7 +83,7 @@ const databasePost = (function(){
            
         }catch(err){
             console.log(err)
-        }//fix the id to be dynamic
+        }
     }
 
     async function addUserData(databaseBoundObject){
@@ -98,7 +98,7 @@ const databasePost = (function(){
     
             });
 
-            if(userDataResponse.status == 404){ //expand on http statuses?
+            if(userDataResponse.status == 404){
                 throw('404 error!')
             }else if(userDataResponse.status == 400){
                 const errors = await userDataResponse.json()
@@ -116,7 +116,7 @@ const databasePost = (function(){
     async function deleteUserData(userId){
         const idObj = {_id: userId}
         try{
-            const userDataResponse = await fetch(`adminHome/user/${userId}`, { //change the hard-coded id's into userspecific id's SOON
+            const userDataResponse = await fetch(`adminHome/user/${userId}`, {
                 method:'DELETE',
                 headers:{
                     'Content-Type': 'application/json'
@@ -126,7 +126,7 @@ const databasePost = (function(){
     
             });
 
-            if(userDataResponse.status == 404){ //expand on http statuses?
+            if(userDataResponse.status == 404){
                 throw('404 error!')
             }else if(userDataResponse.status == 400){
                 const errors = await userDataResponse.json();
@@ -145,7 +145,7 @@ const databasePost = (function(){
     async function updateAdminBlockData(databaseBoundObject){
         const {_id} = databaseBoundObject;
         try{
-            const blockDataResponse = await fetch(`adminHome/timeBlock/${_id}`, { //change the path
+            const blockDataResponse = await fetch(`adminHome/timeBlock/${_id}`, {
                 method:'PUT',
                 headers:{
                     'Content-Type': 'application/json'
@@ -155,24 +155,24 @@ const databasePost = (function(){
     
             });
 
-            if(blockDataResponse.status == 404){ //expand on http statuses?
+            if(blockDataResponse.status == 404){
                 throw('404 error!')
             }else if(blockDataResponse.status == 400){
                 const errors = await blockDataResponse.json();
                 const origin = "edit"
                 _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityDataValidationFailed", {errors, origin})
             }else if(blockDataResponse.status == 200){ 
-                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editAdminBlockDataSaved") //find receiver
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("editAdminBlockDataSaved")
             }
            
         }catch(err){
             console.log(err)
-        }//fix the id to be dynamic
+        }
     }
 
     async function addAdminBlockData(databaseBoundObject){
         try{
-            const blockDataResponse = await fetch('adminHome/timeBlock', {  //get rid of hard coded season as soon as possible
+            const blockDataResponse = await fetch('adminHome/timeBlock', {
                 method:'POST',
                 headers:{
                     'Content-Type': 'application/json'
@@ -182,7 +182,7 @@ const databasePost = (function(){
     
             });
 
-            if(blockDataResponse.status == 404){ //expand on http statuses?
+            if(blockDataResponse.status == 404){
                 throw('404 error!')
             }else if(blockDataResponse.status == 400){
                 const errors = await blockDataResponse.json()
@@ -190,7 +190,7 @@ const databasePost = (function(){
                 _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("adminAvailabilityDataValidationFailed", {errors, origin})
             }else if(blockDataResponse.status == 200){
                 const newAdminBlock = await blockDataResponse.json(); 
-                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newAdminBlockDataSaved", newAdminBlock) //find listener
+                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish("newAdminBlockDataSaved", newAdminBlock)
             }
         }catch(err){
             console.log(err)
@@ -200,7 +200,7 @@ const databasePost = (function(){
     async function deleteAdminBlockData(blockData){
         const idObj = {_id: blockData._id}
         try{
-            const blockDataResponse = await fetch(`adminHome/timeBlock/${blockData._id}`, { //change the hard-coded id's into userspecific id's SOON
+            const blockDataResponse = await fetch(`adminHome/timeBlock/${blockData._id}`, {
                 method:'DELETE',
                 headers:{
                     'Content-Type': 'application/json'
@@ -210,7 +210,7 @@ const databasePost = (function(){
     
             });
 
-            if(blockDataResponse.status == 404){ //expand on http statuses?
+            if(blockDataResponse.status == 404){
                 throw('404 error!')
             }else if(blockDataResponse.status == 400){
                 const errors = await blockDataResponse.json();
@@ -223,11 +223,10 @@ const databasePost = (function(){
         }
     }
 
-    ///
     async function updateUserBlockData(databaseBoundObject){
         const {_id} = databaseBoundObject;
         try{
-            const blockDataResponse = await fetch(`home/timeBlock/${_id}`, { //change the path
+            const blockDataResponse = await fetch(`home/timeBlock/${_id}`, {
                 method:'PUT',
                 headers:{
                     'Content-Type': 'application/json'
@@ -237,7 +236,7 @@ const databasePost = (function(){
     
             });
 
-            if(blockDataResponse.status == 404){ //expand on http statuses?
+            if(blockDataResponse.status == 404){
                 throw('404 error!')
             }else if(blockDataResponse.status == 400){
                
@@ -250,7 +249,7 @@ const databasePost = (function(){
            
         }catch(err){
             console.log(err)
-        }//fix the id to be dynamic
+        }
     }
 
     async function addUserBlockData(databaseBoundObject){
@@ -265,7 +264,7 @@ const databasePost = (function(){
     
             });
 
-            if(blockDataResponse.status == 404){ //expand on http statuses?
+            if(blockDataResponse.status == 404){
                 throw('404 error!')
             }else if(blockDataResponse.status == 400){
                 const errors = await blockDataResponse.json()
@@ -282,7 +281,7 @@ const databasePost = (function(){
 
     async function deleteUserBlockData(blockData){
         try{
-            const blockDataResponse = await fetch(`home/timeBlock/${blockData._id}`, { //change the hard-coded id's into userspecific id's SOON
+            const blockDataResponse = await fetch(`home/timeBlock/${blockData._id}`, {
                 method:'DELETE',
                 headers:{
                     'Content-Type': 'application/json'
@@ -292,7 +291,7 @@ const databasePost = (function(){
     
             });
 
-            if(blockDataResponse.status == 404){ //expand on http statuses?
+            if(blockDataResponse.status == 404){
                 throw('404 error!')
             }else if(blockDataResponse.status == 400){
                 const errors = await blockDataResponse.json();
@@ -308,7 +307,7 @@ const databasePost = (function(){
     async function updateTeamData(databaseBoundObject){
         const {_id} = databaseBoundObject;
         try{
-            const teamDataResponse = await fetch(`home/team/${_id}`, { //change the hard-coded id's into userspecific id's SOON
+            const teamDataResponse = await fetch(`home/team/${_id}`, {
                 method:'PUT',
                 headers:{
                     'Content-Type': 'application/json'
@@ -318,7 +317,7 @@ const databasePost = (function(){
     
             });
 
-            if(teamDataResponse.status == 404){ //expand on http statuses?
+            if(teamDataResponse.status == 404){
                 throw('404 error!')
             }else if(teamDataResponse.status == 400){
                 const errors = await teamDataResponse.json();
@@ -330,7 +329,7 @@ const databasePost = (function(){
            
         }catch(err){
             console.log(err)
-        }//fix the id to be dynamic
+        }
     }
 
     async function addTeamData(databaseBoundObject){
@@ -345,7 +344,7 @@ const databasePost = (function(){
     
             });
 
-            if(teamDataResponse.status == 404){ //expand on http statuses?
+            if(teamDataResponse.status == 404){
                 throw('404 error!')
             }else if(teamDataResponse.status == 400){
                 const errors = await teamDataResponse.json()
@@ -363,7 +362,7 @@ const databasePost = (function(){
     async function deleteTeamData(teamId){
         const idObj = {_id: teamId}
         try{
-            const teamDataResponse = await fetch(`home/team/${teamId}`, { //change the hard-coded id's into userspecific id's SOON
+            const teamDataResponse = await fetch(`home/team/${teamId}`, {
                 method:'DELETE',
                 headers:{
                     'Content-Type': 'application/json'
@@ -373,7 +372,7 @@ const databasePost = (function(){
     
             });
 
-            if(teamDataResponse.status == 404){ //expand on http statuses?
+            if(teamDataResponse.status == 404){
                 throw('404 error!')
             }else if(teamDataResponse.status == 400){
                 const errors = await teamDataResponse.json();
@@ -402,7 +401,7 @@ const databasePost = (function(){
     
             });
 
-            if(teamDataResponse.status == 404){ //expand on http statuses?
+            if(teamDataResponse.status == 404){
                 throw('404 error!')
             }else if(teamDataResponse.status == 400){
                 throw('400 error!')
@@ -539,7 +538,6 @@ const databasePost = (function(){
             console.log(err)
         }
     }
-
 })();
 
 

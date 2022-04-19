@@ -5,6 +5,8 @@ const loginPageRender = (function(){
     const userNameEntry = document.querySelector('#logInUserName');
     const passWordEntry = document.querySelector('#logInPassword');
     const submitButton = document.querySelector('#loginAttemptButton');
+    const userDemoButton = document.querySelector('#userDemoLoginButton');
+    const adminDemoButton = document.querySelector('#adminDemoLoginButton')
     const errorList = document.querySelector('#errorList')
 
     setEventListeners();
@@ -12,35 +14,103 @@ const loginPageRender = (function(){
     function setEventListeners(){
 
         submitButton.addEventListener('click', submitLogInAttempt)
+        userDemoButton.addEventListener('click', logInDemoUser);
+        adminDemoButton.addEventListener('click', logInAdminUser)
+    }
 
-        async function submitLogInAttempt(e){
-            unrenderErrorList()
+    async function logInDemoUser(e){
+        unrenderErrorList()
 
-            const errors = testSubmitInput()
-            if(errors.length > 0){
-                e.preventDefault();
-                errors.forEach(function(error){
-                    const errorNode = document.createElement('li');
-                    errorNode.innerText = error
-                    errorList.appendChild(errorNode)
-                })
-            }else{
-                try{
-                    form.submit();
-                }catch(err){
-                    if(err.status == 404){
-                        throw('404 error!')
-                    }else if(err.status == 400){
-                        throw('400 error!')
-                    }else if(err.status == 401){
-                        const errorMessage = await err.json();
-                        const errorArray = [errorMessage]
-                        renderLoginPage(errorArray)
-                    }
+        userNameEntry.value = "user1";
+        passWordEntry.value = "usero1";
+
+        const errors = testSubmitInput()
+        if(errors.length > 0){
+            e.preventDefault();
+            errors.forEach(function(error){
+                const errorNode = document.createElement('li');
+                errorNode.innerText = error
+                errorList.appendChild(errorNode)
+            })
+        }else{
+            try{
+                form.submit();
+            }catch(err){
+                if(err.status == 404){
+                    throw('404 error!')
+                }else if(err.status == 400){
+                    throw('400 error!')
+                }else if(err.status == 401){
+                    const errorMessage = await err.json();
+                    const errorArray = [errorMessage]
+                    renderLoginPage(errorArray)
                 }
             }
         }
     }
+    
+
+    async function logInAdminUser(e){
+        unrenderErrorList()
+
+        userNameEntry.value = "admin2";
+        passWordEntry.value = "admino2";
+
+        const errors = testSubmitInput()
+        if(errors.length > 0){
+            e.preventDefault();
+            errors.forEach(function(error){
+                const errorNode = document.createElement('li');
+                errorNode.innerText = error
+                errorList.appendChild(errorNode)
+            })
+        }else{
+            try{
+                form.submit();
+            }catch(err){
+                if(err.status == 404){
+                    throw('404 error!')
+                }else if(err.status == 400){
+                    throw('400 error!')
+                }else if(err.status == 401){
+                    const errorMessage = await err.json();
+                    const errorArray = [errorMessage]
+                    renderLoginPage(errorArray)
+                }
+            }
+        }
+    }
+
+
+    async function submitLogInAttempt(e){
+        unrenderErrorList()
+
+        const errors = testSubmitInput()
+        if(errors.length > 0){
+            e.preventDefault();
+            errors.forEach(function(error){
+                const errorNode = document.createElement('li');
+                errorNode.innerText = error
+                errorList.appendChild(errorNode)
+            })
+        }else{
+            try{
+                form.submit();
+            }catch(err){
+                if(err.status == 404){
+                    throw('404 error!')
+                }else if(err.status == 400){
+                    throw('400 error!')
+                }else if(err.status == 401){
+                    const errorMessage = await err.json();
+                    const errorArray = [errorMessage]
+                    renderLoginPage(errorArray)
+                }
+            }
+        }
+    }
+
+
 
     function testSubmitInput(){
         const errorArray = []
