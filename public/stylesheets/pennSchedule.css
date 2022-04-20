@@ -273,7 +273,7 @@ main, .page{
 	border: #011F5b solid;
 	border-width: 1rem;
 	display:grid;
-	max-height: 42rem;
+	max-height: 80vh;
 }
 
 
@@ -763,8 +763,8 @@ main, .page{
 	overflow-y: scroll;
 }
 
-#adminTeamOrderForm{
-	max-height: 42rem;
+#adminTeamOrderForm, #teamOrderForm{
+	max-height: 80vh;
 }
 
 #adminFacilityDataForm, #adminDayTimeBlockForm, #adminTeamOrderForm, #availabilityDayTimeBlockForm, #teamOrderForm{

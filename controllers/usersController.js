@@ -161,6 +161,7 @@ const userControllerFunctions = {
         try{
             const errorArray = [];
             const thisUser = req.params.userId
+            const season = req.params.season
             const thisTeam = req.body;
 
             const reqValidation = testTeamData(thisTeam)
@@ -168,11 +169,11 @@ const userControllerFunctions = {
                 errorArray.push(reqValidation)
             }
 
-            if(testRegex.test(thisUser)){
+            if(testRegex.test(thisUser) || (season != 'fall' && season !='spring')){
                 errorArray.push('Invalid data request')
             }
 
-            const teamsData = await Promise.all([team.find({coach: thisUser}), team.find(), team.find({name: thisTeam.name}, 'name coach')])
+            const teamsData = await Promise.all([team.find({coach: thisUser}), team.find(), team.find({name: thisTeam.name, season: season}, 'name coach')])
             const [thisUserAllTeams, allTeams, teams] = teamsData
 
             const nameMatchError = teams.filter(function(team){

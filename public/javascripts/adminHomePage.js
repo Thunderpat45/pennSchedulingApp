@@ -137,10 +137,7 @@ const adminHomeMain = (function(){
         scheduleBuilder.addEventListener('click', requestScheduleBuild)
 
         function requestScheduleBuild(){
-            const confirmation = confirm('The current spreadsheet library only creates accurate documents in Google Sheets, not in Excel or LibreCalc. Please proceed with this operation only if you have access to Google Sheets')
-            if(confirmation){
-                _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish('scheduleBuildRequested')
-            }
+            _src_events__WEBPACK_IMPORTED_MODULE_0__.events.publish('scheduleBuildRequested')
         }
     }
 })()
