@@ -55,14 +55,14 @@ const excelBuilder = (function(){
             const startColumn = columnObj[day].startColVal
             const endColumn = columnObj[day].endColVal
 
-            for(let i = 1; i<58; i++){ //not ideal, but hard coded based on known width of sheet
+            for(let i = 1; i<59; i++){ //not ideal, but hard coded based on known width of sheet
                 const leftCell = worksheet.getCell(`${startColumn}${i}`)
                 const rightCell = worksheet.getCell(`${endColumn}${i}`)
 
                 leftCell.border = {left: {style:'thick'}}
                 rightCell.border = {right: {style:'thick'}}
 
-                if(i == 57){
+                if(i == 58){
                     rightCell.border = {right: {style:'thick'}, bottom: {style: 'thick'}}
                 }
             }
