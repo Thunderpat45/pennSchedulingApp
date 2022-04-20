@@ -48,7 +48,7 @@ const masterScheduleBuilder = (function(){
             checkStackCompletion(currentTeamIndex, allTeams, cachedTeamStackSlice);
         }
 
-        if(requestIndex == currentTeam.allOpts.length){
+        if(requestIndex == currentTeam.allOpts.length-1){
             return
         }else{
             checkCurrentTeam(currentTeam, currentTeamIndex, cachedTeamStack, allTeams, ++requestIndex);

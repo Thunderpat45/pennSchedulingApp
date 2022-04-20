@@ -547,20 +547,18 @@ const adminControllerFunctions = {
             const scheduleData = buildTeamsSchedule(allTeams, templateData)
 
             if(scheduleData.completedSchedules){
-                scheduleData.completedSchedules[0].forEach(function(team){
-                    if(team.size == 150){
-                        team.size = 6;
-                    }else{
-                        team.size = Math.ceil(team.size/25)
-                    }
+                scheduleData.completedSchedules.forEach(function(schedule){
+                    schedule.forEach(function(team){
+                            if(team.size > 6){
+                                team.size = (Math.ceil(team.size/25))   
+                            }   
+                    })
                 })
             }else{
                 scheduleData.longestStack.forEach(function(team){
-                    if(team.size == 150){
-                        team.size = 6;
-                    }else{
-                        team.size = Math.ceil(team.size/25)
-                    }
+                    if(team.size > 6){
+                        team.size = (Math.ceil(team.size/25))   
+                    }   
                 }) 
             }
 

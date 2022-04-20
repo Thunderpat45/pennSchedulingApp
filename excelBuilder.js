@@ -7,8 +7,8 @@ const excelBuilder = (function(){
     const columnObj = {};
 
     function setRowValues(facilityData){
-        let i = 2;
-        for(let time = facilityData.facilityOpen; time < facilityData.facilityClose +1; time +=15){
+        let i = 3;
+        for(let time = facilityData.facilityOpen; time < facilityData.facilityClose; time +=15){
             rowObj[time] = {
                 label: timeConverterExpress.runConvertTotalMinutesToTime(time), 
                 rowVal: i
