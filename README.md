@@ -29,7 +29,7 @@ truly represented, as close as possible, the time requests that our teams submit
   <li>Various profiles are available for direct login, but a user-only and an admin profile are both available for testing.</li>
   <li>Admins are capable of executing admin options, as well as having user actions for their own teams as well</li>
   <li>User data and overall facility settings are independent of 'season', while availability and team data dependent on the season in which they are created</li>
-  <li>All profiles act on a shared database to pool data together for a single schedule. For the purposes of preventing accidental sabotage of a future tester's experience, a cron-task refreshes the database to base values every 30 mins</li>
+  <li>All profiles act on a shared database to pool data together for a single schedule. For the purposes of preventing accidental sabotage of a future tester's experience, a cron-task refreshes the database to base values on the 0 and 30 mins of every hour</li>
 </ul>
 
 ### User Actions
