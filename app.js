@@ -12,6 +12,7 @@ const bcrypt = require('bcryptjs');
 const debug = require('debug')('http')
 const compression = require('compression')
 const helmet = require('helmet')
+const MongoStore = require('connect-mongo')
 
 debug.enabled = true
 
@@ -30,6 +31,7 @@ const mongoose = require('mongoose');
 const mongoDB = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.enghe.mongodb.net/SchedulingApp?retryWrites=true&w=majority`;
 mongoose.connect(mongoDB, {useNewURLParser:true, useUnifiedTopology: true});
 const db = mongoose.connection;
+const client = db.getClient()
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 
@@ -82,7 +84,14 @@ app.use(session({
   saveUninitialized: true,
   name: 'sessionId',
   secret: process.env.SESSION_SECRET,
-  expires: expiryDate
+  expires: expiryDate,
+  store: MongoStore.create({
+    client: client,
+    collectionName: 'sessions',
+    stringify: false,
+    autoRemove: 'interval',
+    autoRemoveInterval: 1
+  })
 }));
 app.use(passport.initialize());
 app.use(passport.session());
