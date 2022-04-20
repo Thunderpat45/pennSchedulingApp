@@ -163,7 +163,7 @@ const excelBuilder = (function(){
         startCell.alignment = {vertical: "middle", horizontal: "center", wrapText: true};
         startCell.border = {top: {style:'medium'}, left: {style:'medium'}, bottom: {style:'medium'}, right: {style:'medium'}}
         startCell.font = { name: 'Calibri', size: 11 }
-        startCell.fill = {type: "pattern", pattern: "solid", fgColor: {argb: team.color}};
+        // startCell.fill = {type: "pattern", pattern: "solid", fgColor: {argb: team.color}};
         /*for unknown reasons, except maybe program differences, fill color (fgColor) DOES NOT work with either MicrosoftExcel or LibreOfficeCalc,
          but works with no issues on GoogleSheets. A bug report has been submitted to ExcelJS library and I am awaiting feedback to update*/
     }
