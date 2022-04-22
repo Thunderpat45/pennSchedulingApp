@@ -679,6 +679,7 @@ function testUserData(userData){
 function testFacilityData(facilityData){
     if(!Object.hasOwnProperty.call(facilityData, 'facilityClose') || !Object.hasOwnProperty.call(facilityData, 'facilityOpen') ||
     !Object.hasOwnProperty.call(facilityData, 'facilityMaxCapacity') || !Object.hasOwnProperty.call(facilityData, '_id')){
+        console.log('missing prop')
         throw('Invalid request data')
     }
     for(let prop in facilityData){
@@ -686,20 +687,25 @@ function testFacilityData(facilityData){
             case 'facilityOpen':
             case 'facilityClose':
                 if(typeof facilityData[prop]!= 'number' || numberRegex.test(facilityData[prop]) || facilityData.facilityOpen >= facilityData.facilityClose){
+                    console.log('openClose error')
                     throw('Invalid data request')
                 }
                 break;
             case '_id':
                 if(typeof facilityData[prop] != 'string' || facilityData[prop].length > 40 || testRegex.test(facilityData[prop])){
+                    console.log('_id error')
                     throw('Invalid data request')
                 }
                 break;
             case 'facilityMaxCapacity':
+            case '__v':
                 if(typeof facilityData[prop] != 'number'){
+                    console.log('maxCapacity error')
                     throw('Invalid data request')
                 }
                 break;
             default:
+                console.log('extra prop')
                 throw('Invalid request data')
         }
     }
