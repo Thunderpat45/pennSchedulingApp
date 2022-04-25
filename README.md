@@ -102,6 +102,7 @@ Admins have all the functionalities of general users, and additionally can:
   <li>Improvement: Most modals that have more functionality than selecting just drop downs, like 'Modify Team Order' for admins, and team creation/edits for teams with multiple requests, rerender content after button clicks. This has limited effect on small modals, but large modals 'reset' the view to the top of the modal scroll bar, which can be frustrating when dealing with a large team or with the large team order list. Recommendation to adjust render somehow to maintain scroll position on re-render(?)</li>
   <li>Bug: Triggering click events on buttons outside a modal while a modal is active can have breaking behavior. Recommendation to blur/darken background and remove scroll/click functionality on background while a modal is active</li>
   <li>Bug: For user-based team creation, the save action is disabled until all drop-downs have a non-default value && team name is not empty. The function that assesses if drop-downs have non-default values is buggy, and sometimes accurately enables the save button on the last drop-down value being selected, but other times requires changes on one or more already set drop-downs to then enable the save button. </li>
+  <li>Bug: Buttons work on Safari/Iphone, but event publishing behind most of the operation of the app do not. Potentially due to webpack mode?</li>
 </ul>
 
 ## Implementation Details
