@@ -2,9 +2,11 @@
 ## Description
 ### Overview
 
-This is a project is a web application designed to help resolve scheduling issues in facilities that need a repeating weekly pattern, but experience conflicts between time and space/volume.
+This is a project is a web application designed to help resolve scheduling issues in facilities that need a repeating weekly pattern, but experience conflicts between time and space/volume. This is the testing version for non-users.
 
 https://scheduling-app-portfolio.herokuapp.com/
+
+
 ### Contributions
 
 Submitting bug issues is greatly appreciated. At this point, there will not likely be substantial updates to this project aside from addressing operational issues that are identified.
@@ -15,8 +17,7 @@ My motivation for this was a recurring issue in my own workplace, in which we ha
 weekly schedule but compete for space and time within our limited size facility. Each 'coach/teamLeader' has a number of teams, 
 but cannot host multiple teams at once, and must respect the overall capacity of our single facility. 
 The previous method to address this issue was simply to try to 'eye up' the best solution on which teams should be scheduled when, 
-which inevitably led to conflicts that caused this scheduling process to take weeks. As it was, the process was not only time-inefficient, 
-it also rarely came up with the optimized solution, and most teams had to generate unexpected back-up requests that were far from optimal.
+which inevitably led to conflicts that caused this scheduling process to take weeks. As it was, the process was lacking efficiency from both a time and a selection optimization standpoint, and most teams had to generate unexpected back-up requests that were far from optimal.
 
 I wanted to come up with a solution that could not only generate a solution faster, but would actually test out all options and find the choices that
 truly represented, as close as possible, the time requests that our teams submitted, and so I created this web application as an attempt to address this. 
@@ -88,7 +89,7 @@ Admins have all the functionalities of general users, and additionally can:
 ### Server-Side
 
 <ul>
-   <li>Bug: The xlsx file fill color for each coach is conditionally successful depending on what program opens the file (Excel/LibreCalc/GoogleSheets). Programs that cannot successfully render color output cells with unreadable black fill and black text. A <a href = 'https://github.com/exceljs/exceljs/issues/2029'>bug report</a> has been submitted to the ExcelJS source library. Until this issue is resolved, the file will currently output without color.
+   <li>Bugs: XSLX FILE - The xlsx file fill color for each coach is conditionally successful depending on what program opens the file (Excel/LibreCalc/GoogleSheets). Programs that cannot successfully render color output cells with unreadable black fill and black text. A <a href = 'https://github.com/exceljs/exceljs/issues/2029'>bug report</a> has been submitted to the ExcelJS source library. Until this issue is resolved, the file will currently output without color. Additionally, the formatting of cells (height, width, borderColor) is not consistent across media types.
   </li>
   
   <li>Improvement: When running algorithm, current practice is that if one team is completely incompatible, capture the stack of teams up to that point and generate schedule to include those teams, then report the 'blocking' team. This will not assess if teams further in the stack might also have been blocking, as the algorithm currently will not reach them. Recommendation to catch the conflict, then 'drop' the offending team to continue generating the schedule. This will have a more complete schedule output, and capture all teams with full conflicts in a single process, instead of waiting to fix the conflict with one team to then find another.</li>
@@ -100,9 +101,7 @@ Admins have all the functionalities of general users, and additionally can:
 <ul>
   <li>Improvement: The application is not currently optimized for mobile and is not particularly responsively design. This was largely based on the assumption that since xlsx usage is not innately simple on most mobile devices, it would be simpler to try to restrict to PC usage. However, the CSS restrictions are not accurate, and are not limiting mobile users as intended. Recommendation to either improve mobile experience and notify of xlsx issues, or fully restrict mobile usage as initially intended</li>
   <li>Improvement: Most modals that have more functionality than selecting just drop downs, like 'Modify Team Order' for admins, and team creation/edits for teams with multiple requests, rerender content after button clicks. This has limited effect on small modals, but large modals 'reset' the view to the top of the modal scroll bar, which can be frustrating when dealing with a large team or with the large team order list. Recommendation to adjust render somehow to maintain scroll position on re-render(?)</li>
-  <li>Bug: Triggering click events on buttons outside a modal while a modal is active can have breaking behavior. Recommendation to blur/darken background and remove scroll/click functionality on background while a modal is active</li>
   <li>Bug: For user-based team creation, the save action is disabled until all drop-downs have a non-default value && team name is not empty. The function that assesses if drop-downs have non-default values is buggy, and sometimes accurately enables the save button on the last drop-down value being selected, but other times requires changes on one or more already set drop-downs to then enable the save button. </li>
-  <li>Bug: Buttons work on Safari/Iphone, but event publishing behind most of the operation of the app do not. Potentially due to webpack mode?</li>
 </ul>
 
 ## Implementation Details
