@@ -12,10 +12,13 @@ const availabilityTimeBlockDataFormComponent = (function(){
     events.subscribe("editAvailabilityBlockDataSaved", unrenderTimeBlockDataForm);
     events.subscribe('newAvailabilityBlockDataSaved', unrenderTimeBlockDataForm)
 
+    const body = document.querySelector('body')
+    const mainPage = document.querySelector('#mainPage')
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm");
+    const overlayDiv = document.createElement('div');
+    overlayDiv.id = 'overlayDiv'
     
-
     function renderTimeBlockDataForm(timeBlockDayData){ 
     
         const elements = setElements();
@@ -31,7 +34,13 @@ const availabilityTimeBlockDataFormComponent = (function(){
         }).length > 0){
             saveButton.disabled = true;
         }
+
+       
+        mainPage.appendChild(overlayDiv)
+        overlayDiv.appendChild(formDivWrapper)
+
         formDivWrapper.classList.toggle("formHidden");
+        body.style.overflowY = 'hidden'
     } 
 
     function unrenderTimeBlockDataForm(){
@@ -41,7 +50,9 @@ const availabilityTimeBlockDataFormComponent = (function(){
             }
         }
 
+        overlayDiv.replaceWith(...overlayDiv.childNodes)
         formDivWrapper.classList.add("formHidden");
+        body.style.overflowY = 'scroll'
     }
     
     

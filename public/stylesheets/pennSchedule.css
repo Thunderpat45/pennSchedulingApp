@@ -811,3 +811,12 @@ main, .page{
 	margin: 0;
 	padding: 2rem;
 }
+
+#overlayDiv{
+	position: fixed;
+	top:0;
+	left:0;
+	width: 100vw;
+	height: 100vh;
+	background-color: rgba(128, 128, 128, 0.5);
+}

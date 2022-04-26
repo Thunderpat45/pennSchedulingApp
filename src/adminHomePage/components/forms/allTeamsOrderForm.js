@@ -7,9 +7,12 @@ const allTeamsOrderFormComponent = (function(){
     events.subscribe('allTeamsOrderChangeSaved', unrenderAllTeamsOrderForm);
     events.subscribe('allTeamsOrderDataUpdated', rerenderAllTeamsOrderForm)
 
+    const body = document.querySelector('body')
+    const adminMainPage = document.querySelector('#adminMainPage')
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm");
-    const body = document.querySelector("body")
+    const overlayDiv = document.createElement('div');
+    overlayDiv.id = 'overlayDiv'
 
     function rerenderAllTeamsOrderForm(teamsData){
         unrenderAllTeamsOrderForm()
@@ -24,9 +27,13 @@ const allTeamsOrderFormComponent = (function(){
     
         formDiv.appendChild(elements.content);
 
+        adminMainPage.appendChild(overlayDiv)
+        overlayDiv.appendChild(formDivWrapper)
+
         formDivWrapper.classList.toggle("formHidden");
         elements.form.classList.toggle('toggleScrollBarOn')
         body.style.overflowY = "hidden"
+
     } 
 
     function unrenderAllTeamsOrderForm(){
@@ -38,6 +45,7 @@ const allTeamsOrderFormComponent = (function(){
 
         formDivWrapper.classList.add("formHidden");
         body.style.overflowY = 'scroll'
+        overlayDiv.replaceWith(...overlayDiv.childNodes)
         
     }
    

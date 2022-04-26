@@ -11,8 +11,12 @@ const adminTimeBlockDataFormComponent = (function(){
     events.subscribe("editAdminBlockDataSaved", unrenderTimeBlockDataForm);
     events.subscribe('newAdminBlockDataSaved', unrenderTimeBlockDataForm)
 
+    const body = document.querySelector('body')
+    const adminMainPage = document.querySelector('#adminMainPage')
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm");
+    const overlayDiv = document.createElement('div');
+    overlayDiv.id = 'overlayDiv'
     
 
     function renderTimeBlockDataForm(adminTimeBlockDayData){
@@ -30,7 +34,12 @@ const adminTimeBlockDataFormComponent = (function(){
         }).length > 0){
             saveButton.disabled = true;
         }
+
+        adminMainPage.appendChild(overlayDiv)
+        overlayDiv.appendChild(formDivWrapper)
+
         formDivWrapper.classList.toggle("formHidden");
+        body.style.overflowY = 'hidden'
     } 
 
     function unrenderTimeBlockDataForm(){
@@ -41,6 +50,8 @@ const adminTimeBlockDataFormComponent = (function(){
         }
 
         formDivWrapper.classList.toggle("formHidden");
+        overlayDiv.replaceWith(...overlayDiv.childNodes)
+        body.style.overflowY = 'scroll'
     }
     
     

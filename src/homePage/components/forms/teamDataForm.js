@@ -14,9 +14,12 @@ const teamDataFormComponent = (function(){
     events.subscribe("editTeamDataSaved", unrenderTeamDataForm);
     events.subscribe('newTeamDataSaved', unrenderTeamDataForm)
 
+    const body = document.querySelector('body')
+    const mainPage = document.querySelector('#mainPage')
     const formDivWrapper = document.querySelector("#entryFormDiv")
     const formDiv = document.querySelector("#entryForm");
-    const body = document.querySelector("body")
+    const overlayDiv = document.createElement('div');
+    overlayDiv.id = 'overlayDiv'
 
     function rerenderTeamDataForm(teamData){
         unrenderTeamDataForm()
@@ -39,9 +42,13 @@ const teamDataFormComponent = (function(){
             saveButton.disabled = true;
         }
 
+        mainPage.appendChild(overlayDiv)
+        overlayDiv.appendChild(formDivWrapper)
+
         formDivWrapper.classList.toggle("formHidden");
         elements.form.classList.toggle('toggleScrollBarOn')
         body.style.overflowY = "hidden"
+
     } 
 
     function unrenderTeamDataForm(){
@@ -53,6 +60,7 @@ const teamDataFormComponent = (function(){
 
         formDivWrapper.classList.add("formHidden");
         body.style.overflowY = 'scroll'
+        overlayDiv.replaceWith(...overlayDiv.childNodes)
     }
    
     function setElements(){

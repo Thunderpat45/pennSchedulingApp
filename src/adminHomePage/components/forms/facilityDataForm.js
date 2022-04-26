@@ -8,8 +8,12 @@ const facilityDataFormComponent = (function(){
     events.subscribe("facilityDataSaved", unrenderFacilityDataForm)
     events.subscribe("renderFacilityDataValidationErrors", renderFacilityDataValidationErrors)
     
+    const body = document.querySelector('body')
+    const adminMainPage = document.querySelector('#adminMainPage')
     const formDivWrapper = document.querySelector("#entryFormDiv")
-    const formDiv = document.querySelector("#entryForm")
+    const formDiv = document.querySelector("#entryForm");
+    const overlayDiv = document.createElement('div');
+    overlayDiv.id = 'overlayDiv'
 
     function renderFacilityDataForm(facilityDataObj){
         
@@ -19,6 +23,10 @@ const facilityDataFormComponent = (function(){
 
         formDiv.appendChild(elements.content);
         formDivWrapper.classList.toggle("formHidden");
+
+        adminMainPage.appendChild(overlayDiv)
+        overlayDiv.appendChild(formDivWrapper)
+        body.style.overflowY = "hidden"
     } 
 
     function unrenderFacilityDataForm(){
@@ -29,6 +37,10 @@ const facilityDataFormComponent = (function(){
         }
 
         formDivWrapper.classList.toggle("formHidden");
+        overlayDiv.replaceWith(...overlayDiv.childNodes)
+        body.style.overflowY = 'scroll'
+
+        
     }
 
     function setElements(){
