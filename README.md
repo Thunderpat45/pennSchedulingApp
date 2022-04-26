@@ -4,7 +4,7 @@
 
 This is a project is a web application designed to help resolve scheduling issues in facilities that need a repeating weekly pattern, but experience conflicts between time and space/volume.
 
-https://dolan-scheduling-app-04192022.herokuapp.com/
+https://scheduling-app-portfolio.herokuapp.com/
 ### Contributions
 
 Submitting bug issues is greatly appreciated. At this point, there will not likely be substantial updates to this project aside from addressing operational issues that are identified.
