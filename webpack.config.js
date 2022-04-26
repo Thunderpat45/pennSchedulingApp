@@ -2,7 +2,7 @@ const webpack  = require("webpack");
 const path = require('path')
 
 module.exports = {
-    mode: 'development',
+    mode: 'production',
     entry:{
         adminHomePage: './src/adminHomePage.js',
         homePage: './src/homePage.js',

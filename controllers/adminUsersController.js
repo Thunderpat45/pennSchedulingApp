@@ -549,16 +549,20 @@ const adminControllerFunctions = {
             if(scheduleData.completedSchedules){
                 scheduleData.completedSchedules.forEach(function(schedule){
                     schedule.forEach(function(team){
+                        console.log(`Old size for ${team.name}: ${team.size}`)
                             if(team.size > 6){
                                 team.size = (Math.ceil(team.size/25))   
-                            }   
+                            }
+                        console.log(`New size for ${team.name}: ${team.size}`)   
                     })
                 })
             }else{
                 scheduleData.longestStack.forEach(function(team){
-                    if(team.size > 6){
-                        team.size = (Math.ceil(team.size/25))   
-                    }   
+                    console.log(`Old size for ${team.name}: ${team.size}`)
+                        if(team.size > 6){
+                            team.size = (Math.ceil(team.size/25))   
+                        }
+                    console.log(`New size for ${team.name}: ${team.size}`)   
                 }) 
             }
 

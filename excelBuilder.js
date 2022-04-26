@@ -102,7 +102,7 @@ const excelBuilder = (function(){
             team.validDays.forEach(function(trainingDay){
                 let i = 0;
                 if(trainingDay.inWeiss == "yes"){
-                    while(i < 6-team.size){
+                    while(i < 7-team.size){
                         //checks to make sure that a team is not added to cells already occupied by another team
                         const verification = verifyColumnUnoccupied(worksheet, team, trainingDay, i);
                         if(verification == undefined){
