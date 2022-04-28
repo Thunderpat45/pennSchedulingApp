@@ -2,7 +2,7 @@
 ## Description
 ### Overview
 
-This is a project is a web application designed to help resolve scheduling issues in facilities that need a repeating weekly pattern, but experience conflicts between time and space/volume. This is the testing version for non-users.
+This is a project is a web application designed to help resolve scheduling issues in facilities that need a repeating weekly pattern, but experience conflicts between time and space/volume. This is the testing version for non-users. Please note that the site is not yet optimized for mobile usage. Additionally, if you do use a mobile device, you may need to download the xlsx file for the scheduler, as the option to view often fails to render properly (tested only on IPhone).
 
 https://scheduling-app-portfolio.herokuapp.com/
 
@@ -96,7 +96,7 @@ Admins have all the functionalities of general users, and additionally can:
 
 ### Client-Side
 <ul>
-  <li>Improvement: The application is not currently optimized for mobile and is not particularly responsively design. This was largely based on the assumption that since xlsx usage is not innately simple on most mobile devices, it would be simpler to try to restrict to PC usage. However, the CSS restrictions are not accurate, and are not limiting mobile users as intended. Recommendation to either improve mobile experience and notify of xlsx issues, or fully restrict mobile usage as initially intended</li>
+  <li>Improvement: The application is not currently optimized for mobile and is not particularly responsively designed. This was largely based on the assumption that since xlsx usage is not innately simple on most mobile devices, it would be simpler to try to restrict to PC usage. Recommendation to improve mobile experience as much as possible, and identify issues that cannot be addressed (xlsx download vs view differences IPHONE, etc).</li>
   <li>Improvement: Most modals that have more functionality than selecting just drop downs, like 'Modify Team Order' for admins, and team creation/edits for teams with multiple requests, rerender content after button clicks. This has limited effect on small modals, but large modals 'reset' the view to the top of the modal scroll bar, which can be frustrating when dealing with a large team or with the large team order list. Recommendation to adjust render somehow to maintain scroll position on re-render(?)</li>
   <li>Bug: For user-based team creation, the save action is disabled until all drop-downs have a non-default value && team name is not empty. The function that assesses if drop-downs have non-default values is buggy, and sometimes accurately enables the save button on the last drop-down value being selected, but other times requires changes on one or more already set drop-downs to then enable the save button. </li>
 </ul>
