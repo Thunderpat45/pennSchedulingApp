@@ -1,4 +1,5 @@
 const ExcelJS = require('exceljs');
+const { schedule } = require('node-cron');
 const timeConverterExpress = require('./timeConverterExpress')
 
 const excelBuilder = (function(){
@@ -171,20 +172,20 @@ const excelBuilder = (function(){
     function setConflicts(worksheet, conflicts){
         //creates a sheet with conflicts if a full schedule was not able to be made in schedulingAlgorithm
         let i = 0
-        for(let team in conflicts){
+        conflicts.forEach(function(team){ //need to convert to array
             const adjustedTeamRowNumber = i+1;
             const labelCell = worksheet.getCell(`A${adjustedTeamRowNumber}`);
-            labelCell.value = team;
+            labelCell.value = team.name;
             let j = 1
-            for(let day in conflicts[team]){
+            for(let day in team.conflicts){
                 const dayLabelCell = worksheet.getCell(`B${adjustedTeamRowNumber+j}`);
                 dayLabelCell.value = day
                 let k = 1
-                for(let time in conflicts[team][day]){
+                for(let time in team.conflicts[day]){
                     const timeLabelCell = worksheet.getCell(`C${adjustedTeamRowNumber+j+k}`);
                     timeLabelCell.value = timeConverterExpress.runConvertTotalMinutesToTime(time);
                     let l=0;
-                    conflicts[team][day][time].forEach(function(conflict){
+                    team.conflicts[day][time].forEach(function(conflict){
                         conflict.forEach(function(subConflict){
                             const alphaArray = ["D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
                             const cell = worksheet.getCell(`${alphaArray[l]}${adjustedTeamRowNumber+j+k}`);
@@ -199,7 +200,7 @@ const excelBuilder = (function(){
                 j += k
             }
             i = j
-        }
+        })
     }
 
     function buildExcelSchedules(scheduleData, facilityData){
@@ -207,33 +208,22 @@ const excelBuilder = (function(){
         setRowValues(facilityData);
         setColumnValues(facilityData)
         
-        if(scheduleData.completedSchedules){
-            scheduleData.completedSchedules.forEach(function(schedule){
-                const schedIndex = scheduleData.completedSchedules.indexOf(schedule);
-                const worksheet = workbook.addWorksheet(`Sheet ${schedIndex +1}`);
-                worksheet.views = [{state: 'frozen', xSplit: 1, ySplit: 1}]
-                const sizeSortedTeams = sortTeamsBySize(schedule) 
-            
-                setDayLabels(worksheet);
-                setTimeLabels(worksheet);
-                setTeams(sizeSortedTeams, worksheet)
-            })
-        }else{
-            const schedule = scheduleData.longestStack;
-            const worksheet1 = workbook.addWorksheet(`Sheet 1`);
-            worksheet1.views = [{state: 'frozen', xSplit: 1, ySplit: 1}]
+        scheduleData.completedSchedules.forEach(function(schedule){
+            const schedIndex = scheduleData.completedSchedules.indexOf(schedule);
+            const worksheet = workbook.addWorksheet(`Schedule Option ${schedIndex +1}`);
+            worksheet.views = [{state: 'frozen', xSplit: 1, ySplit: 1}]
             const sizeSortedTeams = sortTeamsBySize(schedule) 
         
-            setDayLabels(worksheet1);
-            setTimeLabels(worksheet1);
-            setTeams(sizeSortedTeams, worksheet1)
-
-            const worksheet2 = workbook.addWorksheet("Sheet 2");
-            setConflicts(worksheet2, scheduleData.conflicts)
-
+            setDayLabels(worksheet);
+            setTimeLabels(worksheet);
+            setTeams(sizeSortedTeams, worksheet)
+            })
+        if(scheduleData.conflicts.length >0){
+            const conflictSheet = workbook.addWorksheet("Conflicts");
+            setConflicts(conflictSheet, scheduleData.conflicts)
         }
        
-        return workbook
+        return workbook   
     }
 
     return {buildExcelSchedules}

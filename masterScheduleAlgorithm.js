@@ -1,6 +1,7 @@
 
 
 const buildEmptyScheduleTemplate = require('./blankScheduleTemplateBuilder').buildEmptyScheduleTemplate
+const assert = require('assert/strict')
 
 let scheduleTemplateData
 
@@ -18,10 +19,10 @@ const masterScheduleBuilder = (function(){
             return {longestStack: masterScheduleObject.longestStack, conflicts: masterScheduleObject.conflictObj}
         }
         else if(masterScheduleObject.completeSchedules.length < 5){
-            return {completedSchedules: masterScheduleObject.completeSchedules, conflicts: masterScheduleObject.conflictObj}
+            return {completedSchedules: masterScheduleObject.completeSchedules}
         }
         else{
-            return {completedSchedules: masterScheduleObject.completeSchedules.slice(0,5), conflicts:masterScheduleObject.conflictObj}
+            return {completedSchedules: masterScheduleObject.completeSchedules.slice(0,5)}
         }  
     }
 
@@ -65,7 +66,29 @@ const masterScheduleBuilder = (function(){
         if(currentTeamIndex < allTeams.length-1){
             checkAllTeams(cachedTeamStackSlice, allTeams, ++currentTeamIndex)
         }else{
-            masterScheduleObject.completeSchedules.push(cachedTeamStackSlice)
+            //condition here to check for duplicates
+            try{
+                const cachedAllOpts = cachedTeamStackSlice.map(function(team){
+                    return team.validDays
+                })
+    
+                const completedSchedulesAllOptsComparison = masterScheduleObject.completeSchedules.map(function(schedule){
+                    const scheduleAllOpts = schedule.map(function(team){
+                        return team.validDays
+                    })
+                    return scheduleAllOpts                    
+                })
+
+                completedSchedulesAllOptsComparison.forEach(function(scheduleAllOpts){
+                    assert.notDeepStrictEqual(cachedAllOpts, scheduleAllOpts)
+                })
+
+                masterScheduleObject.completeSchedules.push(cachedTeamStackSlice)
+    
+            }catch(err){
+                return 
+            }
+            
         }
     }
 

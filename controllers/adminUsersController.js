@@ -544,28 +544,17 @@ const adminControllerFunctions = {
             facilityData.days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
             const templateData = {facilityData, allAvailabilities, allUsers}
-            const scheduleData = buildTeamsSchedule(allTeams, templateData)
+            const scheduleData = buildCompatibleSchedules(allTeams, templateData)
 
-            if(scheduleData.completedSchedules){
-                scheduleData.completedSchedules.forEach(function(schedule){
-                    schedule.forEach(function(team){
-                        console.log(`Old size for ${team.name}: ${team.size}`)
-                            if(team.size > 6){
-                                team.size = (Math.ceil(team.size/25))   
-                            }
-                        console.log(`New size for ${team.name}: ${team.size}`)   
-                    })
-                })
-            }else{
-                scheduleData.longestStack.forEach(function(team){
-                    console.log(`Old size for ${team.name}: ${team.size}`)
+            
+            scheduleData.completedSchedules.forEach(function(schedule){
+                schedule.forEach(function(team){
                         if(team.size > 6){
                             team.size = (Math.ceil(team.size/25))   
                         }
-                    console.log(`New size for ${team.name}: ${team.size}`)   
-                }) 
-            }
-
+                })
+            })
+        
             const sheets = buildExcelSchedules(scheduleData, facilityData)
 
             res.setHeader(
@@ -581,11 +570,32 @@ const adminControllerFunctions = {
             
             res.end();
 
-            
         }catch(err){
             schedulerDebug(err);
             res.status(400);
             res.json(err);
+        }
+
+        function buildCompatibleSchedules(teamsList, scheduleTemplate){
+            let compatibleSchedulesTest = buildTeamsSchedule(teamsList, scheduleTemplate)
+            let adjustedTeamsList = teamsList
+            const conflictTeamsArray = [];
+
+            while(compatibleSchedulesTest.hasOwnProperty('longestStack')){
+                const conflictTeam = adjustedTeamsList[compatibleSchedulesTest.longestStack.length]
+                conflictTeam.conflicts = compatibleSchedulesTest.conflicts[conflictTeam.name];
+                conflictTeamsArray.push(conflictTeam)
+                
+                adjustedTeamsList = structuredClone(adjustedTeamsList).filter(function(team){
+                    return team.name != conflictTeam.name
+                });
+
+                compatibleSchedulesTest = buildTeamsSchedule(adjustedTeamsList, scheduleTemplate)
+
+            }
+                
+            compatibleSchedulesTest.conflicts = conflictTeamsArray
+            return compatibleSchedulesTest
         }
     },
 }
