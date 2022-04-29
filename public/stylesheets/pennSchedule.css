@@ -87,9 +87,13 @@ main, .page{
 	padding: .7rem;
 }
 
-#seasonButtons button, #adminSeasonButtons button{
+#seasonButtons > a, #adminSeasonButtons > a{
 	margin-left: 1rem;
 	margin-right: 1rem;
+	text-decoration: none;
+}
+
+#seasonButtons button, #adminSeasonButtons button{
 	height: 2rem;
 	width: 5rem;
 	border-radius: 5px;

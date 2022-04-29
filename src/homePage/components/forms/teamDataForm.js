@@ -8,7 +8,7 @@ const teamDataFormComponent = (function(){
     events.subscribe('teamDataLoaded', renderTeamDataForm)
     events.subscribe("teamDataChangesCancelled", unrenderTeamDataForm);
   
-    events.subscribe("optionsModified", rerenderTeamDataForm)
+    events.subscribe("optionsModified", buildAllOpts)
 
     events.subscribe("renderTeamDataValidationErrors", renderTeamDataValidationErrors)
     events.subscribe("editTeamDataSaved", unrenderTeamDataForm);
@@ -20,11 +20,6 @@ const teamDataFormComponent = (function(){
     const formDiv = document.querySelector("#entryForm");
     const overlayDiv = document.createElement('div');
     overlayDiv.id = 'overlayDiv'
-
-    function rerenderTeamDataForm(teamData){
-        unrenderTeamDataForm()
-        renderTeamDataForm(teamData)
-    }
 
     function renderTeamDataForm(teamData){
         
@@ -106,11 +101,9 @@ const teamDataFormComponent = (function(){
         if(errorText != undefined){
             teamSizeSelectorNew.parentElement.appendChild(errorText)
         }
-        
-        teamData.team.allOpts.forEach(function(option){
-            buildTeamOptionElement(elements, teamData, option)
-        })
 
+        buildAllOpts(teamData, elements)
+        
         function disableDefaultOption(){
             const values = Array.from(this.children);
             values[0].disabled = true;
@@ -119,8 +112,28 @@ const teamDataFormComponent = (function(){
         function modifyTeamSizeValue(){
             const value = teamSizeSelectorNew.value 
             events.publish("modifyTeamSizeValue", value)
+
+            const selectors = formDiv.querySelectorAll('.selector');
+                const saveButton = formDiv.querySelector('#saveTeamRequest')
+                if(Array.from(selectors).filter(function(selector){
+                    return selector[selector.selectedIndex].value == "default"
+                }).length == 0){
+                    saveButton.disabled = false;
+                }
         }
     }
+
+    function buildAllOpts(teamData, elements = {formAllOpts: document.querySelector('#formAllOpts')}){
+        if(elements.formAllOpts.firstChild){
+            while(elements.formAllOpts.firstChild){
+                elements.formAllOpts.removeChild(elements.formAllOpts.firstChild)
+            }
+        }
+        teamData.team.allOpts.forEach(function(option){
+            buildTeamOptionElement(elements, teamData, option)
+        })
+    }
+    
     function buildTeamOptionElement(elements, teamData, optionData){
         const optNum = teamData.team.allOpts.indexOf(optionData) + 1; 
         const option = buildOption(teamData, optionData, optNum);

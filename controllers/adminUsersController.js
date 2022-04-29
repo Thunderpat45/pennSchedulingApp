@@ -543,6 +543,16 @@ const adminControllerFunctions = {
             })
             facilityData.days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
+            const teamSizeErrorArray = []
+            allTeams.forEach(function(team){
+                if(team.size > facilityData.facilityMaxCapacity){
+                    teamSizeErrorArray.push(team.name)
+                }
+            })
+            if(teamSizeErrorArray.length>0){
+                throw(`Facility capacity too small for the following: ${teamSizeErrorArray}`)
+            }
+
             const templateData = {facilityData, allAvailabilities, allUsers}
             const scheduleData = buildCompatibleSchedules(allTeams, templateData)
 

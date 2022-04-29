@@ -4,11 +4,13 @@
       <% const buttonId = `${value}Button`%>
       <% const string = value.slice(0,1).toUpperCase() + value.slice(1)%>
       <% if(value == season){ %>
-        <button id = "<%=buttonId%>" disabled = true><%=string%></button>
+        <a>
+          <button id = "<%=buttonId%>" disabled = true><%=string%></button>
+        </a> 
       <%}else{%>
-        <button id = "<%=buttonId%>">
-          <a href = '../<%=value%>/home'><%=string%></a>
-        </button>
+          <a href = '../<%=value%>/home'>
+            <button id = "<%=buttonId%>"><%=string%></button>
+          </a>
       <%}%>
     <%})%>
   </div>

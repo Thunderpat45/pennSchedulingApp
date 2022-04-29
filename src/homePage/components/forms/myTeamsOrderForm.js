@@ -5,7 +5,7 @@ const myTeamsOrderFormComponent = (function(){
     events.subscribe("teamsOrderChangeRequested", renderAllTeamsOrderForm)
     events.subscribe("teamDataChangesCancelled", unrenderAllTeamsOrderForm);
     events.subscribe('myTeamsOrderChangeSaved', unrenderAllTeamsOrderForm);
-    events.subscribe('teamsOrderDataUpdated', rerenderAllTeamsOrderForm)
+    events.subscribe('teamsOrderDataUpdated', populateContent)
 
     const body = document.querySelector('body')
     const mainPage = document.querySelector('#mainPage')
@@ -14,15 +14,15 @@ const myTeamsOrderFormComponent = (function(){
     const overlayDiv = document.createElement('div');
     overlayDiv.id = 'overlayDiv'
 
-    function rerenderAllTeamsOrderForm(teamsData){
-        unrenderAllTeamsOrderForm()
-        renderAllTeamsOrderForm(teamsData)
-    }
+    // function rerenderAllTeamsOrderForm(teamsData){
+    //     unrenderAllTeamsOrderForm()
+    //     renderAllTeamsOrderForm(teamsData)
+    // }
 
     function renderAllTeamsOrderForm(teamsData){
         
         const elements = setElements();
-        populateContent(elements, teamsData);
+        populateContent(teamsData, elements);
         setEventListeners(elements, teamsData);
     
         formDiv.appendChild(elements.content);
@@ -61,8 +61,12 @@ const myTeamsOrderFormComponent = (function(){
         return {content, form, teamList, saveButton, cancelButton}
     }
 
-    function populateContent(elements, teamsData){
-
+    function populateContent(teamsData, elements = {teamList: document.querySelector('#teamOrderFormTeams'), saveButton: document.querySelector("#saveTeamOrderButton")}){
+        if(elements.teamList.firstChild){
+            while(elements.teamList.firstChild){
+                elements.teamList.removeChild(elements.teamList.firstChild)
+            }
+        }
         if(teamsData.length >=1){
             teamsData.forEach(function(team){
                 const teamTemplate = document.querySelector('#teamOrderFormTeamTemplate');

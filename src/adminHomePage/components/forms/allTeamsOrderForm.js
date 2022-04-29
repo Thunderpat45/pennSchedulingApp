@@ -5,7 +5,7 @@ const allTeamsOrderFormComponent = (function(){
     events.subscribe("allTeamsOrderChangeRequested", renderAllTeamsOrderForm)
     events.subscribe("allTeamsDataChangesCancelled", unrenderAllTeamsOrderForm);
     events.subscribe('allTeamsOrderChangeSaved', unrenderAllTeamsOrderForm);
-    events.subscribe('allTeamsOrderDataUpdated', rerenderAllTeamsOrderForm)
+    events.subscribe('allTeamsOrderDataUpdated', populateContent)
 
     const body = document.querySelector('body')
     const adminMainPage = document.querySelector('#adminMainPage')
@@ -14,15 +14,15 @@ const allTeamsOrderFormComponent = (function(){
     const overlayDiv = document.createElement('div');
     overlayDiv.id = 'overlayDiv'
 
-    function rerenderAllTeamsOrderForm(teamsData){
-        unrenderAllTeamsOrderForm()
-        renderAllTeamsOrderForm(teamsData)
-    }
+    // function rerenderAllTeamsOrderForm(teamsData){
+    //     unrenderAllTeamsOrderForm()
+    //     renderAllTeamsOrderForm(teamsData)
+    // }
 
     function renderAllTeamsOrderForm(teamsData){
         
         const elements = setElements();
-        populateContent(elements, teamsData);
+        populateContent(teamsData, elements);
         setEventListeners(elements, teamsData);
     
         formDiv.appendChild(elements.content);
@@ -61,8 +61,12 @@ const allTeamsOrderFormComponent = (function(){
         return {content, form, teamList, saveButton, cancelButton}
     }
 
-    function populateContent(elements, teamsData){
-
+    function populateContent(teamsData, elements = {teamList: document.querySelector('#adminTeamOrderFormTeams'), saveButton: document.querySelector("#saveAdminTeamOrderButton")}){
+        if(elements.teamList.firstChild){
+            while(elements.teamList.firstChild){
+                elements.teamList.removeChild(elements.teamList.firstChild)
+            }
+        }
         if(teamsData.length >=1){
             teamsData.forEach(function(team){
                 const teamTemplate = document.querySelector('#adminTeamOrderFormTeamTemplate');
