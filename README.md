@@ -97,9 +97,6 @@ Admins have all the functionalities of general users, and additionally can:
 ### Client-Side
 <ul>
   <li>Improvement: The application is not currently optimized for mobile and is not particularly responsively designed. This was largely based on the assumption that since xlsx usage is not innately simple on most mobile devices, it would be simpler to try to restrict to PC usage. Recommendation to improve mobile experience as much as possible, and identify issues that cannot be addressed (xlsx download vs view differences IPHONE, etc).</li>
-  <li>Improvement: Most modals that have more functionality than selecting just drop downs, like 'Modify Team Order' for admins, and team creation/edits for teams with multiple requests, rerender content after button clicks. This has limited effect on small modals, but large modals 'reset' the view to the top of the modal scroll bar, which can be frustrating when dealing with a large team or with the large team order list. Recommendation to adjust render somehow to maintain scroll position on re-render(?)</li>
-  <li>Bug: For user-based team creation, the save action is disabled until all drop-downs have a non-default value && team name is not empty. The function that assesses if drop-downs have non-default values is buggy, and sometimes accurately enables the save button on the last drop-down value being selected, but other times requires changes on one or more already set drop-downs to then enable the save button. </li>
-</ul>
 
 ## Implementation Details
 
