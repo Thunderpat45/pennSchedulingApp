@@ -97,6 +97,7 @@ Admins have all the functionalities of general users, and additionally can:
 ### Client-Side
 <ul>
   <li>Improvement: The application is not currently optimized for mobile and is not particularly responsively designed. This was largely based on the assumption that since xlsx usage is not innately simple on most mobile devices, it would be simpler to try to restrict to PC usage. Recommendation to improve mobile experience as much as possible, and identify issues that cannot be addressed (xlsx download vs view differences IPHONE, etc).</li>
+</ul>
 
 ## Implementation Details
 
