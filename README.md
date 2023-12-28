@@ -2,9 +2,9 @@
 ## Description
 ### Overview
 
-This is a project is a web application designed to help resolve scheduling issues in facilities that need a repeating weekly pattern, but experience conflicts between time and space/volume. This is the testing version for non-users. Please note that the site is not yet optimized for mobile usage. Additionally, if you do use a mobile device, you may need to download the xlsx file for the scheduler, as the option to view often fails to render properly (tested only on IPhone).
+This is a project is a web application designed to help resolve scheduling issues in facilities that need a repeating weekly pattern, but experience conflicts between time and space/volume. This is currently only the code for this project, as I have not yet invested the time to find an alternative to the free Heroku hosting (discontinued) which originally contained the demo version of this application.
 
-https://scheduling-app-portfolio.herokuapp.com/
+~~https://scheduling-app-portfolio.herokuapp.com/~~
 
 
 ### Contributions
